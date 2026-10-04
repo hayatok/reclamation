@@ -10,9 +10,11 @@ const EnvironmentOverlay=preload("res://environment_overlay.gd")
 const BattleFX=preload("res://battle_fx.gd")
 const BattleVisibility=preload("res://battle_visibility.gd")
 const ConvoyPlan=preload("res://convoy_plan.gd")
-const GameRules=preload("res://game_rules.gd")
+const GameRules=preload("res://settlement_rules.gd")
 const StructureVisuals=preload("res://structure_visuals.gd")
 const AudioSystem=preload("res://reclamation_audio.gd")
+const ResourceVisuals=preload("res://resource_visuals.gd")
+const EscortOrders=preload("res://escort_orders.gd")
 const CrowdSteering=preload("res://crowd_steering.gd")
 var crowd_steering=CrowdSteering.new()
 var enemy_approach_cells:Dictionary={}
@@ -52,7 +54,25 @@ var units:Array=[]
 var enemies:Array=[]
 var buildings:Array=[]
 var sites:Array=[]
-var resources:float=150
+var stockpile:Dictionary=GameRules.STARTING_STOCKPILE.duplicate(true)
+var resources:float:
+ get:return float(stockpile.get("salvage",0))
+ set(value):stockpile["salvage"]=value
+var settlement_age:int=1
+var production:RefCounted
+var economy:RefCounted
+var resource_nodes:Array=[]
+var inspected_resource:Dictionary={}
+var inspected_site:Dictionary={}
+var context_actions:Array=[]
+var context_signature:String=""
+var worker_build_page:String="economy"
+var command_heading:Label
+var queue_caption:Label
+var queue_bar:ProgressBar
+var last_idle_worker:int=-1
+var idle_worker_button:Button
+var economy_notice_until:Dictionary={}
 var kills:int=0
 var xp:float=0
 var level:int=1
@@ -165,7 +185,12 @@ var font:Font
 func _ready():
  for data in UpgradeCatalog.all():catalog_by_id[data.id]=data
  mission=campaign_state.config()
- resources=mission.initial
+ stockpile=GameRules.STARTING_STOCKPILE.duplicate(true)
+ production=load("res://settlement_production.gd").new()
+ production.setup(self)
+ economy=load("res://settlement_economy.gd").new()
+ economy.setup(self)
+ wave_clock=110
  muted=campaign_state.muted
  low_fx=campaign_state.low_fx
  performance_mode=(campaign_state.performance_mode or "--performance" in OS.get_cmdline_user_args()) and not "--quality" in OS.get_cmdline_user_args()
@@ -206,17 +231,18 @@ func _ready():
  core.hp=mission.core
  make_site("generator",mission.gen)
  make_site("pump",mission.pump)
- make_site("scrap",Vector3(-10,0,9))
- make_site("scrap",Vector3(9,0,10))
- make_site("scrap",Vector3(-6,0,-12))
- if campaign_state.current>0:
-  make_site("scrap",Vector3(-17,0,18))
-  for site in sites:
-   if site.kind=="scrap":site.stock=1000.0
+ make_resource("food",Vector3(-8,0,11),1200)
+ make_resource("salvage",Vector3(8,0,11),1800)
+ make_resource("parts",Vector3(-11,0,2),600)
+ make_resource("food",Vector3(18,0,18),1600)
+ make_resource("salvage",Vector3(-20,0,15),2200)
+ make_resource("parts",Vector3(18,0,-1),1000)
+ make_resource("salvage",Vector3(-7,0,-16),2600)
+ make_resource("food",Vector3(0,0,-24),2000)
+ make_resource("parts",Vector3(-20,0,-15),1200)
  if mission.mode=="finale":make_site("substation",Vector3(17,0,14))
- for i in 6: make_unit("guard",Vector3(-3+i*1.2,0,3))
- for i in 3: make_unit("worker",Vector3(-3+i*1.6,0,10))
- make_building("tower",Vector3(2,0,-1),true)
+ for i in 2:make_unit("guard",Vector3(-1+i*2,0,3))
+ for i in 6:make_unit("worker",Vector3(-3+(i%3)*1.4,0,12+floori(i/3.0)*1.4))
  make_ui()
  make_audio()
  battle_fx=BattleFX.new()
@@ -230,7 +256,8 @@ func _ready():
  add_child(battle_visibility)
  ghost=box(Vector3(2.1,.15,2.1),CYAN,Vector3.ZERO,self)
  ghost.visible=false
- ghost.transparency=.55
+ ghost.material_override.transparency=BaseMaterial3D.TRANSPARENCY_ALPHA
+ ghost.material_override.albedo_color.a=.35
  get_viewport().size_changed.connect(func(): drag_overlay.queue_redraw())
  if "--self-test" in OS.get_cmdline_user_args():call_deferred("run_tests")
  elif campaign_state.resume:
@@ -238,7 +265,9 @@ func _ready():
   if not load_checkpoint():show_title()
  elif not campaign_state.launch and not "--showcase" in OS.get_cmdline_user_args():show_title()
  if "--showcase" in OS.get_cmdline_user_args(): debug_run=true
- if not title_open and elapsed<1:notify(ConvoyPlan.opening(campaign_state.current),8)
+ if not title_open and elapsed<1:
+  select_headquarters()
+  notify(ConvoyPlan.opening(campaign_state.current),8)
 
 func material(c:Color,emission:float=0)->StandardMaterial3D:
  var m=StandardMaterial3D.new()
@@ -322,7 +351,7 @@ func make_building(kind:String,p:Vector3,ready_build:bool=false)->Dictionary:
  var hp=float(GameRules.building(kind).hp)
  var rad=float(GameRules.building(kind).radius)
  decorate_building(kind,n,rad)
- var b={"node":n,"kind":kind,"hp":float(hp)*(1+bonus("armor","max_hp_add")),"maxhp":float(hp)*(1+bonus("armor","max_hp_add")),"basehp":float(hp),"paid_cost":0,"powered":false,"enabled":true,"shots":0,"built":1.0 if ready_build else 0.0,"radius":rad,"cd":0.0}
+ var b={"node":n,"kind":kind,"hp":float(hp)*(1+bonus("armor","max_hp_add")),"maxhp":float(hp)*(1+bonus("armor","max_hp_add")),"basehp":float(hp),"paid_cost":0,"paid_resources":{},"queue":[],"rally":p+Vector3(0,0,rad+3),"rally_target":null,"powered":false,"enabled":true,"shots":0,"built":1.0 if ready_build else 0.0,"radius":rad,"cd":0.0}
  if not ready_build: n.scale=Vector3(1,.2,1)
  buildings.append(b)
  rebuild_navigation()
@@ -406,11 +435,14 @@ func make_ui():
  brand.add_theme_font_override("font",command_font)
  brand.custom_minimum_size.x=112
  row.add_child(brand)
- stats=label("",20,PALE)
+ stats=label("",18,PALE)
  stats.add_theme_font_override("font",command_font)
  stats.size_flags_horizontal=Control.SIZE_EXPAND_FILL
  stats.vertical_alignment=VERTICAL_ALIGNMENT_CENTER
  row.add_child(stats)
+ idle_worker_button=button("待機0",select_idle_worker,78)
+ idle_worker_button.tooltip_text=". : 次の待機作業員"
+ row.add_child(idle_worker_button)
  pause_button=button("II",toggle_pause,54)
  pause_button.tooltip_text="戦術ポーズ / Space"
  row.add_child(pause_button)
@@ -464,7 +496,7 @@ func make_ui():
  var unit_panel=field_panel(Control.PRESET_BOTTOM_LEFT,Vector4(236,-230,566,-18),Color("25281f"))
  var selected_col=VBoxContainer.new()
  unit_panel.add_child(selected_col)
- selected_col.add_child(label("生存者",14,AMBER))
+ selected_col.add_child(label("選択対象",14,AMBER))
  var unit_row=HBoxContainer.new()
  selected_col.add_child(unit_row)
  selection_portrait=TextureRect.new()
@@ -503,12 +535,14 @@ func make_ui():
  var command_panel=field_panel(Control.PRESET_BOTTOM_RIGHT,Vector4(-852,-230,-18,-18),Color("252820"))
  var command_col=VBoxContainer.new()
  command_panel.add_child(command_col)
- var tabs=HBoxContainer.new()
- command_col.add_child(tabs)
- tabs.add_child(button("仲間・指示",func():set_command_tab("people"),180))
- tabs.add_child(button("拠点・工作",func():set_command_tab("build"),180))
- tech_button=button("再生工学 [J]  180",start_research,210)
- tabs.add_child(tech_button)
+ command_heading=label("",17,PALE)
+ command_col.add_child(command_heading)
+ queue_caption=label("",13,AMBER)
+ command_col.add_child(queue_caption)
+ queue_bar=ProgressBar.new();queue_bar.custom_minimum_size=Vector2(760,5);queue_bar.show_percentage=false
+ queue_bar.add_theme_stylebox_override("background",bar_style(Color("121510"),Color("121510")))
+ queue_bar.add_theme_stylebox_override("fill",bar_style(Color("b89955"),Color("b89955")))
+ command_col.add_child(queue_bar)
  command_grid=GridContainer.new()
  command_grid.columns=5
  command_grid.add_theme_constant_override("h_separation",7)
@@ -516,7 +550,7 @@ func make_ui():
  command_col.add_child(command_grid)
  set_command_tab("people")
 
- hint=label("右クリック: 指示   Shift: 追加選択   矢印: 視点移動   Space: 停止   Backspace: 生産取消",12,Color("999d86"))
+ hint=label("H: 本部   .: 待機作業員   1/2: 戦闘員/作業員   矢印: 視点   Space: 停止",12,Color("999d86"))
  command_col.add_child(hint)
  center_notice=label("",18,AMBER)
  root_ui.add_child(center_notice)
@@ -548,6 +582,18 @@ func make_ui():
     drag_overlay.draw_arc(aim,19,0,TAU,24,RED,2)
     drag_overlay.draw_line(aim-Vector2(25,0),aim-Vector2(15,0),RED,2)
     drag_overlay.draw_line(aim+Vector2(15,0),aim+Vector2(25,0),RED,2)
+  var protected_units=[]
+  for unit in selected:
+   if unit.task=="escort" and unit.target!=null and is_instance_valid(unit.target.get("node")) and unit.target.hp>0 and not unit.target.node in protected_units:
+    protected_units.append(unit.target.node)
+    var aim=camera.unproject_position(unit.target.node.position+Vector3(0,1.0,0))
+    drag_overlay.draw_arc(aim,23,0,TAU,24,CYAN,2)
+    drag_overlay.draw_line(aim+Vector2(-8,0),aim+Vector2(-1,7),CYAN,2)
+    drag_overlay.draw_line(aim+Vector2(-1,7),aim+Vector2(10,-7),CYAN,2)
+  if not inspected.is_empty() and not GameRules.unit_kinds_for(inspected.kind).is_empty():
+   var flag=camera.unproject_position(inspected.rally+Vector3(0,.1,0))
+   drag_overlay.draw_line(flag,flag-Vector2(0,23),AMBER,2)
+   drag_overlay.draw_colored_polygon(PackedVector2Array([flag-Vector2(0,23),flag+Vector2(13,-18),flag-Vector2(0,13)]),AMBER)
   for collection in [units,buildings]:
    for actor in collection:
     if actor.hp<actor.maxhp and actor.hp>0:
@@ -584,6 +630,9 @@ func draw_minimap():
  for s in sites:
   var p=(Vector2(s.node.position.x,s.node.position.z)+Vector2(32,32))/64*size
   minimap.draw_circle(p,3,AMBER if not s.reclaimed else Color("b6c897"))
+ for resource in resource_nodes:
+  if resource.renewable or resource.stock>0:
+   minimap.draw_circle((Vector2(resource.node.position.x,resource.node.position.z)+Vector2(32,32))/64*size,2.5,resource_color(resource.resource))
  for b in buildings:
   var p=(Vector2(b.node.position.x,b.node.position.z)+Vector2(32,32))/64*size
   minimap.draw_rect(Rect2(p-Vector2(2,2),Vector2(4,4)),Color("b6c897"))
@@ -621,11 +670,14 @@ func toggle_pause():
  notify("戦術ポーズ  /  Spaceで再開" if paused else "作戦再開",2)
 
 func set_build(kind:String):
- if active_card or ended:return
- if int(GameRules.building(kind).tech)>tech_level:notify("先に再生工学を研究してください。") ;return
+ if active_card or ended or not selected.any(func(unit):return unit.kind=="worker"):return
+ var allowed=GameRules.can_build(kind,settlement_age,buildings)
+ if not allowed.ok:notify(allowed.reason,3);return
  build_mode=kind
  ghost.visible=true
- notify("左クリックで設置 / 右クリック・Escで取消。近くに工兵が必要。",6)
+ var radius=float(GameRules.building(kind).radius)
+ ghost.scale=Vector3(radius/.9,1,radius/.9)
+ notify("左クリックで建設 / Escで取消",3)
 
 func select_guards():select_kind("guard")
 func select_workers():select_kind("worker")
@@ -633,44 +685,31 @@ func select_kind(kind:String):
  inspected={}
  selected.clear()
  for u in units:
-  if u.kind==kind or kind=="guard" and u.kind=="grenade":selected.append(u)
+  if u.kind==kind or kind=="guard" and u.kind in ["grenade","siegecart"]:selected.append(u)
  update_selection()
 
 func update_selection():
  for u in units:u.ring.visible=u in selected
+ context_signature=""
+ refresh_context_commands(true)
  update_ui()
 
 func recruit(kind:String):
- if ended or active_card:return
- if int(GameRules.unit(kind).tech)>tech_level:notify("先に再生工学を研究してください。") ;return
- var cost=UNIT_COSTS.get(kind,45)
- if resources<cost:notify("資材が不足しています。") ;return
- if units.size()+recruit_queue.size()>=28:notify("部隊上限28に到達。") ;return
- resources-=cost
- recruit_queue.append({"kind":kind,"time":float(GameRules.unit(kind).time),"cost":cost})
- tone("build")
- notify("生産を予約。Backspaceで最後の予約を取消。",3)
+ if ended or active_card or inspected.is_empty():return
+ production.queue_unit(inspected,kind)
+ refresh_context_commands(true)
 
 func cancel_recruit():
- if recruit_queue.is_empty():return
- resources+=recruit_queue.pop_back().cost
- notify("生産予約を取消。資材を返却しました。",2)
+ if inspected.is_empty():return
+ production.cancel_last(inspected)
+ refresh_context_commands(true)
 
 func assign_site(kind:String):
- if ended or active_card:return
  var site=get_site(kind)
- var workers=[]
- for u in selected:
-  if u.kind=="worker":workers.append(u)
- if workers.is_empty():
-  for u in units:
-   if u.kind=="worker":workers.append(u)
- if workers.is_empty():notify("工兵がいません。Wで工兵を配備。") ;return
- for u in workers:
-  u.task="site"
-  u.target=site
-  u.goal=site.node.position+Vector3(rng.randf_range(-1,1),0,2.5)
- notify("工兵に復旧を指示。未復旧設備は資材50を消費。",4)
+ if site.is_empty():return
+ camera_focus=site.node.position
+ inspected={};inspected_resource={};selected.clear();inspected_site=site
+ update_selection()
 
 func get_site(kind:String)->Dictionary:
  for s in sites:
@@ -713,38 +752,24 @@ func _unhandled_input(event):
   if is_instance_valid(options_panel):
    if event.keycode==KEY_ESCAPE:close_options()
    return
-  if event.keycode==KEY_G:
-   attack_move=true
-   notify("攻撃移動：右クリックで目的地を指定。敵を射程に捉えると停止して迎撃。")
-  if event.keycode==KEY_ESCAPE:
-   if is_instance_valid(options_panel):close_options()
-   build_mode=""
-   ghost.visible=false
-  if event.keycode==KEY_SPACE:toggle_pause()
   if active_card:
-   if is_instance_valid(choice_panel) and event.keycode in [KEY_1,KEY_2,KEY_3]: choose_upgrade(int(event.keycode-KEY_1))
+   if is_instance_valid(choice_panel) and event.keycode in [KEY_1,KEY_2,KEY_3]:choose_upgrade(int(event.keycode-KEY_1))
    return
   if ended:return
+  if event.keycode==KEY_ESCAPE:
+   build_mode="";attack_move=false;ghost.visible=false
+   return
+  if event.keycode==KEY_SPACE:toggle_pause();return
+  if not build_mode.is_empty():return
+  if activate_context_key(event.keycode):return
   match event.keycode:
    KEY_DELETE:
     if event.shift_pressed:request_dismantle()
-   KEY_Q:recruit("guard")
-   KEY_W:
-    if not event.ctrl_pressed:recruit("worker")
-   KEY_E:set_build("tower")
-   KEY_R:set_build("wall")
-   KEY_U:set_build("factory")
-   KEY_Y:set_build("relay")
-   KEY_T:recruit("truck")
-   KEY_V:recruit("grenade")
-   KEY_B:set_build("mortar")
-   KEY_N:set_build("yard")
-   KEY_J:start_research()
    KEY_BACKSPACE:cancel_recruit()
-   KEY_F:toggle_generator()
    KEY_1:select_guards()
    KEY_2:select_workers()
-   KEY_H:camera_focus=Vector3.ZERO
+   KEY_H:select_headquarters()
+   KEY_PERIOD:select_idle_worker()
  if active_card or ended or title_open:return
  if event is InputEventMouseButton:
   if event.button_index==MOUSE_BUTTON_WHEEL_UP:camera.size=maxf(26,camera.size-3)
@@ -765,22 +790,39 @@ func _unhandled_input(event):
     drag_overlay.queue_redraw()
 
 func select_rect(a:Vector2,b:Vector2,append:bool=false):
- inspected={}
- if not append:selected.clear()
+ inspected={};inspected_site={};inspected_resource={}
  var rect=Rect2(a,b-a).abs()
- for u in units:
-  if u.kind=="convoy":continue
-  var p=camera.unproject_position(u.node.position+Vector3(0,.8,0))
-  if (rect.size.length()<10 and p.distance_to(b)<24) or (rect.size.length()>=10 and rect.has_point(p)):
-   if not u in selected:selected.append(u)
- if selected.is_empty() and rect.size.length()<10:
-  var ground=ground_at(b)
-  for building in buildings:
-   if ground.distance_to(building.node.position)<building.radius+1:inspected=building;break
+ if not append:selected.clear()
+ if rect.size.length()<10:
+  var nearest:Variant=null;var best:float=24
+  for unit in units:
+   var screen=camera.unproject_position(unit.node.position+Vector3(0,.8,0))
+   var distance=screen.distance_to(b)
+   if distance<best:nearest=unit;best=distance
+  if nearest!=null:
+   if append and nearest in selected:selected.erase(nearest)
+   elif not nearest in selected:selected.append(nearest)
+  elif selected.is_empty():
+   var ground=ground_at(b)
+   var best_building:float=INF
+   for building in buildings:
+    var distance=ground.distance_to(building.node.position)
+    if distance<building.radius+1 and distance<best_building:inspected=building;best_building=distance
+   if inspected.is_empty():
+    inspected_resource=resource_at(ground)
+    if inspected_resource.is_empty():
+     for site in sites:
+      if site.node.position.distance_to(ground)<3:inspected_site=site;break
+ else:
+  for unit in units:
+   if unit.kind=="convoy":continue
+   if rect.has_point(camera.unproject_position(unit.node.position+Vector3(0,.8,0))) and not unit in selected:selected.append(unit)
  update_selection()
 
 func command_at(p:Vector3,screen:Vector2=Vector2.INF):
- if selected.is_empty():notify("先に部隊を選択してください。1で全警備兵、2で全工兵。") ;return
+ if selected.is_empty():
+  if not inspected.is_empty():set_rally(inspected,p)
+  return
  p.x=clampf(p.x,-28,28)
  p.z=clampf(p.z,-28,28)
  var enemy_target:Variant=null
@@ -792,7 +834,7 @@ func command_at(p:Vector3,screen:Vector2=Vector2.INF):
  if enemy_target!=null:
   var fighters=0
   for u in selected:
-   if u.kind not in ["guard","grenade"]:continue
+   if u.kind not in ["guard","grenade","siegecart"]:continue
    u.task="focus_fire";u.target=enemy_target;u.goal=enemy_target.node.position;u.planned=Vector3.INF;u["focus_repath"]=0.0
    fighters+=1
   if fighters>0:
@@ -801,59 +843,83 @@ func command_at(p:Vector3,screen:Vector2=Vector2.INF):
    notify("集中攻撃："+("破砕体" if enemy_target.get("boss",false) else "重装感染者" if enemy_target.get("armored",false) else "感染者"),3)
    tone("order")
   return
+ var friendly_target:Variant=null
+ var friendly_distance:float=25.0 if screen!=Vector2.INF else 1.65
+ if not attack_move:
+  for ally in units:
+   if ally.hp<=0 or selected.any(func(unit):return unit.node==ally.node):continue
+   var separation:float=camera.unproject_position(ally.node.position+Vector3(0,1.0,0)).distance_to(screen) if screen!=Vector2.INF else ally.node.position.distance_to(p)
+   if separation<friendly_distance:friendly_distance=separation;friendly_target=ally
  var s_target:Variant=null
  var b_target:Variant=null
  for b in buildings:
-  if b.built<1 and b.node.position.distance_to(p)<3:b_target=b
+  if (b.built<1 or b.hp<b.maxhp) and b.node.position.distance_to(p)<b.radius+1:b_target=b
  for s in sites:
   if s.node.position.distance_to(p)<3:s_target=s
+ var resource_target=resource_at(p)
+ var escort_count:int=0
  for i in selected.size():
   var u=selected[i]
+  if u.kind=="convoy":continue
+  if u.kind=="worker" and not resource_target.is_empty() and b_target==null:
+   economy.assign_resource(u,resource_target)
+   continue
+  if u.kind=="worker":
+   if b_target!=null:economy.suspend_for_construction(u)
+   else:economy.cancel_assignment(u)
+  if friendly_target!=null and not (u.kind=="worker" and (s_target!=null or b_target!=null)):
+   if EscortOrders.assign(u,friendly_target,escort_count):escort_count+=1
+   continue
   u.goal=p+Vector3((i%4-1.5)*1.1,0,floori(i/4.0)*1.1)
-  u.task="attack_move" if attack_move and u.kind in ["guard","grenade"] else "move"
+  u.task="attack_move" if attack_move and u.kind in ["guard","grenade","siegecart"] else "move"
   u.target=null
   if u.kind=="worker" and s_target!=null:
    u.task="site"
    u.target=s_target
    u.goal=s_target.node.position+Vector3((i%3-1)*.9,0,2.2)
   elif u.kind=="worker" and b_target!=null:
-   u.task="build"
+   economy.suspend_for_construction(u)
+   u.task="build" if b_target.built<1 else "repair"
    u.target=b_target
    u.goal=b_target.node.position+Vector3(0,0,2)
  attack_move=false
- pulse(p,CYAN,1.5,.55)
+ if escort_count>0:
+  pulse(friendly_target.node.position,CYAN,2.2,.55)
+  notify("護衛："+{"convoy":"物資輸送隊","truck":"補給車","worker":"作業員","guard":"生存者","grenade":"爆薬手"}.get(friendly_target.kind,"仲間"),3)
+ else:pulse(p,CYAN,1.5,.55)
  tone("order")
 
-func place_building(p:Vector3)->bool:
- if int(GameRules.building(build_mode).tech)>tech_level:notify("再生工学の研究が必要です。") ;return false
- var cost=BUILD_COSTS.get(build_mode,65)
- if resources<cost:notify("資材不足。設置は取消されず、資材は消費しません。") ;return false
- if absf(p.x)>25 or absf(p.z)>25:notify("作戦区域の外には建設できません。") ;return false
+func placement_issue(kind:String,p:Vector3)->String:
+ var allowed=build_availability(kind)
+ if not allowed.ok:return allowed.reason
+ var radius:float=GameRules.building(kind).radius
+ if absf(p.x)+radius>29 or absf(p.z)+radius>29:return "作戦区域の外です"
  for block in terrain_blocks:
-  if absf(p.x-block.pos.x)<block.size.x*.5+1.8 and absf(p.z-block.pos.z)<block.size.z*.5+1.8:
-   notify("瓦礫や設備を避けて設置してください。")
-   return false
- for b in buildings:
-  if b.node.position.distance_to(p)<b.radius+2:notify("他の建物に近すぎます。") ;return false
- for s in sites:
-  if s.node.position.distance_to(p)<4.3:notify("復旧・回収の作業空間を確保してください。") ;return false
- var worker:Variant=null
- var best=18.0
- for u in units:
-  if u.kind=="worker" and u.node.position.distance_to(p)<best:
-   worker=u
-   best=u.node.position.distance_to(p)
- if worker==null:notify("18m以内に工兵が必要。工兵を前線へ移動させてください。") ;return false
- resources-=cost
- var b=make_building(build_mode,p)
- b.paid_cost=cost
- worker.task="build"
- worker.target=b
- worker.goal=p+Vector3(0,0,2)
- tone("build")
- build_mode=""
- ghost.visible=false
- notify("建設開始。工兵が到着すると組み立てます。",3)
+  if absf(p.x-block.pos.x)<block.size.x*.5+radius+.25 and absf(p.z-block.pos.z)<block.size.z*.5+radius+.25:return "遮蔽物に重なっています"
+ for building in buildings:
+  if building.node.position.distance_to(p)<building.radius+radius+.5:return "建物に近すぎます"
+ for site in sites:
+  if site.node.position.distance_to(p)<radius+2.7:return "復旧設備に近すぎます"
+ for resource in resource_nodes:
+  if not resource.renewable and resource.stock<=0:continue
+  if resource.node.position.distance_to(p)<radius+float(resource.radius)+.35:return "資源の作業場所に重なっています"
+ return ""
+
+func place_building(p:Vector3)->bool:
+ if build_mode.is_empty():return false
+ var workers=selected.filter(func(unit):return unit.kind=="worker" and unit.hp>0)
+ if workers.is_empty():return false
+ var issue=placement_issue(build_mode,p)
+ if not issue.is_empty():notify(issue,2);return false
+ var rule=GameRules.building(build_mode)
+ if not spend_cost(rule.cost):return false
+ var building=make_building(build_mode,p)
+ building.paid_resources=rule.cost.duplicate(true);building.paid_cost=rule.cost.get("salvage",0)
+ for worker in workers:
+  economy.suspend_for_construction(worker)
+  worker.task="build";worker.target=building;worker.goal=p+Vector3(0,0,float(rule.radius)+1)
+  worker.route.clear();worker.planned=Vector3.INF
+ tone("build");build_mode="";ghost.visible=false;context_signature=""
  return true
 
 func _process(delta):
@@ -865,12 +931,15 @@ func _process(delta):
  notice_timer-=delta
  if notice_timer<=0:center_notice.text=""
  drag_overlay.queue_redraw()
- if ghost.visible:ghost.position=ground_at(get_viewport().get_mouse_position())+Vector3(0,.08,0)
+ if ghost.visible:
+  var build_point=ground_at(get_viewport().get_mouse_position())
+  ghost.position=build_point+Vector3(0,.08,0)
+  ghost.material_override.albedo_color=Color(.55,.7,.55,.35) if placement_issue(build_mode,build_point).is_empty() else Color(.8,.23,.15,.4)
  var pan=Vector3.ZERO
- if Input.is_physical_key_pressed(KEY_LEFT) or Input.is_physical_key_pressed(KEY_A):pan+=Vector3(-1,0,1)
- if Input.is_physical_key_pressed(KEY_RIGHT) or Input.is_physical_key_pressed(KEY_D):pan+=Vector3(1,0,-1)
+ if Input.is_physical_key_pressed(KEY_LEFT):pan+=Vector3(-1,0,1)
+ if Input.is_physical_key_pressed(KEY_RIGHT):pan+=Vector3(1,0,-1)
  if Input.is_physical_key_pressed(KEY_UP):pan+=Vector3(-1,0,-1)
- if Input.is_physical_key_pressed(KEY_DOWN) or Input.is_physical_key_pressed(KEY_S):pan+=Vector3(1,0,1)
+ if Input.is_physical_key_pressed(KEY_DOWN):pan+=Vector3(1,0,1)
  camera_focus+=pan*dt*16
  camera_focus.x=clampf(camera_focus.x,-18,18)
  camera_focus.z=clampf(camera_focus.z,-18,18)
@@ -892,6 +961,7 @@ func _process(delta):
  if pending_card_delay>0:
   pending_card_delay-=dt
   if pending_card_delay<=0 and active_card and not ended:display_cards()
+ refresh_context_commands()
  update_ui()
  if debug_run:
   if render_frames>20:
@@ -909,14 +979,14 @@ func simulate(dt:float):
  if threat_voice_clock<=0 and not enemies.is_empty():
   audio_system.play_event("infected_growl" if enemies.size()>60 else "infected_moan",enemies[0].node.position)
   threat_voice_clock=visual_rng.randf_range(5,10)
- noise=move_toward(noise,75 if generator_on else 12,dt*5)
+ noise=move_toward(noise,clampf(8+units.size()*.55+settlement_age*3+(40 if generator_on else 0)+active_producers()*2.5,0,100),dt*3)
  wave_clock-=dt
  combo_clock-=dt
  if combo_clock<=0:combo=0
  if wave_clock<=0:
   wave+=1
   spawn_wave()
-  wave_clock=maxf(14,30-wave*.8)-4 if generator_on else maxf(26,34-wave*.4)
+  wave_clock=(95.0 if settlement_age==1 else maxf(40,64-noise*.23) if settlement_age==2 else maxf(25,43-noise*.16))
  update_shells(dt)
  update_corpses(dt)
  for u in units.duplicate():
@@ -931,6 +1001,8 @@ func simulate(dt:float):
    u.node.queue_free()
    continue
   u.cd-=dt
+  if u.kind=="worker":economy.update_worker(u,dt)
+  if u.task=="escort":EscortOrders.update(u,units,dt)
   if u.task=="focus_fire":
    if u.target==null or u.target.get("dead",false) or not is_instance_valid(u.target.get("node")):
     u.task="idle";u.target=null;u.goal=u.node.position;u.route.clear();u.planned=Vector3.INF
@@ -962,11 +1034,22 @@ func simulate(dt:float):
   elif u.task=="build" and u.target!=null:
    var b=u.target
    if is_instance_valid(b.node):
-    b.built=minf(1,b.built+dt*.13*construction_multiplier())
+    b.built=minf(1,b.built+dt/maxf(1,float(GameRules.building(b.kind).build_time))*construction_multiplier())
     b.node.scale.y=.2+.8*b.built
-    if b.built>=1:u.task="idle";tone("build")
+    if b.built>=1:
+     building_completed(b)
+     u.task="idle";economy.resume_after_construction(u);tone("build")
    else:u.task="idle"
-  if u.kind in ["guard","grenade"] and u.cd<=0:
+  elif u.task=="repair" and u.target!=null:
+   var building=u.target
+   if is_instance_valid(building.get("node")) and building.hp>0:
+    var healed=minf(building.maxhp-building.hp,dt*8*construction_multiplier())
+    var paid=minf(resources,healed*.1)
+    building.hp=minf(building.maxhp,building.hp+paid*10);resources-=paid
+    if building.hp>=building.maxhp:
+     u.task="idle";u.target=null;economy.resume_after_construction(u)
+   else:u.task="idle";u.target=null;economy.resume_after_construction(u)
+  if u.kind in ["guard","grenade","siegecart"] and u.cd<=0:
    var weapon=GameRules.unit(u.kind)
    var range_value=float(weapon.range)*(1+bonus("range","range_add"))
    var target:Variant=null
@@ -974,17 +1057,19 @@ func simulate(dt:float):
     if u.target!=null and u.node.position.distance_to(u.target.node.position)<=range_value:target=u.target
    else:target=nearest_enemy(u.node.position,range_value)
    if target!=null:
-    fire(u.node.position+Vector3(0,1,0),target,float(weapon.damage),u.kind,u)
+    fire(u.node.position+Vector3(0,1.6 if u.kind=="siegecart" else 1,0),target,float(weapon.damage),"mortar" if u.kind=="siegecart" else u.kind,u)
     u.cd=float(weapon.cooldown)/(1+bonus("rate","attack_speed_add"))
     u["shot_cycle"]=u.cd
-  if u.kind not in ["truck","convoy"]:
+  if u.kind not in ["truck","convoy","siegecart"]:
    var attack_age=elapsed-float(u.get("attack_at",-100))
    var cycle=float(u.get("shot_cycle",.72))
    var reload_phase=clampf((attack_age-.2)/maxf(.2,cycle-.2),0,1) if attack_age>.2 and attack_age<cycle else -1.0
-   ActorVisuals.pose(u.node,elapsed*8+u.node.get_instance_id()%17,u.node.position.distance_to(previous_position)>.001,attack_age,reload_phase,u.kind=="worker" and u.task in ["site","build"] and u.node.position.distance_to(u.goal)<.5)
+   ActorVisuals.pose(u.node,elapsed*8+u.node.get_instance_id()%17,u.node.position.distance_to(previous_position)>.001,attack_age,reload_phase,u.kind=="worker" and u.task in ["site","build","repair","gather"] and u.node.position.distance_to(u.goal)<.5)
  for b in buildings.duplicate():
   if b.hp<=0:
    if b.kind=="hq":finish(false);return
+   production.on_building_destroyed(b)
+   remove_garden_resource(b)
    buildings.erase(b)
    rebuild_navigation()
    pulse(b.node.position,RED,3,.5)
@@ -1063,38 +1148,6 @@ func simulate(dt:float):
  if ended:return
  if xp>=xp_needed() and not active_card:offer_upgrade()
 
-func work_site(u:Dictionary,dt:float):
- var s=u.target
- if s.kind=="scrap":
-  if s.stock<=0:u.task="idle";return
-  u.work+=dt
-  if u.work>=1.2/(1+bonus("salvage","salvage_speed_add")):
-   u.work=0
-   var amount=minf(s.stock,4*(1.4 if near_yard(u.node.position) else 1.0))
-   s.stock-=amount
-   resources+=amount
-   gathered+=amount
-   pulse(u.node.position,AMBER,.45,.3)
- elif not s.reclaimed:
-  if not s.paid:
-   if resources<50:
-    if u.work<=0:notify("復旧には資材50が必要。残骸を回収してください。")
-    u.work=3
-    u.work-=dt
-    return
-   resources-=50
-   s.paid=true
-  s.progress=minf(1,s.progress+dt*.035)
-  if s.progress>=1:
-   s.reclaimed=true
-   if s.kind=="pump":rerolls+=1
-   s.label.text=site_title(s.kind)+" [復旧済]"
-   s.label.modulate=CYAN
-   pulse(s.node.position,CYAN,5,1)
-   tone("power")
-   notify("発電所を復旧。Fで起動し、揚水場にも工兵を。" if s.kind=="generator" else mission.facility+"を復旧。発電所を起動して防衛。",7)
- else:
-  u.task="idle"
 
 func nearest_enemy(p:Vector3,radius:float,excluded:Array=[])->Variant:
  var best=radius*radius
@@ -1108,15 +1161,16 @@ func nearest_enemy(p:Vector3,radius:float,excluded:Array=[])->Variant:
 func fire(origin:Vector3,target:Dictionary,base:float,kind:String,source:Dictionary={}):
  if not source.is_empty():
   source["attack_at"]=elapsed
-  if kind in ["guard","grenade"]:
+  if kind in ["guard","grenade"] or source.get("kind","")=="siegecart":
    var aim=target.node.position-source.node.position
    if aim.length_squared()>.01:source.node.rotation.y=atan2(-aim.x,-aim.z)
- var ammo_cost=(3.0 if kind in ["grenade","mortar"] else 1.0)*maxf(.4,1-bonus("supply","ammo_reduction_add")-(.1 if kind in ["guard","grenade"] and mobile_aura(origin) else 0.0))
+ if source.get("kind","")=="siegecart":origin=source.node.to_global(Vector3(0,2.116018,-1.205950))
+ var ammo_cost=(3.0 if kind in ["grenade","mortar"] else 1.0)*maxf(.4,1-bonus("supply","ammo_reduction_add")-(.1 if (kind in ["guard","grenade"] or source.get("kind","")=="siegecart") and mobile_aura(origin) else 0.0))
  var supplied=ammo>=ammo_cost
  if supplied:ammo-=ammo_cost
  var damage=base*(1+bonus("damage","damage_add"))*(1 if supplied else .4)
  var conditional=bonus("overload","conditional_damage_add") if noise>=60 else 0.0
- if kind in ["guard","grenade"] and mobile_aura(origin):conditional+=.2
+ if (kind in ["guard","grenade"] or source.get("kind","")=="siegecart") and mobile_aura(origin):conditional+=.2
  damage*=1+minf(.5,conditional)
  var critical=rng.randf()<bonus("crit","crit_chance_add")
  if critical:damage*=1.5+bonus("critpower","crit_multiplier_add")
@@ -1266,17 +1320,15 @@ func wave_direction_text(number:int)->String:
  return "・".join(words)
 
 func spawn_wave():
- var count=18+wave*9+(35 if generator_on else 0)
- if incoming_surge:
-  count+=45
-  incoming_surge=false
- count=mini(int(count*(mission.pressure if generator_on else 1.0)),250)
+ var count=mini(20,6+wave*2) if settlement_age==1 else mini(110,22+wave*4+int(noise*.25)) if settlement_age==2 else mini(240,55+wave*7+int(noise*.35))
+ if incoming_surge:count+=30;incoming_surge=false
+ count=mini(int(count*mission.pressure),280)
  var side=wave_side(wave)
  for i in count:
   var spawn_side=(side+(1 if i%3==0 else 0))%3 if campaign_state.current==2 and wave>=3 else side
   var p=Vector3(-28+rng.randf_range(-1,1),0,rng.randf_range(-20,15)) if spawn_side==0 else (Vector3(rng.randf_range(-24,24),0,-28+rng.randf_range(-1,1)) if spawn_side==1 else Vector3(28+rng.randf_range(-1,1),0,rng.randf_range(-20,15)))
-  var armored=generator_on and campaign_state.current>=1 and wave>=4 and i%(10 if campaign_state.current==2 else 16)==0
-  var fast=wave>=2 and i%(3 if campaign_state.current==1 else 5)==0 and not armored
+  var armored=settlement_age>=3 and generator_on and wave>=4 and i%(10 if campaign_state.current==2 else 16)==0
+  var fast=settlement_age>=2 and wave>=2 and i%(3 if campaign_state.current==1 else 5)==0 and not armored
   spawn_enemy(p,fast,armored)
  notify("襲撃 %02d  /  %sから %d体接近"%[wave,wave_direction_text(wave),count],6)
  tone("warning")
@@ -1408,7 +1460,7 @@ func finish(won:bool):
   for child in get_children():
    if child.has_method("restore_district_lights"):child.restore_district_lights()
   if mission.mode=="convoy":camera_focus=Vector3(18,0,18)
- if FileAccess.file_exists("user://checkpoint.json"):DirAccess.remove_absolute("user://checkpoint.json")
+ if FileAccess.file_exists("user://settlement_v2/checkpoint.json"):DirAccess.remove_absolute("user://settlement_v2/checkpoint.json")
  active_card=false
  if is_instance_valid(choice_panel):choice_panel.queue_free()
  modal=PanelContainer.new()
@@ -1432,81 +1484,6 @@ func finish(won:bool):
  v.add_child(button("作戦選択へ",return_title,440))
  audio_system.play_event("victory" if won else "defeat")
 
-func update_ui():
- if stats==null:return
- stats.text="廃材  %03d     弾薬  %03d     仲間  %02d     成長  %02d"%[int(resources),int(ammo),units.size(),level]
- var gen=get_site("generator")
- var pump=get_site("pump")
- objective.text="01  発電所  %s\n02  %s  %s"%[("稼働中" if generator_on else "復旧済" if gen.reclaimed else "%d%%"%int(gen.progress*100)),mission.facility,("復旧済" if pump.reclaimed else "%d%%"%int(pump.progress*100))]
- if mission.mode=="convoy":
-  var convoy=convoy_unit()
-  objective.text+="\n輸送  %d%%"%int(convoy_progress()*100) if convoy_started else "\n物資を積んで輸送隊を出発"
-  if not convoy.is_empty():objective.text+="  耐久 %d"%int(convoy.hp)
-  if not convoy_pending.is_empty():objective.text+="\n%s  接近 %d秒"%[["西：追走群","東：封鎖線崩壊","南：疾走体"][int(convoy_pending.stage)],ceili(maxf(0,convoy_pending.clock))]
-  mission_action_button.text="輸送路を選ぶ / 廃材80" if not convoy_started else "輸送隊へ視点移動"
-  convoy_pause_button.visible=convoy_started
-  convoy_pause_button.text="車列を再発進" if convoy_halted else "車列を停車"
- elif mission.mode=="finale":
-  var sub=get_site("substation")
-  objective.text+="\n03  避難所変電所  %s"%["復旧済" if sub.get("reclaimed",false) else "%d%%"%int(sub.get("progress",0)*100)]
-  objective.text+="\n送電 %03d/%d秒  破砕体:%s"%[int(hold_time),int(mission.hold),"撃破" if boss_defeated else "接近" if boss_spawned else "未到達"]
-  mission_action_button.text="工兵を避難所変電所へ"
- else:objective.text+="\n03  揚水 %03d / %d秒"%[int(hold_time),int(mission.hold)]
- if is_instance_valid(tech_button):
-  tech_button.text="再生工学 完成" if tech_level>=2 else "再生工学 %d%%"%int(research_time/30*100) if research_active else "再生工学 [J]  180"
-  tech_button.disabled=tech_level>=2 or research_active
-
- pause_button.text="再開" if paused else "II"
- core_bar.value=buildings[0].hp if not buildings.is_empty() else 0
- guide.text=tutorial_instruction()
- guide.visible=not guide.text.is_empty()
- generator_button.text="発電停止 [F]" if generator_on else "発電起動 [F]"
- if not first_activation and gen.reclaimed:generator_button.text="起動 [F]  /  増援まで12秒以内"
- status.text="拠点耐久 %d   騒音 %d\n次の群れまで %02d秒  /  襲撃 %02d"%[int(core_bar.value),int(noise),int(maxf(0,wave_clock)),wave]
- var radar=false
- for b in buildings:
-  if b.kind=="relay" and b.powered:radar=true
- if radar:status.text+="\nレーダー：次は"+wave_direction_text(wave+1)+" / "+("重装混成" if campaign_state.current>0 and wave>=3 else "感染群")
- selection_info.text="%02d部隊  %s\n撃破 %04d   XP %d / %d"%[selected.size(),selected_order_text(),kills,int(xp),int(xp_needed())]
- supply_status.text="電力 %.1f / %.1f   生産 %d\n%s"%[power_used,power_capacity,recruit_queue.size(),"予備弾: 威力40% / 補給不足" if ammo<1 else "補給 %03d / 400"%int(ammo)]
- context_button.visible=not inspected.is_empty() and is_instance_valid(inspected.get("node")) and inspected.get("kind")=="factory"
- dismantle_button.visible=can_dismantle(inspected)
- if dismantle_button.visible:dismantle_button.text="解体 +%d"%dismantle_refund(inspected)
- xp_bar.visible=not context_button.visible and not dismantle_button.visible
- supply_status.visible=xp_bar.visible
- if not inspected.is_empty() and is_instance_valid(inspected.get("node")):
-  var names={"hq":"司令拠点","tower":"防衛塔","wall":"防壁","factory":"工廠","relay":"電力中継","mortar":"廃材臼砲","yard":"廃材回収所"}
-  selection_info.text="%s  耐久%d / %d\n%s"%[names.get(inspected.kind,inspected.kind),int(inspected.hp),int(inspected.maxhp),"建設 %d%%"%int(inspected.built*100) if inspected.built<1 else "給電中" if inspected.powered else "手動 / 未給電"]
- if context_button.visible:
-  selection_info.text="工廠  %s\n資材1.5/秒 → 補給8/秒"%[factory_status(inspected)]
- var portrait_kind="guard"
- var hp_sum=0.0
- var max_sum=0.0
- if not selected.is_empty():
-  portrait_kind=selected[0].kind
-  for u in selected:hp_sum+=u.hp;max_sum+=u.maxhp
- elif not inspected.is_empty() and is_instance_valid(inspected.get("node")):
-  portrait_kind=inspected.kind;hp_sum=inspected.hp;max_sum=inspected.maxhp
- if portrait_kind!=last_portrait_kind:
-  selection_portrait.texture=portrait_for(portrait_kind)
-  last_portrait_kind=portrait_kind
- selected_hp.max_value=maxf(1,max_sum)
- selected_hp.value=hp_sum
- minimap.queue_redraw()
- combo_label.text="%d  KILLS"%combo if combo>=10 and combo_clock>0 else ""
- combo_label.modulate.a=minf(1,combo_clock)
- xp_bar.max_value=xp_needed()
- xp_bar.value=xp
- var cursor=get_viewport().get_mouse_position()
- for s in sites:
-  if s.kind=="scrap":s.label.text="資材の残骸  %d"%int(s.stock)
-  var hovered=camera.unproject_position(s.node.position+Vector3(0,1,0)).distance_to(cursor)<34
-  var assigned=selected.any(func(unit):return unit.target==s and unit.task=="site")
-  s.label.visible=hovered or assigned or (s.kind!="scrap" and not s.reclaimed)
- for building in buildings:
-  var hovered=camera.unproject_position(building.node.position+Vector3(0,1.2,0)).distance_to(cursor)<30
-  for child in building.node.get_children():
-   if child is Label3D and child.has_meta("tactical_label"):child.visible=hovered or inspected==building
 
 func beam(a:Vector3,b:Vector3,c:Color,duration:float,width:float=.055):
  if is_instance_valid(battle_fx):battle_fx.beam(a,b,c,duration,width)
@@ -1612,46 +1589,100 @@ func showcase_step():
   get_tree().quit()
 
 func run_tests():
- print("TEST_START")
- var before=resources
- build_mode="tower"
- assert(not place_building(Vector3(0,0,8)),"Overlap must reject")
- assert(resources==before,"Rejected placement cannot spend")
- build_mode="wall"
- assert(place_building(Vector3(5,0,5)),"Legal placement must succeed")
- assert(resources==before-18,"Spend exactly once")
- for i in 1200:simulate(.05)
- assert(wave>=1,"Wave advances")
- print("TEST_WAVE_AND_ECONOMY_OK wave=",wave," kills=",kills)
- if active_card:choose_upgrade(0)
- var e_count=enemies.size()
+ print("TEST_START foundation_v09")
+ set_process(false)
+ muted=true
+ audio_system.set_muted(true)
+ # Bounded scene integration fixtures, not a full campaign or timing replay.
+ campaign_state.current=0
+ mission=campaign_state.config()
+ assert(not title_open and not ended and not active_card,"Self-test starts in the live first mission")
+ assert(settlement_age==1 and units.size()==8,"Opening fixture has six workers and two defenders")
+ assert(production.population_used()==8 and production.population_cap()==10,"Opening population is 8/10")
+ var hq=buildings[0]
+ var initial_stock=stockpile.duplicate(true)
+ var initial_count=units.size()
+ select_headquarters()
+ assert(activate_context_key(KEY_Q),"HQ exposes contextual worker hotkey")
+ assert(units.size()==initial_count and hq.queue.size()==1,"Worker recruitment queues without an instant spawn")
+ assert(stockpile.food==initial_stock.food-50 and stockpile.salvage==initial_stock.salvage and stockpile.parts==initial_stock.parts,"Worker costs exactly 50 food")
+ assert(hq.queue[0].paid_cost=={"food":50},"Queue retains its paid resource vector")
+ production.update(17)
+ assert(units.size()==initial_count and is_equal_approx(hq.queue[0].remaining,1),"Worker waits for the full training time")
+ production.update(1)
+ assert(units.size()==initial_count+1 and hq.queue.is_empty() and units.back().kind=="worker","HQ completes its worker locally")
+ assert(units.back().node.position.distance_to(hq.node.position)<7,"Worker emerges at its producer")
+ assert(production.queue_unit(hq,"worker") and production.queue_unit(hq,"worker"),"Population fixture queues two more paid workers")
+ production.update(36)
+ assert(production.population_used()==10 and hq.queue.size()==1 and hq.queue[0].waiting=="population","Completed training waits at the population cap")
+ assert(stockpile.food==initial_stock.food-150,"Training completion never charges twice")
+ # Explicit completed-house fixture checks the population gate without replaying construction.
+ make_building("house",Vector3(-4,0,19),true)
+ production.update(.01)
+ assert(production.population_cap()==15 and production.population_used()==11 and hq.queue.is_empty(),"A completed house releases the population wait")
+ print("TEST_LOCAL_PRODUCTION_AND_POPULATION_OK")
+ var worker=units.filter(func(unit):return unit.kind=="worker")[0]
+ selected=[worker];inspected={};inspected_resource={};inspected_site={};update_selection()
+ var before=stockpile.duplicate(true)
+ set_build("tower")
+ assert(not place_building(hq.node.position),"Overlapping placement must reject")
+ assert(stockpile==before,"Rejected placement cannot spend resources")
+ set_build("wall")
+ assert(place_building(Vector3(5,0,5)),"Selected worker can place a legal wall")
+ assert(stockpile.salvage==before.salvage-18 and stockpile.food==before.food and stockpile.parts==before.parts,"Wall spends exactly 18 salvage once")
+ assert(buildings.back().built==0 and buildings.back().paid_resources=={"salvage":18} and worker.task=="build" and worker.target==buildings.back(),"Paid wall remains a worker-owned construction job")
+ assert(units.filter(func(unit):return unit.kind=="worker" and unit.task=="build").size()==1,"Construction never recruits unselected workers")
+ print("TEST_SELECTED_CONSTRUCTION_OK")
  spawn_enemy(Vector3(0,0,0))
- var e=enemies.back()
+ var enemy=enemies.back()
  var old_kills=kills
  var old_xp=xp
- hit(e,1000,false)
- hit(e,1000,false)
- assert(kills==old_kills+1,"Death counted once")
- assert(xp==old_xp+6,"XP counted once")
+ hit(enemy,1000,false)
+ hit(enemy,1000,false)
+ assert(kills==old_kills+1 and xp==old_xp+6,"An enemy death and its XP are counted once")
+ xp=xp_needed()
  offer_upgrade()
- assert(cards.size()==3 and cards[0].id!=cards[1].id and cards[0].id!=cards[2].id and cards[1].id!=cards[2].id,"Unique cards")
+ assert(cards.size()==3 and cards[0].id!=cards[1].id and cards[0].id!=cards[2].id and cards[1].id!=cards[2].id,"Growth offers three distinct cards")
  var pick=cards[0].id
  choose_upgrade(0)
  var rank=upgrades[pick]
  choose_upgrade(0)
- assert(upgrades[pick]==rank,"Choice accepted once")
- assert(not active_card,"Choice closes")
+ assert(upgrades[pick]==rank and not active_card,"Repeated growth choice is accepted once and closes")
  print("TEST_XP_CARDS_DEATH_OK")
+ # Isolate the mobile-artillery weapon contract from whichever growth card was drawn.
+ var saved_upgrades=upgrades.duplicate(true)
+ upgrades={"fortress":1}
+ var truck=make_unit("truck",Vector3(-7,0,0))
+ var siege=make_unit("siegecart",Vector3(-8,0,0))
+ spawn_enemy(Vector3(-2,0,3))
+ var artillery_target=enemies.back()
+ ammo=100
+ fire(Vector3.ZERO,artillery_target,96,"mortar",siege)
+ var shell=shells.back()
+ var aim=(artillery_target.node.position-siege.node.position).normalized()
+ assert((-siege.node.basis.z).dot(aim)>.999,"Siege cart aims its forward axis at the target")
+ assert(shell.from.distance_to(siege.node.to_global(Vector3(0,2.116018,-1.205950)))<.001,"Siege shell launches from its transformed muzzle")
+ assert(is_equal_approx(shell.damage,115.2) and is_equal_approx(ammo,97.3),"Fortress aura grants siege cart +20% damage and 10-point ammo reduction")
+ truck.node.position=Vector3(24,0,24)
+ fire(Vector3.ZERO,artillery_target,96,"mortar",siege)
+ assert(is_equal_approx(shells.back().damage,96) and is_equal_approx(ammo,94.3),"Siege cart loses the fortress bonus outside its supply truck aura")
+ upgrades=saved_upgrades
+ print("TEST_SIEGECART_AURA_AIM_MUZZLE_OK")
+ # Explicit restored M1 fixture verifies the Age III terminal gate.
  get_site("generator").reclaimed=true
  get_site("pump").reclaimed=true
  generator_on=true
+ settlement_age=2;tech_level=2
  hold_time=mission.hold-.01
- simulate(.02)
- assert(ended,"Victory terminal")
- print("TEST_VICTORY_OK")
+ update_mission(.02)
+ assert(not ended and hold_time<mission.hold,"Restored facilities cannot win before Age III")
+ settlement_age=3;tech_level=3
+ update_mission(.02)
+ assert(ended and hold_time==mission.hold,"Age III restored first mission reaches victory")
+ print("TEST_AGE_III_VICTORY_OK")
  print("ALL_TESTS_PASSED")
  await get_tree().process_frame
- get_tree().quit()
+ get_tree().quit(0)
 
 func capture_frame():
  await RenderingServer.frame_post_draw
@@ -1802,10 +1833,10 @@ func show_title():
  v.add_child(label("オルタ湾復旧作戦",25,Color("b9b29b")))
  v.add_child(label("2091.  廃墟に電力を、水を、生活を。",16,Color("939985")))
  v.add_child(label(" ",10))
- if FileAccess.file_exists("user://checkpoint.json"):
-  var saved=JSON.parse_string(FileAccess.get_file_as_string("user://checkpoint.json"))
+ if FileAccess.file_exists("user://settlement_v2/checkpoint.json"):
+  var saved=JSON.parse_string(FileAccess.get_file_as_string("user://settlement_v2/checkpoint.json"))
   if valid_checkpoint(saved):v.add_child(button("作戦を再開",resume_checkpoint,555))
-  else:v.add_child(label("保存データを読み込めません。作戦を新規開始してください。",14,RED))
+  else:v.add_child(label("旧版の保存は元のリリースで再開できます。この版は新規作戦から開始。",14,RED))
  for i in 3:
   var m=campaign_state.MISSIONS[i]
   var unlocked=i<campaign_state.unlocked
@@ -1835,7 +1866,7 @@ func return_title():
  get_tree().reload_current_scene()
 
 func resume_checkpoint():
- var data=JSON.parse_string(FileAccess.get_file_as_string("user://checkpoint.json"))
+ var data=JSON.parse_string(FileAccess.get_file_as_string("user://settlement_v2/checkpoint.json"))
  if not valid_checkpoint(data):
   notify("保存データを読み込めません。新しい作戦を開始してください。",5)
   return
@@ -1849,54 +1880,75 @@ func from_data(a:Array)->Vector3:return Vector3(float(a[0]),float(a[1]),float(a[
 
 func save_checkpoint(announce:bool=true):
  if ended or title_open:return
- var data={"version":1,"preferred_family":preferred_family,"family_misses":family_misses,"blast_queue":[],"ammo":ammo,"rerolls":rerolls,"build_boost":build_boost,"victory_boost":victory_boost,"recruit_queue":recruit_queue.duplicate(true),"mission":campaign_state.current,"resources":resources,"gathered":gathered,"kills":kills,"xp":xp,"level":level,"upgrades":upgrades.duplicate(),"elapsed":elapsed,"wave_clock":wave_clock,"wave":wave,"hold":hold_time,"noise":noise,"generator":generator_on,"first_activation":first_activation,"surge":incoming_surge,"paused":paused,"active_card":active_card,"rng":str(rng.state),"card_rng":str(card_rng.state),"cards":[],"units":[],"enemies":[],"buildings":[],"sites":[],"selected":[]}
+ if DirAccess.make_dir_recursive_absolute("user://settlement_v2")!=OK:
+  if announce:notify("保存先を作成できませんでした。",3)
+  return
+ var data={"version":2,"stockpile":stockpile.duplicate(),"settlement_age":settlement_age,"resource_nodes":[],"preferred_family":preferred_family,"family_misses":family_misses,"blast_queue":[],"ammo":ammo,"rerolls":rerolls,"build_boost":build_boost,"victory_boost":victory_boost,"recruit_queue":recruit_queue.duplicate(true),"mission":campaign_state.current,"resources":resources,"gathered":gathered,"kills":kills,"xp":xp,"level":level,"upgrades":upgrades.duplicate(),"elapsed":elapsed,"wave_clock":wave_clock,"wave":wave,"hold":hold_time,"noise":noise,"generator":generator_on,"first_activation":first_activation,"surge":incoming_surge,"paused":paused,"active_card":active_card,"rng":str(rng.state),"card_rng":str(card_rng.state),"cards":[],"units":[],"enemies":[],"buildings":[],"sites":[],"selected":[]}
  data.merge({"tech_level":tech_level,"research_active":research_active,"research_time":research_time,"convoy_started":convoy_started,"convoy_index":convoy_index,"boss_spawned":boss_spawned,"boss_defeated":boss_defeated,"convoy_route_choice":convoy_route_choice,"convoy_halted":convoy_halted,"convoy_encounter_stage":convoy_encounter_stage,"convoy_pending":{},"shells":[]})
  if not convoy_pending.is_empty():data.convoy_pending={"stage":convoy_pending.stage,"clock":convoy_pending.clock}
  for shell in shells:
   data.shells.append({"from":vec_data(shell.from),"to":vec_data(shell.to),"time":shell.time,"duration":shell.duration,"damage":shell.damage,"radius":shell.radius,"kind":shell.kind,"critical":shell.critical})
  for event in blast_queue:data.blast_queue.append({"pos":vec_data(event.pos),"radius":event.radius,"damage":event.damage,"generation":event.generation})
  for card in cards:data.cards.append(card.id)
- for b in buildings:data.buildings.append({"kind":b.kind,"pos":vec_data(b.node.position),"hp":b.hp,"maxhp":b.maxhp,"built":b.built,"cd":b.cd,"shots":b.shots,"enabled":b.enabled,"paid_cost":b.get("paid_cost",0)})
+ for b in buildings:data.buildings.append({"kind":b.kind,"pos":vec_data(b.node.position),"hp":b.hp,"maxhp":b.maxhp,"built":b.built,"cd":b.cd,"shots":b.shots,"enabled":b.enabled,"paid_cost":b.get("paid_cost",0),"paid_resources":b.get("paid_resources",{}).duplicate(),"queue":b.get("queue",[]).duplicate(true),"rally":vec_data(b.get("rally",b.node.position)),"rally_target_index":resource_nodes.find(b.get("rally_target"))})
  for s in sites:data.sites.append({"kind":s.kind,"pos":vec_data(s.node.position),"progress":s.progress,"reclaimed":s.reclaimed,"stock":s.stock,"paid":s.paid})
+ for resource in resource_nodes:
+  data.resource_nodes.append({"resource":resource.resource,"pos":vec_data(resource.node.position),"stock":resource.stock,"renewable":resource.renewable,"radius":resource.radius,"source_building_index":buildings.find(resource.source_building)})
  for u in units:
   var target_type=""
   var target_index=-1
   if u.target!=null:
    if u.task=="site":target_type="site";target_index=sites.find(u.target)
-   if u.task=="build":target_type="build";target_index=buildings.find(u.target)
+   if u.task in ["build","repair"]:target_type="build";target_index=buildings.find(u.target)
    if u.task=="focus_fire":target_type="enemy";target_index=enemies.find(u.target)
-  data.units.append({"kind":u.kind,"pos":vec_data(u.node.position),"hp":u.hp,"maxhp":u.maxhp,"goal":vec_data(u.goal),"task":u.task,"target_type":target_type,"target_index":target_index,"cd":u.cd,"work":u.work,"shots":u.shots})
+   if u.task=="escort":target_type="unit";target_index=units.find(u.target)
+   if u.task=="gather":target_type="resource";target_index=resource_nodes.find(u.target)
+  data.units.append({"kind":u.kind,"pos":vec_data(u.node.position),"hp":u.hp,"maxhp":u.maxhp,"goal":vec_data(u.goal),"task":u.task,"target_type":target_type,"target_index":target_index,"escort_slot":u.get("escort_slot",0),"escort_repath":u.get("escort_repath",0),"yaw":u.node.rotation.y,"cd":u.cd,"work":u.work,"shots":u.shots})
+  var saved=data.units.back()
+  for field in ["cargo_kind","cargo","resource_kind","economy_phase"]:
+   if u.has(field):saved[field]=u[field]
+  saved["resource_target_index"]=resource_nodes.find(u.get("resource_target"))
+  saved["dropoff_index"]=buildings.find(u.get("dropoff_target"))
+  var assignment=u.get("return_assignment",{})
+  saved["return_assignment"]={"resource":assignment.get("resource",""),"target_index":resource_nodes.find(assignment.get("target"))}
   if u in selected:data.selected.append(units.find(u))
  for e in enemies:
   if not e.dead:data.enemies.append({"pos":vec_data(e.node.position),"hp":e.hp,"speed":e.speed,"cd":e.cd,"armored":e.get("armored",false),"charged_until":e.get("charged_until",0),"convoy_hunter":e.get("convoy_hunter",false),"boss":e.get("boss",false),"windup":e.get("windup",0),"attack_pos":vec_data(e.get("attack_pos",e.node.position))})
- var file=FileAccess.open("user://checkpoint.json.tmp",FileAccess.WRITE)
+ var file=FileAccess.open("user://settlement_v2/checkpoint.json.tmp",FileAccess.WRITE)
  if file==null:
   if announce:notify("保存に失敗しました。空き容量とフォルダを確認してください。")
   return
  file.store_string(JSON.stringify(data))
  file.close()
- var result=DirAccess.rename_absolute("user://checkpoint.json.tmp","user://checkpoint.json")
+ var result=DirAccess.rename_absolute("user://settlement_v2/checkpoint.json.tmp","user://settlement_v2/checkpoint.json")
  if announce:notify("作戦を保存しました。" if result==OK else "保存ファイルを更新できませんでした。",3)
 
 func load_checkpoint()->bool:
- if not FileAccess.file_exists("user://checkpoint.json"):return false
- var d=JSON.parse_string(FileAccess.get_file_as_string("user://checkpoint.json"))
+ if not FileAccess.file_exists("user://settlement_v2/checkpoint.json"):return false
+ var d=JSON.parse_string(FileAccess.get_file_as_string("user://settlement_v2/checkpoint.json"))
  if not valid_checkpoint(d):return false
  for shell in shells:shell.node.queue_free()
  shells.clear()
  for corpse in corpses:corpse.node.queue_free()
  corpses.clear()
+ for resource in resource_nodes:
+  if resource.source_building.is_empty():resource.node.queue_free()
+ resource_nodes.clear()
  for collection in [units,enemies,buildings,sites]:
   for item in collection:item.node.queue_free()
   collection.clear()
- selected.clear()
+ selected.clear();inspected={};inspected_resource={};inspected_site={}
+ stockpile=d.stockpile.duplicate();settlement_age=int(d.settlement_age);tech_level=settlement_age
  for raw in d.buildings:
   var b=make_building(raw.kind,from_data(raw.pos),true)
   for key in ["hp","maxhp","built","cd"]:b[key]=raw[key]
   b.node.scale.y=.2+.8*b.built
   b.shots=raw.get("shots",0)
   b.enabled=raw.get("enabled",true)
-  b.paid_cost=raw.get("paid_cost",0 if b.kind=="hq" or (b.kind=="tower" and b.node.position.distance_to(Vector3(2,0,-1))<.1) else BUILD_COSTS.get(b.kind,0))
+  b.paid_cost=raw.get("paid_cost",0)
+  b.paid_resources=raw.get("paid_resources",{}).duplicate()
+  b.queue=raw.get("queue",[]).duplicate(true)
+  b.rally=from_data(raw.get("rally",raw.pos))
  for raw in d.sites:
   make_site(raw.kind,from_data(raw.pos))
   var s=sites.back()
@@ -1904,14 +1956,36 @@ func load_checkpoint()->bool:
   if s.reclaimed:
    s.label.text=site_title(s.kind)+" [復旧済]"
    s.label.modulate=CYAN
+ for raw in d.resource_nodes:
+  var owner:Dictionary={}
+  var owner_index=int(raw.get("source_building_index",-1))
+  if owner_index>=0 and owner_index<buildings.size():owner=buildings[owner_index];owner["garden_registered"]=true
+  var resource=make_resource(raw.resource,from_data(raw.pos),raw.stock,raw.renewable,owner)
+  resource.radius=raw.get("radius",1.4)
+ for i in d.buildings.size():
+  var index=int(d.buildings[i].get("rally_target_index",-1))
+  if index>=0 and index<resource_nodes.size():buildings[i].rally_target=resource_nodes[index]
  for raw in d.units:
   var u=make_unit(raw.kind,from_data(raw.pos))
   for key in ["hp","maxhp","task","cd","work"]:u[key]=raw[key]
   u.goal=from_data(raw.goal)
   u.shots=raw.get("shots",0)
+  u["escort_slot"]=int(raw.get("escort_slot",0))
+  u["escort_repath"]=float(raw.get("escort_repath",0))
+  u.node.rotation.y=float(raw.get("yaw",0))
+  for field in ["cargo_kind","cargo","resource_kind","economy_phase"]:
+   if raw.has(field):u[field]=raw[field]
+  var resource_index=int(raw.get("resource_target_index",-1))
+  var dropoff_index=int(raw.get("dropoff_index",-1))
+  u["resource_target"]=resource_nodes[resource_index] if resource_index>=0 and resource_index<resource_nodes.size() else null
+  u["dropoff_target"]=buildings[dropoff_index] if dropoff_index>=0 and dropoff_index<buildings.size() else null
+  var assignment=raw.get("return_assignment",{})
+  var return_index=int(assignment.get("target_index",-1))
+  if not assignment.get("resource","").is_empty():u["return_assignment"]={"resource":assignment.resource,"target":resource_nodes[return_index] if return_index>=0 and return_index<resource_nodes.size() else null}
   if raw.target_index>=0:
    if raw.target_type=="site" and raw.target_index<sites.size():u.target=sites[raw.target_index]
    if raw.target_type=="build" and raw.target_index<buildings.size():u.target=buildings[raw.target_index]
+   if raw.target_type=="resource" and raw.target_index<resource_nodes.size():u.target=resource_nodes[raw.target_index]
  for raw in d.enemies:
   spawn_enemy(from_data(raw.pos),raw.speed>2,raw.get("armored",false),raw.get("boss",false))
   var e=enemies.back()
@@ -1923,6 +1997,10 @@ func load_checkpoint()->bool:
  for i in d.units.size():
   var raw=d.units[i]
   if raw.target_type=="enemy" and raw.target_index>=0 and raw.target_index<enemies.size():units[i].target=enemies[int(raw.target_index)]
+  if raw.target_type=="unit" and raw.target_index>=0 and raw.target_index<units.size():units[i].target=units[int(raw.target_index)]
+ for unit in units:
+  if unit.task=="escort" and (unit.target==null or not EscortOrders.can_follow(unit,unit.target)):
+   unit.task="idle";unit.target=null;unit.goal=unit.node.position
  convoy_route_choice=int(d.get("convoy_route_choice",0));convoy_halted=d.get("convoy_halted",false);convoy_encounter_stage=int(d.get("convoy_encounter_stage",0));convoy_pending=d.get("convoy_pending",{})
  tech_level=int(d.get("tech_level",1));research_active=d.get("research_active",false);research_time=d.get("research_time",0)
  convoy_started=d.get("convoy_started",false);convoy_index=int(d.get("convoy_index",0));boss_spawned=d.get("boss_spawned",false);boss_defeated=d.get("boss_defeated",false)
@@ -1991,7 +2069,14 @@ func close_options():
  paused=options_previous_pause
 
 func valid_checkpoint(d:Variant)->bool:
- if not d is Dictionary or d.get("version",0)!=1:return false
+ if not d is Dictionary or d.get("version",0)!=2:return false
+ if not d.get("stockpile") is Dictionary or not d.get("resource_nodes") is Array:return false
+ if int(d.get("settlement_age",0)) not in [1,2,3]:return false
+ for kind in ["food","salvage","parts"]:
+  if not (d.stockpile.get(kind) is float or d.stockpile.get(kind) is int) or float(d.stockpile[kind])<0:return false
+ for resource in d.resource_nodes:
+  if not resource is Dictionary or not resource.get("resource","") in ["food","salvage","parts"] or not resource.get("pos") is Array or resource.pos.size()!=3:return false
+  if not resource.get("renewable") is bool or not (resource.get("stock") is float or resource.get("stock") is int):return false
  for key in ["mission","resources","gathered","kills","xp","level","elapsed","wave_clock","wave","hold","noise"]:
   if not d.has(key) or not (d[key] is float or d[key] is int):return false
  if int(d.mission)<0 or int(d.mission)>2:return false
@@ -2012,7 +2097,11 @@ func valid_checkpoint(d:Variant)->bool:
    var fields={"units":["kind","hp","maxhp","goal","task","target_type","target_index","cd","work"],"enemies":["hp","speed","cd"],"buildings":["kind","hp","maxhp","built","cd"],"sites":["kind","progress","reclaimed","stock","paid"]}[kind]
    for field in fields:
     if not item.has(field):return false
-   if kind=="units" and (not item.goal is Array or item.goal.size()!=3):return false
+   if kind=="units" and (not item.goal is Array or item.goal.size()!=3 or not GameRules.UNITS.has(item.kind)):return false
+   if kind=="buildings":
+    if not GameRules.BUILDINGS.has(item.kind) or not item.get("queue",[]) is Array:return false
+    for order in item.get("queue",[]):
+     if not order is Dictionary or not order.get("paid_cost") is Dictionary or not order.has("remaining") or not order.has("duration"):return false
  return true
 
 func construction_multiplier()->float:
@@ -2036,14 +2125,7 @@ func mobile_aura(p:Vector3)->bool:
  return false
 
 func update_economy(dt:float):
- if research_active:
-  research_time+=dt
-  if research_time>=30:
-   research_active=false;tech_level=2
-   set_command_tab(command_tab)
-   recompute_power()
-   notify("再生工学 完成：爆薬手・廃材臼砲を解放。発電容量 +3。",7)
-   audio_system.play_event("power")
+ production.update(dt*production_multiplier())
  build_boost=maxf(0,build_boost-dt)
  victory_boost=maxf(0,victory_boost-dt)
  ammo=minf(400,ammo+dt*2)
@@ -2051,12 +2133,6 @@ func update_economy(dt:float):
  if power_clock<=0:
   power_clock=1
   recompute_power()
- if not recruit_queue.is_empty():
-  recruit_queue[0].time-=dt*production_multiplier()
-  if recruit_queue[0].time<=0:
-   var kind=recruit_queue.pop_front().kind
-   make_unit(kind,Vector3(rng.randf_range(-3,3),0,12))
-   tone("build")
  for b in buildings:
   if b.kind!="factory":continue
   b.production_state="生産中"
@@ -2068,16 +2144,7 @@ func update_economy(dt:float):
   else:
    resources-=dt*1.5
    ammo=minf(400,ammo+dt*8*production_multiplier())
- var industry=0
- for yard in buildings:
-  if yard.kind=="yard" and yard.built>=1 and yard.powered:
-   industry+=1
-   for stock in sites:
-    if stock.kind=="scrap" and stock.stock>0 and stock.node.position.distance_to(yard.node.position)<14:
-     var amount=minf(stock.stock,1.5*dt*production_multiplier())
-     stock.stock-=amount;resources+=amount;gathered+=amount
-     break
-  if yard.kind=="factory" and yard.get("production_state","")=="生産中":industry+=1
+ var industry=active_producers()
  if is_instance_valid(audio_system):audio_system.set_industry(industry)
  if upgrades.get("repair",0)>0:
   for u in units:
@@ -2100,7 +2167,7 @@ func recompute_power():
     if origin.distance_to(b.node.position)<=22 and power_used+.5<=power_capacity:
      b.powered=true;power_used+=.5;sources.append(b.node.position);changed=true
      break
- for kind in ["factory","mortar","tower","yard"]:
+ for kind in ["factory","vehicle_workshop","mortar","tower","yard"]:
   for b in buildings:
    if b.kind!=kind or b.built<1 or not b.enabled:continue
    var demand=float(GameRules.building(kind).power)
@@ -2124,6 +2191,8 @@ func bar_style(color:Color,border:Color)->StyleBoxFlat:
 
 func decorate_unit(kind:String,n:Node3D):
  if kind in ["truck","convoy"]:StructureVisuals.add_vehicle(n,kind)
+ elif kind=="siegecart":
+  n.add_child((load("res://assets/models/siege_cart.glb") as PackedScene).instantiate())
  else:
   ActorVisuals.add_human(n,kind)
   for mesh in n.find_children("*","MeshInstance3D",true,false):mesh.visible=false
@@ -2139,13 +2208,6 @@ func portrait_for(kind:String)->Texture2D:
 func command_icon_button(kind:String,title:String,cost:String,callback:Callable)->Button:
  return CommandDeck.command_button(kind,title,cost,callback,font)
 
-func tutorial_instruction()->String:
- if campaign_state.current!=0 or hold_time>=15:return ""
- if gathered<20:return "工兵を選び、残骸を右クリックして回収。"
- if not get_site("generator").reclaimed:return "警備兵で護衛し、工兵で発電所を復旧。費用50。"
- if not first_activation:return "起動で増援。防衛と補給を整えてから発電ON。"
- if not get_site("pump").reclaimed:return "工兵を揚水場へ。警備兵を護衛と拠点守備に分ける。"
- return "工廠と回収班で補給を維持し、稼働を守る。"
 
 func selected_order_text()->String:
  if attack_move:return "攻撃移動: 指示待ち"
@@ -2154,10 +2216,12 @@ func selected_order_text()->String:
  var kinds=[]
  for u in selected:
   var task=u.task
+  if task=="gather":
+   task={"to_resource":"採取へ移動","gathering":"採取中","to_dropoff":"搬入中","waiting_resource":"近くの資源が枯渇","waiting_dropoff":"搬入先なし"}.get(u.get("economy_phase",""),"採取・搬入")
   if task=="site" and u.target!=null:task="salvage" if u.target.kind=="scrap" else "restore"
   if not task in kinds:kinds.append(task)
  if kinds.size()>1:return "複数命令"
- return {"idle":"待機","move":"移動中","attack_move":"攻撃移動","focus_fire":"集中攻撃","salvage":"回収中","restore":"復旧中","build":"建設中"}.get(kinds[0],kinds[0])
+ return {"idle":"待機","move":"移動中","attack_move":"攻撃移動","focus_fire":"集中攻撃","escort":"護衛・追尾","gather":"採取・搬入","repair":"修理中","salvage":"回収中","restore":"復旧中","build":"建設中"}.get(kinds[0],kinds[0])
 
 func factory_status(b:Dictionary)->String:
  if b.built<1:return "建設中"
@@ -2213,7 +2277,7 @@ func site_title(kind:String)->String:
  if kind=="scrap":return "廃材の山"
  return "02 "+mission.facility
 
-func base_power()->float:return 9.0 if tech_level>=2 else 6.0
+func base_power()->float:return 12.0 if settlement_age>=3 else 7.0
 
 func near_yard(p:Vector3)->bool:
  for b in buildings:
@@ -2221,21 +2285,9 @@ func near_yard(p:Vector3)->bool:
  return false
 
 func start_research():
- if ended or active_card or tech_level>=2 or research_active:return
- var workshop=false
- var yard=false
- for b in buildings:
-  if b.kind=="factory" and b.built>=1 and b.powered:workshop=true
-  if b.kind=="yard" and b.built>=1:yard=true
- if not workshop or not yard:
-  notify("再生工学には稼働中の弾薬工房と完成した回収所が必要。",5)
-  return
- if resources<180:notify("研究費用は廃材180。") ;return
- resources-=180
- research_active=true
- research_time=0
- tone("build")
- notify("廃材と古い設計図から、重火器を再生する。研究30秒。",5)
+ if inspected.is_empty():return
+ production.queue_age(inspected)
+ refresh_context_commands(true)
 
 func launch_shell(origin:Vector3,target:Vector3,damage:float,radius:float,kind:String,critical:bool=false):
  if is_instance_valid(battle_fx):battle_fx.muzzle(origin,kind=="mortar")
@@ -2305,7 +2357,7 @@ func convoy_unit()->Dictionary:
 
 func launch_convoy():
  if ended or active_card or mission.mode!="convoy" or convoy_started:return
- if not generator_on or not get_site("pump").reclaimed:
+ if settlement_age<3 or not generator_on or not get_site("pump").reclaimed:
   notify("発電所と貨物中継所を復旧し、発電を開始してください。")
   return
  if resources<80:notify("輸送物資の積込みに廃材80が必要。") ;return
@@ -2343,7 +2395,7 @@ func update_mission(dt:float):
     convoy.goal=convoy_route()[convoy_index]
    hold_time=convoy_progress()*100
   return
- var restored=generator_on and get_site("pump").reclaimed
+ var restored=settlement_age>=3 and generator_on and get_site("pump").reclaimed
  if mission.mode=="finale":restored=restored and get_site("substation").get("reclaimed",false)
  if restored:
   hold_time=minf(mission.hold,hold_time+dt)
@@ -2366,34 +2418,6 @@ func boss_impact(enemy:Dictionary):
  enemy.cd=3.2
  audio_system.play_event("heavy_hit",p,1.4)
 
-func set_command_tab(tab:String):
- command_tab=tab
- if not is_instance_valid(command_grid):return
- for child in command_grid.get_children():command_grid.remove_child(child);child.queue_free()
- var actions=[]
- if tab=="people":
-  actions=[
-   ["guard","Q 生存者","廃材45",func():recruit("guard")],
-   ["worker","W 作業員","廃材30",func():recruit("worker")],
-   ["grenade","V 爆薬手","廃材75 / 要研究",func():recruit("grenade")],
-   ["truck","T 補給車","廃材80",func():recruit("truck")],
-   ["guard","G 攻撃移動","右クリック指示",func():attack_move=true],
-   ["guard","1 戦闘部隊","まとめて選択",select_guards],
-   ["worker","2 作業員","まとめて選択",select_workers]
-  ]
- else:
-  actions=[
-   ["tower","E 廃材銃座","廃材65",func():set_build("tower")],
-   ["wall","R バリケード","廃材18",func():set_build("wall")],
-   ["factory","U 弾薬工房","廃材75 / 電力2",func():set_build("factory")],
-   ["relay","Y 電力中継","廃材40 / 電力0.5",func():set_build("relay")],
-   ["yard","N 回収所","廃材80 / 回収増加",func():set_build("yard")],
-   ["mortar","B 廃材臼砲","廃材120 / 要研究",func():set_build("mortar")]
-  ]
- for action in actions:
-  var b=command_icon_button(action[0],action[1],action[2],action[3])
-  if action[0] in ["grenade","mortar"] and tech_level<2:b.modulate=Color(.70,.70,.70)
-  command_grid.add_child(b)
 
 func mission_action():
  if mission.mode=="convoy":
@@ -2416,7 +2440,7 @@ func convoy_route()->Array:return ConvoyPlan.route(convoy_route_choice)
 
 func show_route_choice():
  if ended or active_card or convoy_started or is_instance_valid(route_panel):return
- if not generator_on or not get_site("pump").reclaimed:
+ if settlement_age<3 or not generator_on or not get_site("pump").reclaimed:
   notify("発電所と貨物中継所を復旧し、車列を整備しよう。",4)
   return
  route_previous_pause=paused;paused=true
@@ -2474,11 +2498,14 @@ func update_convoy_encounters(dt:float):
 func can_dismantle(building:Dictionary)->bool:
  return not building.is_empty() and building in buildings and building.get("kind","")!="hq" and building.get("hp",0)>0 and is_instance_valid(building.get("node"))
 
-func dismantle_refund(building:Dictionary)->int:
- if not can_dismantle(building):return 0
- var invested=maxf(0,float(building.get("paid_cost",0)))
- var fraction=1-.5*clampf(building.built,0,1)
- return floori(invested*fraction*clampf(building.hp/maxf(1,building.maxhp),0,1))
+func dismantle_refund_cost(building:Dictionary)->Dictionary:
+ if not can_dismantle(building):return {}
+ var result:Dictionary={}
+ var fraction=(1-.5*clampf(building.built,0,1))*clampf(building.hp/maxf(1,building.maxhp),0,1)
+ for kind in building.get("paid_resources",{}):result[kind]=floori(float(building.paid_resources[kind])*fraction)
+ return result
+
+func dismantle_refund(building:Dictionary)->int:return int(dismantle_refund_cost(building).get("salvage",0))
 
 func request_dismantle():
  if ended or active_card or title_open or is_instance_valid(dismantle_panel) or is_instance_valid(route_panel):return
@@ -2492,9 +2519,9 @@ func request_dismantle():
  var card=PanelContainer.new();center.add_child(card);card.custom_minimum_size=Vector2(520,240)
  card.add_theme_stylebox_override("panel",CommandDeck.skin("panel",24))
  var col=VBoxContainer.new();card.add_child(col);col.add_theme_constant_override("separation",18)
- var name={"tower":"廃材銃座","wall":"バリケード","factory":"弾薬工房","relay":"電力中継","mortar":"廃材臼砲","yard":"廃材回収所"}.get(dismantle_target.kind,"建物")
+ var name=GameRules.building(dismantle_target.kind).title
  col.add_child(label(name+"を解体する？",26,AMBER))
- col.add_child(label("廃材 %d を回収。建物は撤去されます。"%dismantle_refund(dismantle_target),17))
+ col.add_child(label("回収: "+GameRules.cost_text(dismantle_refund_cost(dismantle_target))+"。予約は返金されます。",17))
  var row=HBoxContainer.new();col.add_child(row)
  row.add_child(button("解体する",confirm_dismantle,220))
  row.add_child(button("残す",close_dismantle,220))
@@ -2510,15 +2537,371 @@ func confirm_dismantle():
 
 func dismantle_building(building:Dictionary)->bool:
  if ended or not can_dismantle(building):return false
- var refund=dismantle_refund(building)
+ var recovered=dismantle_refund_cost(building)
+ production.on_building_destroyed(building)
+ remove_garden_resource(building)
  buildings.erase(building)
- for unit in units:
-  if unit.task=="build" and unit.target==building:
-   unit.target=null;unit.task="idle";unit.goal=unit.node.position;unit.route.clear();unit.planned=Vector3.INF
  if inspected==building:inspected={}
- building.node.queue_free()
- resources+=refund
- rebuild_navigation();recompute_power()
- notify("建物を解体。廃材%dを回収。"%refund,3)
+ building.node.queue_free();refund_cost(recovered)
+ rebuild_navigation();recompute_power();context_signature=""
+ notify("解体: "+GameRules.cost_text(recovered)+"を回収",3)
  tone("build")
  return true
+
+func make_resource(kind:String,p:Vector3,stock:float,renewable:bool=false,source_building:Dictionary={})->Dictionary:
+ var node:Node3D
+ if source_building.is_empty():
+  node=Node3D.new();add_child(node);node.position=p
+  ResourceVisuals.add_resource(node,kind)
+ else:node=source_building.node
+ var title=GameRules.RESOURCE_TITLES.get(kind,kind)
+ var caption=world_label(node,title,Vector3(0,2,0),resource_color(kind))
+ var data={"node":node,"resource":kind,"stock":stock,"renewable":renewable,"radius":float(source_building.get("radius",1.4)),"label":caption,"source_building":source_building}
+ resource_nodes.append(data)
+ return data
+
+func resource_color(kind:String)->Color:return {"food":Color("afbd76"),"salvage":AMBER,"parts":Color("8fb0ba")}.get(kind,PALE)
+
+func resource_at(p:Vector3)->Dictionary:
+ var nearest:Dictionary={};var distance:float=INF
+ for resource in resource_nodes:
+  if not is_instance_valid(resource.node):continue
+  var d:float=resource.node.position.distance_to(p)
+  if d<float(resource.radius)+1.1 and d<distance:nearest=resource;distance=d
+ return nearest
+
+func building_completed(building:Dictionary):
+ if building.kind=="garden" and not building.get("garden_registered",false):
+  building["garden_registered"]=true
+  make_resource("food",building.node.position,0,true,building)
+ context_signature=""
+
+func remove_garden_resource(building:Dictionary):
+ for resource in resource_nodes.duplicate():
+  if resource.get("source_building",{})==building:
+   resource_nodes.erase(resource)
+   if is_instance_valid(resource.get("label")):resource.label.queue_free()
+ for worker in units:
+  if worker.kind=="worker" and worker.task in ["build","repair"] and worker.target==building:
+   worker.task="idle";worker.target=null;economy.resume_after_construction(worker)
+
+func spend_cost(cost:Dictionary)->bool:
+ if not GameRules.can_afford(stockpile,cost):return false
+ for kind in cost:stockpile[kind]=float(stockpile.get(kind,0))-float(cost[kind])
+ return true
+
+func refund_cost(cost:Dictionary):
+ for kind in cost:stockpile[kind]=float(stockpile.get(kind,0))+maxf(0,float(cost[kind]))
+
+func production_notice(text:String):
+ if is_instance_valid(center_notice):notify(text,3)
+ context_signature=""
+
+func economy_notice(text:String):
+ if float(economy_notice_until.get(text,-1))>elapsed:return
+ economy_notice_until[text]=elapsed+8
+ if is_instance_valid(center_notice):notify(text,3)
+
+func resource_deposited(_kind:String,amount:float):gathered+=amount
+
+func worker_work_rate(worker:Dictionary,kind:String)->float:
+ return float(GameRules.RESOURCE_RULES[kind].rate)*(1+bonus("salvage","salvage_speed_add"))*(1.2 if near_yard(worker.node.position) else 1.0)
+
+func worker_carry_capacity(_worker:Dictionary,kind:String)->float:
+ return float(GameRules.RESOURCE_RULES[kind].capacity)*(1+.15*maxi(0,settlement_age-1))
+
+func complete_age(age:int):
+ settlement_age=age;tech_level=age
+ recompute_power();context_signature=""
+ notify(GameRules.age(age).title+"へ発展",6)
+ if is_instance_valid(audio_system):audio_system.play_event("power")
+
+func spawn_produced_unit(kind:String,building:Dictionary)->Dictionary:
+ var point:Vector3=building.node.position+Vector3(0,0,float(building.radius)+1.8)
+ var cell=open_cell(point,building.node.position)
+ var unit=make_unit(kind,Vector3(cell.x,0,cell.y))
+ var resource:Variant=building.get("rally_target")
+ if kind=="worker" and resource!=null and resource in resource_nodes:
+  economy.assign_resource(unit,resource)
+ else:
+  unit.goal=building.get("rally",point);unit.task="move";unit.planned=Vector3.INF
+ if is_instance_valid(audio_system):audio_system.play_event("build_complete",unit.node.position)
+ return unit
+
+func active_producers()->int:
+ var count:int=0
+ for building in buildings:
+  if not building.get("queue",[]).is_empty() or building.get("production_state","")=="生産中":count+=1
+ return count
+
+func compact_cost(cost:Dictionary)->String:
+ var parts=[]
+ for kind in ["food","salvage","parts"]:
+  if cost.get(kind,0)>0:parts.append({"food":"食","salvage":"廃","parts":"部"}[kind]+str(int(cost[kind])))
+ return " ".join(parts)
+
+func set_rally(building:Dictionary,p:Vector3):
+ if GameRules.unit_kinds_for(building.kind).is_empty():return
+ building.rally=p;building.rally_target=resource_at(p) if building.kind=="hq" else null
+ if building.rally_target is Dictionary and building.rally_target.is_empty():building.rally_target=null
+ pulse(p,AMBER,1.3,.6);tone("order")
+ context_signature=""
+
+func select_headquarters():
+ for building in buildings:
+  if building.kind=="hq":
+   selected.clear();inspected=building;inspected_site={};inspected_resource={}
+   camera_focus=building.node.position;update_selection();return
+
+func select_idle_worker():
+ var idle=[]
+ for unit in units:
+  if unit.kind=="worker" and (unit.task=="idle" or unit.get("economy_phase","") in ["waiting_resource","waiting_dropoff"]):idle.append(unit)
+ if idle.is_empty():return
+ last_idle_worker=(last_idle_worker+1)%idle.size()
+ selected=[idle[last_idle_worker]];inspected={};inspected_site={};inspected_resource={}
+ camera_focus=selected[0].node.position;update_selection()
+
+func stop_selected():
+ for unit in selected:
+  if unit.kind=="convoy":continue
+  if unit.kind=="worker":economy.cancel_assignment(unit)
+  unit.task="idle";unit.target=null;unit.goal=unit.node.position;unit.route.clear();unit.planned=Vector3.INF
+ context_signature=""
+
+func filter_selection(kind:String):
+ selected=selected.filter(func(unit):return unit.kind=="worker" if kind=="worker" else unit.kind in ["guard","grenade","siegecart"])
+ update_selection()
+
+func begin_attack_move():
+ if not selected.any(func(unit):return unit.kind in ["guard","grenade","siegecart"]):return
+ attack_move=true
+ notify("右クリックで攻撃移動の目的地を指定",3)
+
+func refresh_context_commands(force:bool=false):
+ if not is_instance_valid(command_grid):return
+ if not inspected.is_empty() and (not is_instance_valid(inspected.get("node")) or not inspected in buildings):inspected={}
+ var identity="%s/%s/%s/%s/%s"%[str(selected.map(func(unit):return unit.node.get_instance_id())),inspected.get("node",null),settlement_age,worker_build_page,inspected_resource.get("node",null)]
+ if force or identity!=context_signature:
+  context_signature=identity
+  for child in command_grid.get_children():command_grid.remove_child(child);child.queue_free()
+  context_actions.clear()
+  if not selected.is_empty():
+   var worker_count=selected.filter(func(unit):return unit.kind=="worker").size()
+   if worker_count==selected.size():
+    command_heading.text="作業員  /  "+("住居・経済" if worker_build_page=="economy" else "生産・防衛")
+    var types=["house","depot","garden","factory","yard"] if worker_build_page=="economy" else ["barracks","tower","wall","relay","vehicle_workshop","mortar"]
+    for kind in types:
+     var rule=GameRules.building(kind)
+     add_context_action(kind,rule.title,compact_cost(rule.cost),func():set_build(kind),func():return build_availability(kind))
+    add_context_action("worker","防衛施設 →" if worker_build_page=="economy" else "← 生活施設","建築ページ",func():worker_build_page="military" if worker_build_page=="economy" else "economy";refresh_context_commands(true))
+    add_context_action("select","停止","命令を解除",stop_selected)
+   elif worker_count>0:
+    command_heading.text="混成部隊"
+    add_context_action("select","停止","命令を解除",stop_selected)
+    add_context_action("worker","作業員だけ","選択を絞る",func():filter_selection("worker"))
+    add_context_action("guard","戦闘員だけ","選択を絞る",func():filter_selection("combat"))
+   elif selected.size()==1 and selected[0].kind=="convoy":
+    command_heading.text="物資輸送隊"
+    add_context_action("truck","停車・再発進","輸送隊を待機",toggle_convoy_stop)
+   else:
+    command_heading.text="部隊命令"
+    if selected.any(func(unit):return unit.kind in ["guard","grenade","siegecart"]):add_context_action("attack","攻撃移動","右クリックで指示",begin_attack_move)
+    add_context_action("select","停止","命令を解除",stop_selected)
+  elif not inspected.is_empty():
+   var building=inspected
+   command_heading.text=GameRules.building(building.kind).title
+   if building.built>=1:
+    for kind in GameRules.unit_kinds_for(building.kind):
+     var rule=GameRules.unit(kind)
+     add_context_action(kind,rule.title,compact_cost(rule.cost),func():production.queue_unit(building,kind),func():return production.can_queue_unit(building,kind))
+    if building.kind=="hq" and settlement_age<3:
+     add_context_action("research","段階%sへ"%["II","III"][settlement_age-1],compact_cost(GameRules.age(settlement_age+1).cost),func():production.queue_age(building),func():return production.can_queue_age(building))
+    if not GameRules.unit_kinds_for(building.kind).is_empty():add_context_action("select","予約を取消","最後の注文を返金",func():production.cancel_last(building),func():return {"ok":not building.queue.is_empty(),"reason":"予約なし"})
+    if building.kind=="factory":add_context_action("factory","稼働切替","弾薬を生産",toggle_inspected)
+    if building.kind=="garden":add_context_action("worker","作業員を選択","右クリックで耕作",select_idle_worker)
+  elif not inspected_resource.is_empty():
+   command_heading.text=GameRules.RESOURCE_TITLES[inspected_resource.resource]
+  elif not inspected_site.is_empty():
+   command_heading.text=site_title(inspected_site.kind)
+   if inspected_site.kind=="generator" and inspected_site.reclaimed:add_context_action("relay","発電切替","騒音と送電",toggle_generator)
+  else:
+   command_heading.text="対象を選択"
+   add_context_action("house","本部へ","増員・発展",select_headquarters,Callable(),KEY_H)
+   add_context_action("worker","待機作業員","次の1人を選択",select_idle_worker,Callable(),KEY_PERIOD)
+ for action in context_actions:
+  if action.check.is_valid():
+   var check=action.check.call()
+   action.button.disabled=not check.ok
+   action.button.tooltip_text=check.get("reason","") if not check.ok else action.get("detail","")
+ update_queue_display()
+
+func build_availability(kind:String)->Dictionary:
+ var check=GameRules.can_build(kind,settlement_age,buildings)
+ if not check.ok:return check
+ if not GameRules.can_afford(stockpile,GameRules.building(kind).cost):return {"ok":false,"reason":"必要: "+GameRules.cost_text(GameRules.building(kind).cost)}
+ return {"ok":true,"reason":""}
+
+func add_context_action(kind:String,title:String,cost:String,callback:Callable,check:Callable=Callable(),key:int=0):
+ var keys=[KEY_Q,KEY_W,KEY_E,KEY_R,KEY_T,KEY_A,KEY_S,KEY_D,KEY_F,KEY_G]
+ if key==0:key=keys[mini(context_actions.size(),keys.size()-1)]
+ var caption=OS.get_keycode_string(key)+" "+title
+ var b=command_icon_button(kind,caption,cost,func():callback.call();context_signature="")
+ var detail=cost
+ if GameRules.BUILDINGS.has(kind):detail=GameRules.cost_text(GameRules.building(kind).cost)+" / 建築%d秒"%int(GameRules.building(kind).build_time)
+ elif GameRules.UNITS.has(kind):detail=GameRules.cost_text(GameRules.unit(kind).cost)+" / %d秒 / 人口%d"%[int(GameRules.unit(kind).time),int(GameRules.unit(kind).population)]
+ b.tooltip_text=detail
+ command_grid.add_child(b)
+ context_actions.append({"key":key,"call":callback,"check":check,"button":b,"detail":detail})
+
+func activate_context_key(key:int)->bool:
+ for action in context_actions:
+  if action.key==key:
+   if not action.button.disabled:action.call.call();context_signature=""
+   return true
+ return false
+
+func update_queue_display():
+ if not is_instance_valid(queue_caption):return
+ queue_bar.visible=false
+ if not inspected.is_empty():
+  var building=inspected
+  if building.built<1:
+   queue_caption.text="建築 %d%% / 作業員を右クリックで追加"%int(building.built*100)
+   queue_bar.visible=true;queue_bar.value=building.built*100
+  elif not building.get("queue",[]).is_empty():
+   var item=building.queue[0]
+   var title=GameRules.unit(item.kind).title if item.type=="unit" else GameRules.age(item.target_age).title
+   var state={"population":"人口上限","unpowered":"未給電","disabled":"停止中","spawn_blocked":"出口が塞がれている"}.get(building.get("queue_state",""),"")
+   queue_caption.text="%s  %s  /  予約%d"%[title,state if not state.is_empty() else "残り%d秒"%int(ceil(item.remaining)),building.queue.size()]
+   queue_bar.visible=true;queue_bar.value=100*(1-float(item.remaining)/maxf(1,float(item.duration)))
+  elif not GameRules.unit_kinds_for(building.kind).is_empty():
+   queue_caption.text="右クリック: 集合地点"+(" / 作業員は資源を指定すると採取へ" if building.kind=="hq" else "")
+  elif building.kind=="house":queue_caption.text="人口上限 +5"
+  elif building.kind=="depot":queue_caption.text="食料・廃材・部品の搬入先"
+  elif building.kind=="garden":queue_caption.text="作業員で右クリックして食料を生産"
+  else:queue_caption.text=""
+ elif not selected.is_empty():
+  queue_caption.text="右クリック: 採取・工事・修理・護衛" if selected[0].kind=="worker" else "地面: 移動 / 敵: 集中攻撃 / 仲間: 護衛"
+ else:queue_caption.text=""
+
+func set_command_tab(_tab:String):refresh_context_commands(true)
+
+func update_ui():
+ if not is_instance_valid(stats):return
+ stats.text="食料 %d   廃材 %d   部品 %d   人口 %d/%d   段階 %s   成長 %d"%[int(stockpile.food),int(resources),int(stockpile.parts),production.population_used(),production.population_cap(),["I","II","III"][clampi(settlement_age-1,0,2)],level]
+ var idle_count=units.filter(func(unit):return unit.kind=="worker" and (unit.task=="idle" or unit.get("economy_phase","") in ["waiting_resource","waiting_dropoff"])).size()
+ idle_worker_button.text="待機%d"%idle_count;idle_worker_button.disabled=idle_count==0
+ var gen=get_site("generator");var pump=get_site("pump")
+ objective.text="発電所  "+("稼働" if generator_on else "復旧済" if gen.reclaimed else "段階IIで復旧")
+ objective.text+="\n"+mission.facility+"  "+("復旧済" if pump.reclaimed else "段階IIIで復旧")
+ if mission.mode=="convoy":
+  objective.text+="\n輸送 "+("%d%%"%int(convoy_progress()*100) if convoy_started else "段階III・復旧後に出発")
+  mission_action_button.text="輸送隊へ" if convoy_started else "輸送路を選ぶ"
+  convoy_pause_button.visible=convoy_started and not ended
+  convoy_pause_button.text="車列を再発進" if convoy_halted else "車列を停車"
+  if not convoy_pending.is_empty():objective.text+="\n追走群 %s / %.1f秒"%[ConvoyPlan.encounter(convoy_pending.stage,convoy_route_choice).direction,maxf(0,convoy_pending.clock)]
+ elif mission.mode=="finale":
+  var sub=get_site("substation")
+  objective.text+="\n変電所 "+("復旧済" if sub.reclaimed else "未復旧")
+  objective.text+="\n送電 %d/%d秒 / 破砕体%s"%[int(hold_time),int(mission.hold),"撃破" if boss_defeated else "接近" if boss_spawned else "未到達"]
+  mission_action_button.text="変電所へ"
+ else:objective.text+="\n揚水 %d/%d秒"%[int(hold_time),int(mission.hold)]
+ pause_button.text="再開" if paused else "II"
+ core_bar.value=buildings[0].hp if not buildings.is_empty() else 0
+ guide.text=tutorial_instruction();guide.visible=not guide.text.is_empty()
+ generator_button.text="発電停止" if generator_on else "発電起動"
+ generator_button.disabled=not gen.reclaimed
+ status.text="騒音 %d / 次の群れ %d秒\n襲撃 %02d"%[int(noise),int(maxf(0,wave_clock)),wave]
+ if buildings.any(func(building):return building.kind=="relay" and building.powered):status.text+=" / 次は"+wave_direction_text(wave+1)
+ context_button.visible=false
+ dismantle_button.visible=can_dismantle(inspected)
+ if dismantle_button.visible:dismantle_button.text="解体"
+ xp_bar.visible=not dismantle_button.visible;supply_status.visible=xp_bar.visible
+ supply_status.text="弾薬 %d/400 / 電力 %.1f/%.1f\nXP %d/%d"%[int(ammo),power_used,power_capacity,int(xp),int(xp_needed())]
+ var portrait_kind="hq";var hp_sum:float=0;var max_sum:float=0
+ selection_info.text="未選択"
+ if not selected.is_empty():
+  portrait_kind=selected[0].kind
+  var names=[]
+  for unit in selected:
+   hp_sum+=unit.hp;max_sum+=unit.maxhp
+   var title=GameRules.unit(unit.kind).get("title",unit.kind)
+   if not title in names:names.append(title)
+  selection_info.text="%s ×%d\n%s"%["・".join(names),selected.size(),selected_order_text()]
+  if selected.size()==1 and selected[0].kind=="worker" and selected[0].get("cargo",0)>0:
+   selection_info.text+="\n運搬: %s %d"%[GameRules.RESOURCE_TITLES.get(selected[0].cargo_kind,""),int(selected[0].cargo)]
+ elif not inspected.is_empty() and is_instance_valid(inspected.get("node")):
+  var rule=GameRules.building(inspected.kind)
+  portrait_kind=inspected.kind;hp_sum=inspected.hp;max_sum=inspected.maxhp
+  selection_info.text="%s\n耐久 %d/%d"%[rule.title,int(hp_sum),int(max_sum)]
+  if rule.power>0:selection_info.text+=" / "+("給電中" if inspected.powered else "未給電")
+ elif not inspected_resource.is_empty():
+  portrait_kind=inspected_resource.resource
+  selection_info.text=GameRules.RESOURCE_TITLES[inspected_resource.resource]+"\n"+("菜園 / 継続生産" if inspected_resource.renewable else "残量 %d"%int(inspected_resource.stock))
+ elif not inspected_site.is_empty():
+  portrait_kind="relay"
+  selection_info.text=site_title(inspected_site.kind)+"\n"+("復旧済" if inspected_site.reclaimed else "復旧 %d%%"%int(inspected_site.progress*100))
+ if portrait_kind!=last_portrait_kind:selection_portrait.texture=portrait_for(portrait_kind);last_portrait_kind=portrait_kind
+ selected_hp.max_value=maxf(1,max_sum);selected_hp.value=hp_sum;selected_hp.visible=max_sum>0
+ minimap.queue_redraw()
+ combo_label.text="%d KILLS"%combo if combo>=10 and combo_clock>0 else "";combo_label.modulate.a=minf(1,combo_clock)
+ xp_bar.max_value=xp_needed();xp_bar.value=xp
+ var cursor=get_viewport().get_mouse_position()
+ for site in sites:
+  var hover=camera.unproject_position(site.node.position+Vector3(0,1,0)).distance_to(cursor)<34
+  site.label.visible=hover or inspected_site==site or selected.any(func(unit):return unit.target==site and unit.task=="site")
+ for resource in resource_nodes:
+  if not is_instance_valid(resource.node):continue
+  resource.label.text=GameRules.RESOURCE_TITLES[resource.resource]+(" / 菜園" if resource.renewable else " %d"%int(resource.stock))
+  resource.label.visible=inspected_resource==resource or camera.unproject_position(resource.node.position+Vector3(0,1,0)).distance_to(cursor)<30
+  if resource.source_building.is_empty():resource.node.visible=resource.stock>0
+ for building in buildings:
+  var hover=camera.unproject_position(building.node.position+Vector3(0,1.2,0)).distance_to(cursor)<30
+  for child in building.node.get_children():
+   if child is Label3D and child.has_meta("tactical_label"):child.visible=hover or inspected==building
+
+func tutorial_instruction()->String:
+ if settlement_age==1:
+  if gathered<20:return "本部で作業員を増員。作業員を選び、食料・廃材・部品を右クリック。"
+  if production.population_cap()-production.population_used()<2:return "人口枠が少ない。作業員を選び、住居を建設。"
+  return "住居2・集積所・訓練所を整え、本部で段階IIへ発展。"
+ if settlement_age==2:
+  if not get_site("generator").reclaimed:return "経済と軍を増強。作業員を護衛し、発電所を復旧。"
+  if not generator_on:return "防衛と弾薬工房を準備して発電を開始。騒音で群れが集まる。"
+  return "車両工房を建て、食料・廃材・部品を蓄え、本部で段階IIIへ。"
+ if hold_time>15 or convoy_started:return ""
+ return "部隊を編成し、残る設備を復旧。"+ ("輸送路を選んで出発。" if mission.mode=="convoy" else "稼働を守れ。")
+
+func site_rule(kind:String)->Dictionary:
+ if kind=="generator":return {"age":2,"cost":{"salvage":120,"parts":30},"time":60.0}
+ return {"age":3,"cost":{"salvage":250 if kind=="substation" else 300,"parts":100},"time":90.0}
+
+func work_site(unit:Dictionary,dt:float):
+ var site=unit.target
+ if site==null or not is_instance_valid(site.get("node")):unit.task="idle";unit.target=null;return
+ if site.reclaimed:unit.task="idle";return
+ var rule=site_rule(site.kind)
+ if settlement_age<int(rule.age):
+  unit.task="idle";notify("この設備の復旧は段階%dから"%rule.age,3);return
+ if not site.paid:
+  if not spend_cost(rule.cost):
+   unit.work-=dt
+   if unit.work<=0:notify("復旧費用: "+GameRules.cost_text(rule.cost),3);unit.work=8
+   return
+  site.paid=true
+ site.progress=minf(1,site.progress+dt/float(rule.time))
+ if site.progress>=1:
+  site.reclaimed=true;site.label.text=site_title(site.kind)+" [復旧済]"
+  if site.kind=="pump":rerolls+=1
+  pulse(site.node.position,CYAN,5,1);tone("power")
+  notify(site_title(site.kind)+"を復旧",5)
+  unit.task="idle";context_signature=""
+
+func worker_retarget_radius(_worker:Dictionary,_kind:String)->float:return 14.0
+
+func worker_resource_approach(worker:Dictionary,resource:Dictionary)->Vector3:
+ var slot:int=maxi(0,units.find(worker))
+ var angle:float=float(slot%10)*TAU/10.0
+ var radius:float=float(resource.radius)+.85+float(slot/10)*.10
+ return resource.node.position+Vector3(cos(angle)*radius,0,sin(angle)*radius)

@@ -1,0 +1,52 @@
+{
+  "geometry": {
+    "blender": "4.3.2",
+    "asset": "siege_cart",
+    "original_geometry": true,
+    "surfaces": 1,
+    "material": "Survivor_Vehicle_Atlas_PBR",
+    "atlas_size": [
+      2048,
+      2048
+    ],
+    "editable_components": 426,
+    "godot_bounds_min": [
+      -1.331646203994751,
+      0.0,
+      -1.940000057220459
+    ],
+    "godot_bounds_max": [
+      1.3316463232040405,
+      2.33992075920105,
+      1.791355013847351
+    ],
+    "godot_size": [
+      2.6632925271987915,
+      2.33992075920105,
+      3.73135507106781
+    ],
+    "root": [
+      0,
+      0,
+      0
+    ],
+    "orientation": "Godot +Y up, -Z forward",
+    "muzzle_position_godot": [
+      0.0,
+      2.1160176396369934,
+      -1.205950379371643
+    ],
+    "muzzle_direction_godot": [
+      0.0,
+      0.5433704853057861,
+      -0.8394930362701416
+    ],
+    "wheel_count": 4,
+    "axle_count": 2,
+    "lod_triangles": {
+      "0": 11000,
+      "1": 4820,
+      "2": 1840
+    }
+  }
+}

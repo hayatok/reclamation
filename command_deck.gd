@@ -37,7 +37,9 @@ static func style_button(b:Button,card:bool=false):
  )
 
 static func portrait(kind:String)->Texture2D:
- var index={"guard":0,"grenade":0,"worker":1,"truck":2,"convoy":2,"electric":3,"lightning":3,"tower":4,"mortar":4,"support":5,"research":3,"factory":5,"yard":5,"relay":5,"wall":5}.get(kind,0)
+ var model_image=ROOT+"portrait_"+kind+".png"
+ if ResourceLoader.exists(model_image):return load(model_image)
+ var index={"guard":0,"grenade":0,"worker":1,"truck":2,"convoy":2,"siegecart":4,"hq":5,"food":5,"salvage":5,"parts":5,"electric":3,"lightning":3,"tower":4,"mortar":4,"support":5,"research":3,"factory":5,"yard":5,"relay":5,"wall":5}.get(kind,0)
  var a=AtlasTexture.new()
  a.atlas=load(ROOT+"crew_equipment_atlas.png")
  a.region=Rect2((index%3)*512,int(index/3)*512,512,512)
@@ -61,7 +63,7 @@ static func equipment(family:String)->Control:
 
 static func command_button(kind:String,title:String,cost:String,callback:Callable,font:Font)->Button:
  var b=Button.new()
- b.custom_minimum_size=Vector2(153,57)
+ b.custom_minimum_size=Vector2(153,52)
  b.focus_mode=Control.FOCUS_NONE
  b.pressed.connect(callback)
  style_button(b)
@@ -71,7 +73,7 @@ static func command_button(kind:String,title:String,cost:String,callback:Callabl
  content.mouse_filter=Control.MOUSE_FILTER_IGNORE
  var visual=TextureRect.new()
  content.add_child(visual)
- visual.position=Vector2(8,9)
+ visual.position=Vector2(8,7)
  visual.size=Vector2(36,36)
  visual.expand_mode=TextureRect.EXPAND_IGNORE_SIZE
  visual.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED
@@ -84,7 +86,7 @@ static func command_button(kind:String,title:String,cost:String,callback:Callabl
  visual.mouse_filter=Control.MOUSE_FILTER_IGNORE
  var words=VBoxContainer.new()
  content.add_child(words)
- words.position=Vector2(51,10)
+ words.position=Vector2(51,7)
  words.add_theme_constant_override("separation",0)
  words.mouse_filter=Control.MOUSE_FILTER_IGNORE
  for pair in [[title,14,Color("e8e1ce")],[cost,12,Color("cfad6a")]]:

@@ -13,6 +13,9 @@ const GLASS = Color("292f2a")
 const CONCRETE = Color("92907a")
 
 static func add_building(parent: Node3D, kind: String) -> bool:
+	if kind in ["house","depot","barracks","vehicle_workshop","garden"]:
+		parent.add_child((load("res://assets/models/"+kind+".glb") as PackedScene).instantiate())
+		return true
 	if kind in ["hq", "tower", "factory"]:
 		var path: String = {"hq":"refuge_hq", "tower":"scrap_gun_tower", "factory":"ammo_workshop"}[kind]
 		var scene := load("res://assets/models/"+path+".glb") as PackedScene

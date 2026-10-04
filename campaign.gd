@@ -16,8 +16,8 @@ var low_fx:bool=false
 var performance_mode:bool=false
 
 func _ready():
- if FileAccess.file_exists("user://campaign.json"):
-  var data=JSON.parse_string(FileAccess.get_file_as_string("user://campaign.json"))
+ if FileAccess.file_exists("user://settlement_v2/campaign.json"):
+  var data=JSON.parse_string(FileAccess.get_file_as_string("user://settlement_v2/campaign.json"))
   if data is Dictionary:
    unlocked=clampi(int(data.get("unlocked",1)),1,3)
    best=data.get("best",{})
@@ -26,7 +26,8 @@ func _ready():
    performance_mode=data.get("performance_mode",false)
 
 func save_progress():
- var file=FileAccess.open("user://campaign.json",FileAccess.WRITE)
+ if DirAccess.make_dir_recursive_absolute("user://settlement_v2")!=OK:return
+ var file=FileAccess.open("user://settlement_v2/campaign.json",FileAccess.WRITE)
  if file:file.store_string(JSON.stringify({"version":1,"unlocked":unlocked,"best":best,"muted":muted,"low_fx":low_fx,"performance_mode":performance_mode}))
 
 func complete(seconds:float,kills:int):

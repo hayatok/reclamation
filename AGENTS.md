@@ -7,3 +7,5 @@
 - Web ZIP naming: `Reclamation-vMAJOR.MINOR.PATCH-Web.zip`; include exact SHA256 in `SHA256SUMS.txt`. Runtime `index.html`, versioned engine JS/PCK/WASM and `BUILD-PROVENANCE.json` are at archive root. The executable basename in GODOT_CONFIG must match adjacent files (for example `reclamation-0.8.0`). Provenance version and main.gd checksum must match the tag.
 - Export Web single-threaded with PWA disabled; preserve all generated relative runtime filenames. Do not add a custom domain, PAT, account token or other persistent credentials.
 - Verify the workflow completed successfully for the exact tag, the public version.json identifies that commit/version, and the browser actually boots the game. Passing packaging checks alone is not a runtime test. Report unverified platform behavior accurately.
+
+- Keep the immutable v0.8.0 runtime at `releases/v0.8.0/` when publishing schema-2 versions. The helper pins its existing ZIP/source identities. Do not rewrite legacy assets or assume browser saves are isolated by URL. Retain this one compatibility boundary, not every historic build; the combined site must stay below 900 MiB.

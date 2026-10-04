@@ -20,3 +20,9 @@ Use Godot's single-threaded Web export and disable PWA/service workers. GitHub P
 
 - [GitHub custom Pages workflows](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages)
 - [Godot Web export](https://docs.godotengine.org/en/stable/tutorials/export/exporting_for_web.html)
+
+## Legacy save boundary
+
+v0.9.0 starts save schema 2 and does not migrate v0.8 saves. The Pages artifact keeps the exact v0.8.0 runtime at `releases/v0.8.0/` while the root opens the current release. Its released ZIP checksum, source checksum and commit are pinned in the helper. This preserves the known legacy URL and bytes; it is not a claim that IndexedDB saves are isolated between versions. Do not clear old browser storage as part of deployment.
+
+Only this explicit compatibility boundary is retained, rather than accumulating every past release. Packaging fails above 900 MiB. For offline package validation after v0.8, supply `--legacy-assets-dir` pointing to the verified v0.8.0 Web ZIP and checksums. Changing or removing this boundary is a separate compatibility decision.
