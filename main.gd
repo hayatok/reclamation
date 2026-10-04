@@ -7,11 +7,15 @@ const PALE = Color("ded7c7")
 const BG = Color("222520")
 const CommandDeck=preload("res://command_deck.gd")
 const EnvironmentOverlay=preload("res://environment_overlay.gd")
+const BattleFX=preload("res://battle_fx.gd")
 const BattleVisibility=preload("res://battle_visibility.gd")
 const ConvoyPlan=preload("res://convoy_plan.gd")
 const GameRules=preload("res://game_rules.gd")
 const StructureVisuals=preload("res://structure_visuals.gd")
 const AudioSystem=preload("res://reclamation_audio.gd")
+const CrowdSteering=preload("res://crowd_steering.gd")
+var crowd_steering=CrowdSteering.new()
+var enemy_approach_cells:Dictionary={}
 const HordeRenderer=preload("res://horde_renderer.gd")
 const TacticalMap=preload("res://tactical_map.gd")
 const ActorVisuals=preload("res://actor_visuals.gd")
@@ -55,6 +59,7 @@ var level:int=1
 var upgrades:Dictionary={}
 var cards:Array=[]
 var active_card:bool=false
+var pending_card_delay:float=0.0
 var paused:bool=false
 var ended:bool=false
 var build_mode:String=""
@@ -70,6 +75,7 @@ var selected:Array=[]
 var horde_renderer:Node3D
 var district_art:Node3D
 var battle_visibility:Node
+var battle_fx:Node
 var camera:Camera3D
 var camera_focus=Vector3.ZERO
 var root_ui:Control
@@ -213,9 +219,12 @@ func _ready():
  make_building("tower",Vector3(2,0,-1),true)
  make_ui()
  make_audio()
+ battle_fx=BattleFX.new()
+ add_child(battle_fx)
  horde_renderer=HordeRenderer.new()
  add_child(horde_renderer)
  horde_renderer.setup()
+ horde_renderer.low_detail=performance_mode
  battle_visibility=BattleVisibility.new()
  battle_visibility.district=district_art
  add_child(battle_visibility)
@@ -279,6 +288,7 @@ func ring(pos:Vector3,r:float,c:Color,parent:Node)->MeshInstance3D:
 
 func world_label(parent:Node,txt:String,pos:Vector3,col:Color=PALE):
  var l=Label3D.new()
+ l.set_meta("tactical_label",true)
  l.text=txt
  l.font=font
  l.font_size=40
@@ -712,7 +722,7 @@ func _unhandled_input(event):
    ghost.visible=false
   if event.keycode==KEY_SPACE:toggle_pause()
   if active_card:
-   if event.keycode in [KEY_1,KEY_2,KEY_3]: choose_upgrade(int(event.keycode-KEY_1))
+   if is_instance_valid(choice_panel) and event.keycode in [KEY_1,KEY_2,KEY_3]: choose_upgrade(int(event.keycode-KEY_1))
    return
   if ended:return
   match event.keycode:
@@ -878,6 +888,10 @@ func _process(delta):
  horde_renderer.update_horde(enemies+corpses,elapsed)
  horde_renderer.update_friends(units)
  battle_visibility.update_visibility(camera,units,enemies,shells,delta)
+ battle_fx.update(dt,camera)
+ if pending_card_delay>0:
+  pending_card_delay-=dt
+  if pending_card_delay<=0 and active_card and not ended:display_cards()
  update_ui()
  if debug_run:
   if render_frames>20:
@@ -985,6 +999,7 @@ func simulate(dt:float):
     if e!=null:
      fire(b.node.position+Vector3(0,2.4 if b.kind=="mortar" else 3.3,0),e,85 if b.kind=="mortar" else 28 if b.powered else 19,b.kind,b)
      b.cd=(3.2 if b.kind=="mortar" else .48)/(1+bonus("rate","attack_speed_add"))
+ crowd_steering.prepare(enemies)
  for e in enemies.duplicate():
   if e.dead:continue
   var target:Variant=buildings[0] if not buildings.is_empty() else null
@@ -1010,16 +1025,17 @@ func simulate(dt:float):
   if not can_attack:
    e.path_cd-=dt
    if e.path_cd<=0 or e.route.is_empty():
-    e.route=route_to(e.node.position,target.node.position)
+    e.route=enemy_route(e.node.position,target)
     e.path_cd=1.2
    if not e.route.is_empty():
     var waypoint=e.route[0]
-    if e.node.position.distance_to(waypoint)<.28:
+    if e.node.position.distance_to(waypoint)<.6:
      e.route.pop_front()
      if not e.route.is_empty():waypoint=e.route[0]
     var direction=(waypoint-e.node.position).normalized()
-    e.node.position+=direction*dt*e.speed
-    e.node.rotation.y=atan2(-direction.x,-direction.z)
+    var movement:Vector3=crowd_steering.steer(e.node,direction,dt,e.speed,nav)
+    e.node.position+=movement
+    if movement.length_squared()>.000001:e.node.rotation.y=atan2(-movement.x,-movement.z)
    elif best<2.5:can_attack=true
   if can_attack:
    e.cd-=dt
@@ -1124,6 +1140,7 @@ func fire(origin:Vector3,target:Dictionary,base:float,kind:String,source:Diction
     if upgrades.get("sweep",0)>0:
      for distance in [4.0,8.0]:launch_shell(origin,pos+forward*distance,damage*.6,radius,kind,false)
   return
+ battle_fx.muzzle(origin,false)
  beam(origin,pos+Vector3(0,.7,0),Color("fff1bd") if critical else AMBER,.10)
  var hit_targets=[target]
  hit(target,damage,true,0,false,critical)
@@ -1228,7 +1245,7 @@ func drain_blast_queue():
  var processed=0
  while not blast_queue.is_empty() and processed<64:
   var event=blast_queue.pop_front()
-  pulse(event.pos,AMBER,event.radius,.42)
+  battle_fx.blast(event.pos,event.radius,false,low_fx)
   if processed==0:tone("blast")
   for other in enemies.duplicate():
    if not other.dead and other.node.position.distance_to(event.pos)<event.radius:hit(other,event.damage,false,event.generation)
@@ -1275,7 +1292,9 @@ func offer_upgrade():
   for card in cards:
    if card.get("family","")==preferred_family:found=true
   family_misses=0 if found else family_misses+1
- display_cards()
+ active_card=true
+ dragging=false;build_mode="";ghost.visible=false
+ pending_card_delay=.28
 
 func reroll_cards():
  if not active_card or rerolls<=0:return
@@ -1285,6 +1304,7 @@ func reroll_cards():
  display_cards()
 
 func display_cards():
+ pending_card_delay=0
  active_card=true
  dragging=false
  build_mode=""
@@ -1477,19 +1497,25 @@ func update_ui():
  combo_label.modulate.a=minf(1,combo_clock)
  xp_bar.max_value=xp_needed()
  xp_bar.value=xp
+ var cursor=get_viewport().get_mouse_position()
  for s in sites:
   if s.kind=="scrap":s.label.text="資材の残骸  %d"%int(s.stock)
+  var hovered=camera.unproject_position(s.node.position+Vector3(0,1,0)).distance_to(cursor)<34
+  var assigned=selected.any(func(unit):return unit.target==s and unit.task=="site")
+  s.label.visible=hovered or assigned or (s.kind!="scrap" and not s.reclaimed)
+ for building in buildings:
+  var hovered=camera.unproject_position(building.node.position+Vector3(0,1.2,0)).distance_to(cursor)<30
+  for child in building.node.get_children():
+   if child is Label3D and child.has_meta("tactical_label"):child.visible=hovered or inspected==building
 
 func beam(a:Vector3,b:Vector3,c:Color,duration:float,width:float=.055):
- if effects.size()>180 or a.distance_squared_to(b)<.0001:return
- var n=box(Vector3(width,width,a.distance_to(b)),c,(a+b)*.5,self)
- n.material_override=material(c,2)
- n.look_at(b)
- effects.append({"node":n,"life":duration,"total":duration,"kind":"beam","radius":0.0})
+ if is_instance_valid(battle_fx):battle_fx.beam(a,b,c,duration,width)
 
 func pulse(p:Vector3,c:Color,r:float,duration:float):
  if effects.size()>180:return
  var n=ring(p+Vector3(0,.2,0),1,c,self)
+ n.material_override.transparency=BaseMaterial3D.TRANSPARENCY_ALPHA
+ n.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
  effects.append({"node":n,"life":duration,"total":duration,"kind":"pulse","radius":r})
 
 func update_effects(dt:float):
@@ -1512,7 +1538,7 @@ func update_effects(dt:float):
   elif fx.kind=="pulse":
    var scale_value=maxf(.05,fx.radius*(1-fx.life/fx.total))
    fx.node.scale=Vector3(scale_value,1,scale_value)
-   fx.node.transparency=1-fx.life/fx.total
+   fx.node.material_override.albedo_color.a=fx.life/fx.total
 
 func make_audio():
  audio_system=AudioSystem.new()
@@ -1523,6 +1549,7 @@ func tone(name:String):
  if is_instance_valid(audio_system):audio_system.play_event(name)
 
 func apply_graphics_quality():
+ if is_instance_valid(horde_renderer):horde_renderer.low_detail=performance_mode
  get_viewport().scaling_3d_scale=.75 if performance_mode else 1.0
  for light in find_children("*","DirectionalLight3D",true,false):
   if light.shadow_enabled:light.directional_shadow_mode=DirectionalLight3D.SHADOW_ORTHOGONAL if performance_mode else DirectionalLight3D.SHADOW_PARALLEL_2_SPLITS
@@ -1633,6 +1660,7 @@ func capture_frame():
  print("SCREENSHOT: ",path)
 
 func rebuild_navigation():
+ enemy_approach_cells.clear()
  if not nav.is_in_boundsv(Vector2i.ZERO):return
  nav.fill_solid_region(nav.region,false)
  for block in terrain_blocks:
@@ -1666,6 +1694,39 @@ func open_cell(p:Vector3,approach:Vector3=Vector3.INF)->Vector2i:
     candidates.sort_custom(func(a,b):return Vector3(a.x,0,a.y).distance_squared_to(approach)<Vector3(b.x,0,b.y).distance_squared_to(approach))
    return candidates[0]
  return cell
+
+func enemy_route(start:Vector3,target:Dictionary)->Array:
+ var direct=route_to(start,target.node.position)
+ if not direct.is_empty():return direct
+ var source=open_cell(start)
+ var key:int=target.node.get_instance_id()
+ if enemy_approach_cells.has(key):
+  var cached:Vector2i=enemy_approach_cells[key]
+  if nav.is_in_boundsv(cached) and not nav.is_point_solid(cached):
+   var points=nav.get_id_path(source,cached)
+   if not points.is_empty():return path_vectors(points)
+ # A nearest empty tile can be an enclosed pocket between adjacent buildings.
+ # Try a reachable perimeter tile instead of leaving an entire approach idle.
+ var center:Vector2i=Vector2i(roundi(target.node.position.x),roundi(target.node.position.z))
+ var radius:int=ceili(float(target.get("radius",.7))+2.0)
+ var candidates:Array[Vector2i]=[]
+ for x in range(-radius,radius+1):
+  for z in range(-radius,radius+1):
+   var cell:Vector2i=center+Vector2i(x,z)
+   if nav.is_in_boundsv(cell) and not nav.is_point_solid(cell):candidates.append(cell)
+ candidates.sort_custom(func(a,b):return a.distance_to(center)*5+a.distance_to(source)<b.distance_to(center)*5+b.distance_to(source))
+ for cell in candidates:
+  var points=nav.get_id_path(source,cell)
+  if not points.is_empty():
+   enemy_approach_cells[key]=cell
+   return path_vectors(points)
+ return []
+
+func path_vectors(points)->Array:
+ var result=[]
+ for point in points:result.append(Vector3(point.x,0,point.y))
+ if not result.is_empty():result.pop_front()
+ return result
 
 func route_to(start:Vector3,end:Vector3)->Array:
  var result=[]
@@ -2144,32 +2205,7 @@ func upgrade_route_text(id:String)->String:
  return UpgradeCatalog.by_id(route[0]).name+"へ: "+" / ".join(pieces)
 
 func impact_spark(p:Vector3,kind:String):
- if effects.size()>150:return
- if impact_mesh==null:
-  var surface=SurfaceTool.new()
-  surface.begin(Mesh.PRIMITIVE_TRIANGLES)
-  for i in 5:
-   var axis=Vector3(cos(i*TAU/5),sin(i*TAU/5),0)
-   var side=Vector3(-axis.y,axis.x,0)*.06
-   surface.add_vertex(side)
-   surface.add_vertex(-side)
-   surface.add_vertex(axis*(.45 if i%2==0 else .30))
-  surface.generate_normals()
-  impact_mesh=surface.commit()
- if not impact_materials.has(kind):
-  var color=Color("ffd799") if kind=="critical" else Color("cc8b50") if kind=="armored" else Color("e2dac0")
-  var ink=material(color,1.5)
-  ink.shading_mode=BaseMaterial3D.SHADING_MODE_UNSHADED
-  ink.cull_mode=BaseMaterial3D.CULL_DISABLED
-  impact_materials[kind]=ink
- var node=MeshInstance3D.new()
- node.mesh=impact_mesh
- node.material_override=impact_materials[kind]
- node.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
- add_child(node)
- node.position=p
- node.look_at(camera.global_position)
- effects.append({"node":node,"life":.12,"total":.12,"kind":"spark","radius":0.0})
+ if is_instance_valid(battle_fx):battle_fx.impact(p,kind)
 
 func site_title(kind:String)->String:
  if kind=="generator":return "01 発電所"
@@ -2202,6 +2238,7 @@ func start_research():
  notify("廃材と古い設計図から、重火器を再生する。研究30秒。",5)
 
 func launch_shell(origin:Vector3,target:Vector3,damage:float,radius:float,kind:String,critical:bool=false):
+ if is_instance_valid(battle_fx):battle_fx.muzzle(origin,kind=="mortar")
  pulse(target,Color("bd975c"),radius,.8 if kind=="grenade" else 1.35)
  var node=Node3D.new()
  add_child(node)
@@ -2215,9 +2252,11 @@ func launch_shell(origin:Vector3,target:Vector3,damage:float,radius:float,kind:S
 
 func update_shells(dt:float):
  for shell in shells.duplicate():
+  var previous=shell.node.position
   shell.time+=dt
   var t=minf(1,shell.time/shell.duration)
   shell.node.position=shell.from.lerp(shell.to,t)+Vector3(0,sin(t*PI)*(3 if shell.kind=="grenade" else 7),0)
+  if dt>0 and not low_fx:battle_fx.trail(previous,shell.node.position,shell.kind=="mortar")
   if t>=1:
    detonate_shell(shell)
    shell.node.queue_free()
@@ -2248,20 +2287,7 @@ func detonate_shell(shell:Dictionary):
    hit(e,shell.damage*pow(.65,i+1),false,0,true)
 
 func explosion_visual(p:Vector3,radius:float,heavy:bool):
- pulse(p,Color("e6ae63"),radius,.50)
- if low_fx:return
- var blast=MeshInstance3D.new()
- var sphere=SphereMesh.new()
- sphere.radius=.55;sphere.height=1.1;sphere.radial_segments=12;sphere.rings=6
- blast.mesh=sphere
- blast.material_override=material(Color("ffbb67"),3.0)
- add_child(blast)
- blast.position=p+Vector3(0,.45,0)
- effects.append({"node":blast,"life":.30,"total":.30,"kind":"fireball","radius":radius*.5})
- for i in 6 if heavy else 4:
-  if effects.size()>160:break
-  var piece=box(Vector3(.12,.10,.28),Color("5b4a36"),p+Vector3(0,.4,0),self)
-  effects.append({"node":piece,"life":.65,"total":.65,"kind":"debris","radius":0.0,"velocity":Vector3(cos(i*TAU/6),1.8,sin(i*TAU/6))*visual_rng.randf_range(2.2,4.0)})
+ if is_instance_valid(battle_fx):battle_fx.blast(p,radius,heavy,low_fx)
 
 func update_corpses(dt:float):
  for corpse in corpses.duplicate():

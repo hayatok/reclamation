@@ -1,0 +1,10 @@
+RECLAMATION — Material texture notice (v0.7)
+
+assets/materials/abandoned_asphalt.png
+assets/materials/ruined_plaster.png
+
+These two images are original AI-generated material assets created for RECLAMATION using OpenAI image generation. They were not downloaded from a third-party texture pack. The asphalt image was subsequently edited with the same image-generation service to simplify fine aggregate and produce quieter, broader painted cracks suitable for strategy-game camera distances.
+
+The images are used as game-surface albedo textures. Godot imports generate mipmaps, and the game uses linear mipmap anisotropic filtering. The asphalt image appears only in localized damaged-paving regions; primary roads, loading slabs and yard planes use the project's deterministic procedural materials. The plaster image supplies weathering to building and salvage surfaces.
+
+Geometry, scene placement, material regions and procedural surface-noise code were authored for this project. These image-generation credits do not describe or alter the license notices for Godot or other project dependencies.

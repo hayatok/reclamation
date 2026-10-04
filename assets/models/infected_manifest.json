@@ -1,0 +1,101 @@
+{
+  "far_triangles_per_pose": [
+    520,
+    520,
+    520,
+    520,
+    520,
+    520,
+    520,
+    520,
+    519,
+    520,
+    520,
+    520,
+    520,
+    520,
+    520,
+    520,
+    520,
+    520,
+    520,
+    520,
+    520,
+    520,
+    520,
+    520,
+    520,
+    520,
+    520,
+    520,
+    520,
+    520,
+    520,
+    520
+  ],
+  "forward": "Godot -Z",
+  "units": "meters",
+  "fps": 30,
+  "clips": {
+    "idle": {
+      "duration": 1.6,
+      "loop": true,
+      "poses": [
+        "idle_00",
+        "idle_01"
+      ]
+    },
+    "walk": {
+      "duration": 1.2,
+      "loop": true,
+      "poses": [
+        "walk_00",
+        "walk_01",
+        "walk_02",
+        "walk_03",
+        "walk_04",
+        "walk_05",
+        "walk_06",
+        "walk_07",
+        "walk_08",
+        "walk_09",
+        "walk_10",
+        "walk_11"
+      ]
+    },
+    "attack": {
+      "duration": 0.8,
+      "loop": false,
+      "poses": [
+        "attack_00",
+        "attack_01",
+        "attack_02",
+        "attack_03",
+        "attack_04",
+        "attack_05",
+        "attack_06",
+        "attack_07"
+      ]
+    },
+    "death": {
+      "duration": 1.2,
+      "loop": false,
+      "poses": [
+        "death_00",
+        "death_01",
+        "death_02",
+        "death_03",
+        "death_04",
+        "death_05",
+        "death_06",
+        "death_07",
+        "death_08",
+        "death_09"
+      ]
+    }
+  },
+  "triangles_per_pose": 3337,
+  "bones": 18,
+  "pose_count": 32,
+  "batch_contract": "Extract Mesh resources by node name. Never add pose container to scene; instance via MultiMesh per current pose."
+}

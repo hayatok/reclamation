@@ -4,15 +4,20 @@ extends RefCounted
 const Shapes = preload("res://actor_visuals.gd")
 static var cache: Dictionary = {}
 static var material: StandardMaterial3D
-const STEEL = Color("4b5046")
+const STEEL = Color("505e60")
 const DARK = Color("292c28")
 const RUST = Color("855338")
-const BONE = Color("c3b48c")
-const AMBER = Color("d9a74f")
+const BONE = Color("aaa899")
+const AMBER = Color("c49b54")
 const GLASS = Color("292f2a")
 const CONCRETE = Color("92907a")
 
 static func add_building(parent: Node3D, kind: String) -> bool:
+	if kind in ["hq", "tower", "factory"]:
+		var path: String = {"hq":"refuge_hq", "tower":"scrap_gun_tower", "factory":"ammo_workshop"}[kind]
+		var scene := load("res://assets/models/"+path+".glb") as PackedScene
+		parent.add_child(scene.instantiate())
+		return true
 	if kind not in ["hq", "tower", "factory", "relay", "wall", "artillery", "mortar", "yard"]: return false
 	_add(parent, "artillery" if kind == "mortar" else ("site_rail_depot" if kind == "yard" else kind))
 	return true
@@ -54,7 +59,14 @@ static func mesh_for(kind: String) -> ArrayMesh:
 	if material == null:
 		material = StandardMaterial3D.new()
 		material.vertex_color_use_as_albedo = true
-		material.roughness = 0.88
+		material.roughness = 0.96
+		material.metallic_specular = .12
+		material.albedo_color = Color(1.35,1.35,1.35,1.0)
+		material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
+		material.albedo_texture = load("res://assets/materials/ruined_plaster.png")
+		material.uv1_triplanar = true
+		material.uv1_world_triplanar = true
+		material.uv1_scale = Vector3(.52,.52,.52)
 	st.set_material(material)
 	st.index()
 	var mesh: ArrayMesh = st.commit()
@@ -229,19 +241,9 @@ static func _artillery(st: SurfaceTool) -> void:
 	for x in [-1.1,-.82,-.54]: beam(st,Vector3(x,.35,1.1),Vector3(x,.35,1.85),.10,AMBER)
 
 static func add_vehicle(parent: Node3D, kind: String = "truck") -> void:
-	_add(parent, "truck")
-	if kind == "convoy":
-		var cargo := MeshInstance3D.new()
-		var st := SurfaceTool.new()
-		st.begin(Mesh.PRIMITIVE_TRIANGLES)
-		b(st,Vector3(1.4,.9,1.7),Vector3(0,1.39,.7),BONE.darkened(.18))
-		for z in [.0,.7,1.4]: b(st,Vector3(1.43,.08,.09),Vector3(0,1.87,z),DARK)
-		for x in [-.71,.71]:
-			b(st,Vector3(.06,.92,1.75),Vector3(x,1.42,.7),STEEL)
-			b(st,Vector3(.07,.18,.9),Vector3(x,1.54,.7),AMBER)
-		st.set_material(material)
-		cargo.mesh=st.commit()
-		parent.add_child(cargo)
+	var path:String="evacuation_carrier" if kind=="convoy" else "supply_truck"
+	var scene:=load("res://assets/models/"+path+".glb") as PackedScene
+	parent.add_child(scene.instantiate())
 
 static func add_site(parent: Node3D, kind: String) -> bool:
 	if kind not in ["generator","pump","rail_depot","substation"]: return false

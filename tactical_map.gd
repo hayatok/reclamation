@@ -94,25 +94,19 @@ func _add_collision(p: Vector3, size: Vector3, index: int) -> void:
 	body.add_child(collision)
 	add_child(body)
 
-func _concrete_island(p: Vector3, size: Vector3, index: int) -> void:
-	_box(p + Vector3(0, size.y * 0.5, 0), size, "concrete_dark")
-	_box(p + Vector3(0, size.y - 0.11, 0), Vector3(size.x, 0.22, size.z), "concrete")
-	var along_x := size.x >= size.z
-	var long_size := size.x if along_x else size.z
-	var count := maxi(2, int(long_size / 1.25))
-	for i in range(count):
-		var v := -long_size * 0.5 + (float(i) + 0.5) * long_size / count
-		var local := Vector3(v, size.y + 0.012, 0) if along_x else Vector3(0, size.y + 0.012, v)
-		var stripe := Vector3(0.27, 0.016, size.z * 0.72) if along_x else Vector3(size.x * 0.72, 0.016, 0.27)
-		_box(p + local, stripe, "amber_paint" if _mission_index == 0 else "violet_paint")
-	# Embedded utility covers distinguish slabs from ordinary player-built walls.
-	if long_size > 5:
-		var cover := Vector3(0.7, 0.018, 0.56) if along_x else Vector3(0.56, 0.018, 0.7)
-		_box(p + Vector3(0, size.y + 0.023, 0), cover, "steel")
-		_box(p + Vector3(0, size.y + 0.039, 0), Vector3(0.10, 0.012, 0.30), "ivory")
-	# All decorative parts remain inside the collider footprint.
-	for side in [-1.0, 1.0]:
-		_box(p + Vector3(side * (size.x * 0.5 - 0.09), size.y * 0.32, 0), Vector3(0.16, size.y * 0.35, size.z * 0.80), "edge")
+func _cover_model(p:Vector3,size:Vector3,model:String,base:Vector3)->void:
+	var scene:=load("res://assets/models/"+model+".glb") as PackedScene
+	var root:=scene.instantiate() as Node3D
+	var along_x:bool=size.x>=size.z
+	var length:float=size.x if along_x else size.z
+	var width:float=size.z if along_x else size.x
+	root.scale=Vector3(length/base.x,size.y/base.y,width/base.z)
+	root.rotation.y=0 if along_x else PI*.5
+	root.position=p
+	add_child(root)
+
+func _concrete_island(p: Vector3, size: Vector3, _index: int) -> void:
+	_cover_model(p,size,"shattered_road_obstruction",Vector3(6,.9,2.5))
 
 func _freight(p: Vector3, size: Vector3, index: int) -> void:
 	var color := "freight" if index % 2 == 0 else "freight_rust"
@@ -133,20 +127,8 @@ func _freight(p: Vector3, size: Vector3, index: int) -> void:
 		_box(p + Vector3(size.x * x, size.y + 0.012, 0), Vector3(size.x * 0.40, 0.015, size.z * 0.70), color)
 	_box(p + Vector3(-size.x * 0.22, size.y + 0.026, 0), Vector3(0.62, 0.012, 0.38), "ivory")
 
-func _broken_main(p: Vector3, size: Vector3, index: int) -> void:
-	_box(p + Vector3(0, 0.12, 0), Vector3(size.x, 0.24, size.z), "concrete_dark")
-	var radius := 0.43
-	var length := size.x - 0.6
-	var center := p + Vector3(0, 0.70, 0)
-	_cylinder(center, Vector3(radius, length, radius), "rust", Vector3(0, 0, PI * 0.5))
-	for x in [-length * 0.5, -length * 0.20, length * 0.20, length * 0.5]:
-		_cylinder(center + Vector3(x, 0, 0), Vector3(radius * 1.12, 0.14, radius * 1.12), "steel", Vector3(0, 0, PI * 0.5))
-	for side in [-1.0, 1.0]:
-		_cylinder(center + Vector3(side * (length * 0.5 + 0.074), 0, 0), Vector3(radius * 0.79, 0.014, radius * 0.79), "void", Vector3(0, 0, PI * 0.5))
-		_box(p + Vector3(side * size.x * 0.29, 0.31, 0), Vector3(0.42, 0.30, size.z * 0.70), "concrete")
-		_box(p + Vector3(side * (size.x * 0.5 - 0.20), 0.255, 0), Vector3(0.21, 0.02, size.z * 0.77), "violet_paint")
-	# A shorter surviving service line sits entirely within the same obstacle.
-	_cylinder(p + Vector3(0, 0.40, size.z * 0.37), Vector3(0.12, length * 0.75, 0.12), "rib", Vector3(0, 0, PI * 0.5))
+func _broken_main(p: Vector3, size: Vector3, _index: int) -> void:
+	_cover_model(p,size,"ruptured_water_main",Vector3(10,1.25,2.4))
 
 func _make_route_paint() -> void:
 	match _mission_index:

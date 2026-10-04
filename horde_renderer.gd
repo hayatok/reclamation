@@ -4,12 +4,15 @@ extends Node3D
 ## after enemy simulation. Do not also call ActorVisuals.add_enemy on those roots.
 ## Eighteen geometry batches replace six MeshInstance3D nodes per live enemy.
 
+const BakedInfected = preload("res://baked_infected_renderer.gd")
+var baked:Node3D
+var low_detail:bool=false
 const ActorVisuals = preload("res://actor_visuals.gd")
 const KINDS: Array[String] = ["infected", "runner", "armored"]
 const PARTS: Array[String] = ["torso", "head", "legL", "legR", "armL", "armR"]
 const MAX_CAPACITY: int = 1024
 const MIN_CAPACITY: int = 8
-const INSTANCE_STRIDE: int = 12
+const INSTANCE_STRIDE: int = 16
 const HIT_DURATION: float = 0.12
 # Reactions use only a small body recoil. Keep the original StandardMaterial3D
 # untouched: a custom flash shader changed resting palette on Compatibility.
@@ -35,13 +38,15 @@ func setup() -> void:
 	if _initialized:
 		return
 	_initialized = true
+	baked=BakedInfected.new()
+	add_child(baked)
 	for kind: String in KINDS:
 		var bucket := Bucket.new()
 		bucket.kind = kind
 		for part: String in PARTS:
 			var mesh := MultiMesh.new()
 			mesh.transform_format = MultiMesh.TRANSFORM_3D
-			mesh.use_colors = false
+			mesh.use_colors = true
 			mesh.use_custom_data = false
 			mesh.mesh = ActorVisuals.mesh_for(kind, part)
 			var batch := MultiMeshInstance3D.new()
@@ -58,7 +63,10 @@ func setup() -> void:
 func update_horde(enemies: Array, elapsed: float) -> void:
 	if not _initialized:
 		setup()
-	visible_enemies = 0
+	if is_instance_valid(baked):
+		baked.force_far=low_detail
+		baked.update_crowd(enemies,elapsed,get_viewport().get_camera_3d())
+	visible_enemies = baked.visible_count if is_instance_valid(baked) else 0
 	overflow_enemies = 0
 	for bucket: Bucket in _buckets:
 		bucket.members.clear()
@@ -71,6 +79,7 @@ func update_horde(enemies: Array, elapsed: float) -> void:
 		if not actor.position.is_finite():
 			continue
 		var kind_index: int = 2 if enemy.get("armored", false) else (1 if float(enemy.get("speed", 1.65)) > 2.0 else 0)
+		if kind_index==0 and is_instance_valid(baked) and baked.active:continue
 		var bucket: Bucket = _buckets[kind_index]
 		if bucket.members.size() < MAX_CAPACITY:
 			bucket.members.append(enemy)
@@ -104,7 +113,10 @@ func update_horde(enemies: Array, elapsed: float) -> void:
 			var enemy: Dictionary = bucket.members[index]
 			var actor: Node3D = enemy["node"]
 			var world: Transform3D = inverse * actor.global_transform
-			var phase: float = safe_time * (11.0 if runner else 7.0) + float(actor.get_instance_id() % 17)
+			var seed_value:int=actor.get_instance_id()%97
+			var stature:float=.90+float(seed_value%7)*.028
+			world.basis=world.basis.scaled(Vector3(stature,stature,stature))
+			var phase: float = safe_time * ((11.0 if runner else 7.0)+float(seed_value%5)*.14) + float(seed_value%17)
 			var moving: bool = bool(enemy.get("moving", true))
 			var gait: float = sin(phase) if moving else 0.0
 			var bob: float = absf(cos(phase)) * 0.025 if moving else 0.0
@@ -135,6 +147,13 @@ func update_horde(enemies: Array, elapsed: float) -> void:
 			_write_transform(bucket.buffers[3], offset, leg_r)
 			_write_transform(bucket.buffers[4], offset, arm_l)
 			_write_transform(bucket.buffers[5], offset, arm_r)
+			var tones=[Color(1,.95,.90),Color(.91,.97,1),Color(.93,1,.91),Color(.94,.94,.92)]
+			var tone:Color=tones[seed_value%4]
+			for buffer in bucket.buffers:
+				buffer[offset+12]=tone.r
+				buffer[offset+13]=tone.g
+				buffer[offset+14]=tone.b
+				buffer[offset+15]=1.0
 			# Conservative group bounds cover every animated part, also under scaling.
 			var axes: Vector3 = world.basis.get_scale().abs()
 			var extent := Vector3.ONE * maxf(axes.x, maxf(axes.y, axes.z)) * 2.1

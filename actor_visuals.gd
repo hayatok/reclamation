@@ -187,6 +187,7 @@ static func _shared_material() -> StandardMaterial3D:
 		_material.vertex_color_use_as_albedo = true
 		_material.roughness = 0.96
 		_material.metallic = 0.0
+		_material.metallic_specular = .10
 	return _material
 
 static func _mesh(kind: String, part: String) -> ArrayMesh:
@@ -285,11 +286,11 @@ static func _human_geometry(st: SurfaceTool, kind: String, part: String) -> void
 static func _enemy_geometry(st: SurfaceTool, kind: String, part: String) -> void:
 	var runner: bool = kind == "runner"
 	var armored: bool = kind == "armored"
-	var cloth := Color("934c3b") if runner else (Color("62665c") if armored else Color("686052"))
-	var skin := Color("868975") if not runner else Color("8b7969")
-	var dark := Color("3f3b35")
-	var plate := Color("a58b56")
-	var wound := Color("604136")
+	var cloth := Color("874a45") if runner else (Color("535951") if armored else Color("59605e"))
+	var skin := Color("939d82") if not runner else Color("9e8e79")
+	var dark := Color("303735")
+	var plate := Color("92755a")
+	var wound := Color("70423e")
 	if part == "torso":
 		_prism(st,.17 if runner else (.29 if armored else .21),.23 if runner else (.38 if armored else .29),.52,Vector3(0,.25,0),cloth,7,.72)
 		# The jutting upper back and ragged shirt make a hunched outline.
@@ -309,6 +310,7 @@ static func _enemy_geometry(st: SurfaceTool, kind: String, part: String) -> void
 				_box(st,Vector3(.19,.035,.04),Vector3(.04,rib,-.187),skin.darkened(.12),Vector3(0,0,.2))
 			_box(st, Vector3(.09, .39, .035), Vector3(-.07, .24, -.168), Color("b08560"), Vector3(0, 0, -.22))
 		else:
+			_box(st,Vector3(.19,.35,.045),Vector3(-.16,.20,-.18),cloth.darkened(.22),Vector3(0,0,-.12))
 			_box(st, Vector3(.18, .23, .035), Vector3(.13, .21, -.169), skin.darkened(.2), Vector3(0, 0, .15))
 	elif part == "head":
 		# Sunken sockets, exposed jaw and neck create a recognizable infected profile.

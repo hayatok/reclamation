@@ -27,12 +27,16 @@ func setup() -> void:
 	_make_ground()
 	_make_district()
 	_make_roads()
+	_make_ground_weathering()
 	_make_props()
 	_make_ruins()
 	_make_rail_siding()
 	_flush_batches()
 
 func _make_surface_textures() -> void:
+	# Project-owned generated albedo assets, no runtime network dependency.
+	_surface_textures["yard"] = load("res://assets/materials/abandoned_asphalt.png")
+	_surface_textures["plaster"] = load("res://assets/materials/ruined_plaster.png")
 	# Original, deterministic grayscale surfaces. World triplanar mapping keeps
 	# aggregate grain at the same physical scale on walls, slabs and tiny debris.
 	for kind in ["masonry", "asphalt", "metal", "marking"]:
@@ -72,8 +76,8 @@ func _material(key: String, hex: String, rough: float = 0.94, glow: float = 0.0,
 		m.albedo_texture = _surface_textures[surface]
 		m.uv1_triplanar = true
 		m.uv1_world_triplanar = true
-		m.uv1_scale = Vector3(0.36, 0.36, 0.36)
-		m.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+		m.uv1_scale = Vector3.ONE * (.085 if surface == "yard" else (.18 if surface == "plaster" else .36))
+		m.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
 	if glow > 0.0:
 		m.emission_enabled = true
 		m.emission = Color(hex)
@@ -81,13 +85,13 @@ func _material(key: String, hex: String, rough: float = 0.94, glow: float = 0.0,
 	_materials[key] = m
 
 func _make_materials() -> void:
-	_material("ground", "#55554b", 0.98, 0.0, "masonry")
+	_material("ground", "#626967", 0.99, 0.0, "asphalt")
 	_material("edge", "#30342f", 1.0, 0.0, "masonry")
-	_material("road", "#2d3232", 0.99, 0.0, "asphalt")
-	_material("repair", "#41443b", 0.98, 0.0, "asphalt")
-	_material("concrete", "#777668", 0.97, 0.0, "masonry")
-	_material("concrete_dark", "#575b52", 0.98, 0.0, "masonry")
-	_material("concrete_light", "#999787", 0.95, 0.0, "masonry")
+	_material("road", "#323b3e", 0.99, 0.0, "asphalt")
+	_material("repair", "#505b5e", 0.98, 0.0, "asphalt")
+	_material("concrete", "#828887", 0.97, 0.0, "plaster")
+	_material("concrete_dark", "#5b6262", 0.98, 0.0, "plaster")
+	_material("concrete_light", "#a2a79f", 0.95, 0.0, "plaster")
 	_material("roof", "#424840", 0.96, 0.0, "metal")
 	_material("steel", "#49514e", 0.86, 0.0, "metal")
 	_material("rust", "#775641", 0.96, 0.0, "metal")
@@ -97,13 +101,17 @@ func _make_materials() -> void:
 	_material("window_lit", "#c9bc96", 0.6, 0.36)
 	_material("olive", "#626955", 0.95, 0.0, "metal")
 	_material("amber", "#e6c296", 0.6, 1.25)
-	_material("paint", "#a5a38d", 0.98, 0.0, "marking")
-	_material("yellow", "#ae8d4d", 0.98, 0.0, "marking")
-	_material("moss", "#555d48")
+	_material("paint", "#aaa99b", 0.98, 0.0, "marking")
+	_material("yellow", "#a69769", 0.98, 0.0, "marking")
+	_material("moss", "#4d6042")
 	_material("soil", "#383d32", 1.0, 0.0, "asphalt")
-	_material("brick", "#755f4d", 1.0, 0.0, "masonry")
+	_material("brick", "#785447", 1.0, 0.0, "plaster")
 	_material("backdrop", "#3a4544")
-	_material("soot", "#272a23", 1.0, 0.0, "masonry")
+	_material("soot", "#282d2e", 1.0, 0.0, "plaster")
+	_material("apron", "#767e78", 1.0, 0.0, "masonry")
+	_material("wall_brick", "#94685b", 1.0, 0.0, "plaster")
+	_material("wall_sage", "#7f9189", 1.0, 0.0, "plaster")
+	_material("wall_ash", "#8b9395", 1.0, 0.0, "plaster")
 	_material("moss_dark", "#36452c", 1.0)
 
 func _make_atmosphere() -> void:
@@ -113,14 +121,14 @@ func _make_atmosphere() -> void:
 	settings.background_mode = Environment.BG_COLOR
 	settings.background_color = Color("#343d40")
 	settings.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	settings.ambient_light_color = Color("#adb6b9")
-	settings.ambient_light_energy = 0.43
+	settings.ambient_light_color = Color("#a9b6c0")
+	settings.ambient_light_energy = 0.53
 	settings.tonemap_mode = Environment.TONE_MAPPER_FILMIC
-	settings.tonemap_exposure = 1.08
+	settings.tonemap_exposure = 1.0
 	settings.fog_enabled = true
-	settings.fog_light_color = Color("#4b504a")
+	settings.fog_light_color = Color("#505b60")
 	settings.fog_light_energy = 0.55
-	settings.fog_density = 0.0038
+	settings.fog_density = 0.0028
 	settings.glow_enabled = false
 	settings.glow_intensity = 0.65
 	env.environment = settings
@@ -128,8 +136,8 @@ func _make_atmosphere() -> void:
 	var sun := DirectionalLight3D.new()
 	sun.name = "LateAfternoonThroughSmog"
 	sun.rotation_degrees = Vector3(-48.0, -32.0, 0.0)
-	sun.light_color = Color("#edcda0")
-	sun.light_energy = 1.25
+	sun.light_color = Color("#dfddce")
+	sun.light_energy = 1.08
 	sun.shadow_enabled = true
 	sun.directional_shadow_max_distance = 105.0
 	sun.directional_shadow_mode = DirectionalLight3D.SHADOW_PARALLEL_2_SPLITS
@@ -138,7 +146,7 @@ func _make_atmosphere() -> void:
 	fill.name = "CoolSkyBounce"
 	fill.rotation_degrees = Vector3(-32, 138, 0)
 	fill.light_color = Color("#8d9ba3")
-	fill.light_energy = 0.18
+	fill.light_energy = 0.22
 	fill.shadow_enabled = false
 	add_child(fill)
 
@@ -154,7 +162,7 @@ func _make_ground() -> void:
 		_box(Vector3(0, -0.055, x), Vector3(64, 0.012, 0.024), "concrete_dark")
 	# Large old loading aprons, kept flat for gameplay sites.
 	for p in [Vector3(0,0,8), Vector3(14,0,-5), Vector3(-14,0,-7)]:
-		_box(p + Vector3(0,-0.06,0), Vector3(10,0.06,10), "concrete_dark")
+		_box(p + Vector3(0,-0.06,0), Vector3(10,0.06,10), "apron")
 		# Faded L-shaped loading marks, rather than bright interface-like boxes.
 		for sx in [-1.0, 1.0]:
 			for sz in [-1.0, 1.0]:
@@ -302,11 +310,11 @@ func _bake_building() -> void:
 		material.metallic_specular=.22
 		if not is_window:
 			# Preserve procedural world-space masonry grain on the consolidated shell.
-			material.albedo_texture=_surface_textures["masonry"]
+			material.albedo_texture=_surface_textures["plaster"]
 			material.uv1_triplanar=true
 			material.uv1_world_triplanar=true
-			material.uv1_scale=Vector3(.36,.36,.36)
-			material.texture_filter=BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+			material.uv1_scale=Vector3(.18,.18,.18)
+			material.texture_filter=BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
 		else:
 			_building_window_materials.append(material)
 		var instance := MeshInstance3D.new()
@@ -341,7 +349,7 @@ func set_building_fade(index: int, alpha: float) -> void:
 func _building_geometry(p: Vector3, size: Vector3, stories: int, damaged: bool) -> void:
 	# Ruined hollow shells, not pristine blocks with decorative damage on top.
 	# Existing locations and bounding footprints are retained; all pieces are render-only.
-	var wall := "concrete_dark" if p.x > 0 else "concrete"
+	var wall: String = ["wall_brick", "wall_ash", "wall_sage", "concrete"][occlusion_buildings.size()%4]
 	var bays := maxi(3,int(size.x / 2.0))
 	var bay_width: float = size.x / float(bays)
 	var storey_height: float = size.y / float(stories)
@@ -629,3 +637,75 @@ func restore_district_lights() -> void:
 			current.b=lerpf(start.b,target.b,progress)
 			surface.albedo_color=current
 		,0.0,1.0,1.8)
+
+func _make_ground_weathering() -> void:
+	# Authored material regions, not a cracked texture across the whole board.
+	# Keep exactly three merged flat meshes: damaged edge paving, yard oil/soil, margin moss.
+	# Main ground, roads and loading slabs deliberately remain quiet/readable.
+	var groups: Array = [
+		[Color(.90,.94,.92,.93), [
+			[Vector3(-23,0,-15),Vector2(4.5,2.2)],
+			[Vector3(22,0,-16),Vector2(4.0,2.4)],
+			[Vector3(-12,0,-22),Vector2(5.0,2.0)],
+			[Vector3(12,0,-23),Vector2(4.0,1.8)],
+			[Vector3(24,0,11),Vector2(2.5,3.0)],
+			[Vector3(-24,0,12),Vector2(3.1,2.0)],
+			[Vector3(-7,0,-11),Vector2(1.6,1.1)],
+			[Vector3(8,0,-14),Vector2(1.9,1.2)] ]],
+		[Color(.13,.16,.15,.48), [
+			[Vector3(-3.5,0,10),Vector2(2.7,1.8)],
+			[Vector3(4.2,0,8.2),Vector2(2.0,1.1)],
+			[Vector3(-1,0,13),Vector2(3.1,1.2)],
+			[Vector3(9,0,5.5),Vector2(1.2,.7)] ]],
+		[Color(.25,.33,.18,.55), [
+			[Vector3(-25,0,-12),Vector2(2.2,1.3)],
+			[Vector3(25,0,-10),Vector2(2.0,1.4)],
+			[Vector3(-24,0,17),Vector2(2.8,1.3)],
+			[Vector3(25,0,17),Vector2(2.1,1.8)],
+			[Vector3(17,0,-24),Vector2(2.5,1.1)] ]]
+	]
+	var random:=RandomNumberGenerator.new()
+	random.seed=721889
+	for group_index in range(groups.size()):
+		var surface:=SurfaceTool.new()
+		surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+		var color:Color=groups[group_index][0]
+		for region:Array in groups[group_index][1]:
+			var point:Vector3=region[0]
+			var radii:Vector2=region[1]
+			point.y=.065+float(group_index)*.002
+			var outer:Array[Vector3]=[]
+			var inner:Array[Vector3]=[]
+			for i in 8:
+				var angle:float=TAU*float(i)/8.0
+				var irregular:float=random.randf_range(.77,1.12)
+				var offset:=Vector3(cos(angle)*radii.x*irregular,0,sin(angle)*radii.y*irregular)
+				outer.append(point+offset)
+				inner.append(point+offset*.67)
+			for i in 8:
+				var j:int=(i+1)%8
+				var clear:=Color(color.r,color.g,color.b,0)
+				# Solid middle, feathered irregular rim; few broad patches stay local.
+				for item in [[point,color],[inner[j],color],[inner[i],color],
+					[inner[i],color],[outer[j],clear],[outer[i],clear],
+					[inner[i],color],[inner[j],color],[outer[j],clear]]:
+					surface.set_color(item[1])
+					surface.set_normal(Vector3.UP)
+					surface.set_uv(Vector2(item[0].x,item[0].z)*.17)
+					surface.add_vertex(item[0])
+		var material:=StandardMaterial3D.new()
+		material.vertex_color_use_as_albedo=true
+		material.transparency=BaseMaterial3D.TRANSPARENCY_ALPHA
+		material.roughness=.38 if group_index==1 else 1.0
+		material.metallic_specular=.15 if group_index==1 else 0.0
+		material.cull_mode=BaseMaterial3D.CULL_DISABLED
+		if group_index==0:
+			material.albedo_texture=_surface_textures["yard"]
+			material.texture_filter=BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
+		surface.set_material(material)
+		surface.index()
+		var mesh:=MeshInstance3D.new()
+		mesh.name="GroundWeathering_%d"%group_index
+		mesh.mesh=surface.commit()
+		mesh.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		add_child(mesh)
