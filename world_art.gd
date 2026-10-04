@@ -2,6 +2,11 @@ extends Node3D
 ## Original procedural art: a disused rail depot being reclaimed at dusk.
 ## All repeated structural pieces are batched by shape/material in MultiMeshes.
 
+var occlusion_buildings: Array = []
+var _capturing_building := false
+var _captured_parts: Array[Dictionary] = []
+var _building_window_materials: Array[StandardMaterial3D] = []
+
 var _built := false
 var _rng := RandomNumberGenerator.new()
 var _materials: Dictionary = {}
@@ -98,6 +103,8 @@ func _make_materials() -> void:
 	_material("soil", "#383d32", 1.0, 0.0, "asphalt")
 	_material("brick", "#755f4d", 1.0, 0.0, "masonry")
 	_material("backdrop", "#3a4544")
+	_material("soot", "#272a23", 1.0, 0.0, "masonry")
+	_material("moss_dark", "#36452c", 1.0)
 
 func _make_atmosphere() -> void:
 	var env := WorldEnvironment.new()
@@ -230,62 +237,190 @@ func _make_district() -> void:
 			_box(Vector3(x,h+1.4,-48),Vector3(0.18,3.0,0.18),"backdrop")
 
 func _building(p: Vector3, size: Vector3, stories: int, damaged: bool) -> void:
+	_captured_parts.clear()
+	_capturing_building = true
+	_building_geometry(p, size, stories, damaged)
+	_capturing_building = false
+	_bake_building()
+
+func _bake_building() -> void:
+	var solid := SurfaceTool.new()
+	var windows := SurfaceTool.new()
+	solid.begin(Mesh.PRIMITIVE_TRIANGLES)
+	windows.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var solid_vertices: int = 0
+	var window_vertices: int = 0
+	var low := Vector3(INF,INF,INF)
+	var high := Vector3(-INF,-INF,-INF)
+	var building_index: int = occlusion_buildings.size()
+	var wear_rng := RandomNumberGenerator.new()
+	wear_rng.seed = 9253 + building_index * 19
+	for part: Dictionary in _captured_parts:
+		var primitive: PrimitiveMesh
+		if part.shape == "cylinder":
+			var cylinder := CylinderMesh.new()
+			cylinder.top_radius=1.0
+			cylinder.bottom_radius=1.0
+			cylinder.height=1.0
+			cylinder.radial_segments=10
+			primitive=cylinder
+		else:
+			var cube := BoxMesh.new()
+			cube.size=Vector3.ONE
+			primitive=cube
+		var arrays: Array = primitive.get_mesh_arrays()
+		var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+		var normals: PackedVector3Array = arrays[Mesh.ARRAY_NORMAL]
+		var indices: PackedInt32Array = arrays[Mesh.ARRAY_INDEX]
+		var transform: Transform3D = part.transform
+		var normal_basis: Basis = transform.basis.inverse().transposed()
+		var is_window: bool = part.mat in ["glass","window_lit"]
+		var surface: SurfaceTool = windows if is_window else solid
+		var source: StandardMaterial3D = _materials[part.mat]
+		var tint: Color = source.albedo_color
+		var wear: float = 1.0 if is_window else wear_rng.randf_range(.86,1.0)
+		tint *= Color(wear,wear,wear*.985,1.0)
+		for j in range(indices.size() if not indices.is_empty() else vertices.size()):
+			var index: int = indices[j] if not indices.is_empty() else j
+			var vertex: Vector3 = transform * vertices[index]
+			low=low.min(vertex)
+			high=high.max(vertex)
+			surface.set_color(tint)
+			surface.set_normal((normal_basis * normals[index]).normalized())
+			surface.add_vertex(vertex)
+			if is_window: window_vertices+=1
+			else: solid_vertices+=1
+	var meshes: Array[MeshInstance3D] = []
+	var materials: Array[StandardMaterial3D] = []
+	for entry in [[solid,solid_vertices,false],[windows,window_vertices,true]]:
+		if int(entry[1])==0: continue
+		var surface: SurfaceTool = entry[0]
+		var is_window: bool = entry[2]
+		var material := StandardMaterial3D.new()
+		material.vertex_color_use_as_albedo=true
+		material.roughness=.58 if is_window else .96
+		material.metallic_specular=.22
+		if not is_window:
+			# Preserve procedural world-space masonry grain on the consolidated shell.
+			material.albedo_texture=_surface_textures["masonry"]
+			material.uv1_triplanar=true
+			material.uv1_world_triplanar=true
+			material.uv1_scale=Vector3(.36,.36,.36)
+			material.texture_filter=BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+		else:
+			_building_window_materials.append(material)
+		var instance := MeshInstance3D.new()
+		instance.name="OccludableBuilding_%02d_%s" % [building_index,"Windows" if is_window else "Shell"]
+		surface.set_material(material)
+		surface.index()
+		instance.mesh=surface.commit()
+		instance.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF if is_window else GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+		instance.set_meta(&"rest_shadow",instance.cast_shadow)
+		add_child(instance)
+		meshes.append(instance)
+		materials.append(material)
+	var bounds := AABB(low,high-low)
+	occlusion_buildings.append({"bounds":global_transform*bounds,"local_bounds":bounds,"meshes":meshes,"materials":materials,"alpha":1.0})
+	_captured_parts.clear()
+
+## Compatibility renderer supported. Each building owns its materials; no shared-world fade.
+func set_building_fade(index: int, alpha: float) -> void:
+	if index<0 or index>=occlusion_buildings.size(): return
+	alpha=clampf(alpha,0.0,1.0) if is_finite(alpha) else 1.0
+	var building: Dictionary = occlusion_buildings[index]
+	if absf(float(building.alpha)-alpha)<.001: return
+	building.alpha=alpha
+	for material: StandardMaterial3D in building.materials:
+		var color: Color = material.albedo_color
+		color.a=alpha
+		material.albedo_color=color
+		material.transparency=BaseMaterial3D.TRANSPARENCY_DISABLED if alpha>=.999 else BaseMaterial3D.TRANSPARENCY_ALPHA
+	for mesh: MeshInstance3D in building.meshes:
+		mesh.cast_shadow=mesh.get_meta(&"rest_shadow") if alpha>=.999 else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+
+func _building_geometry(p: Vector3, size: Vector3, stories: int, damaged: bool) -> void:
+	# Ruined hollow shells, not pristine blocks with decorative damage on top.
+	# Existing locations and bounding footprints are retained; all pieces are render-only.
 	var wall := "concrete_dark" if p.x > 0 else "concrete"
-	_box(p+Vector3(0,size.y*0.5,0),size,wall)
-	_box(p+Vector3(0,0.28,0),Vector3(size.x+0.45,0.55,size.z+0.45),"concrete_light")
-	_box(p+Vector3(0,size.y-0.08,0),Vector3(size.x+0.32,0.25,size.z+0.32),"roof")
-	# Roof recess and discontinuous parapet.
-	_box(p+Vector3(0,size.y+0.04,0),Vector3(size.x-0.5,0.1,size.z-0.5),"void")
-	for sx in [-1.0,1.0]:
-		_box(p+Vector3(sx*(size.x*0.5-0.12),size.y+0.25,0),Vector3(0.25,0.6,size.z),wall)
-	_box(p+Vector3(0,size.y+0.25,-size.z*0.5+0.12),Vector3(size.x,0.6,0.25),wall)
-	_box(p+Vector3(-size.x*0.25,size.y+0.25,size.z*0.5-0.12),Vector3(size.x*0.5,0.6,0.25),wall)
-	# Windows are dark inset fields with fine projecting mullions.
-	var bays := maxi(2,int(size.x/2.0))
-	for level in range(stories):
-		var y := 1.6 + level*((size.y-1.8)/maxi(1,stories))
-		_box(p+Vector3(0,y+0.98,size.z*0.5+0.035),Vector3(size.x+0.12,0.16,0.10),"concrete_light")
-		for bay in range(bays):
-			var x := -size.x*0.5+(bay+0.5)*size.x/bays
-			var width := size.x/bays-0.48
-			_box(p+Vector3(x,y,size.z*0.5+0.025),Vector3(width,1.35,0.06),"void")
-			if _rng.randf() < 0.10:
-				_box(p+Vector3(x-width*0.17,y+0.04,size.z*0.5+0.064),Vector3(width*0.54,1.15,0.028),"window_lit")
+	var bays := maxi(3,int(size.x / 2.0))
+	var bay_width: float = size.x / float(bays)
+	var storey_height: float = size.y / float(stories)
+	var severe: bool = damaged and (p.x > 0 or p.z > -15)
+	var breach_start: int = maxi(1, bays - (3 if severe else 2))
+	var front: float = size.z * .5
+	var side: float = size.x * .5
+	_box(p+Vector3(0,.20,0),Vector3(size.x+.35,.4,size.z+.35),"concrete_dark")
+	# Back wall remains in place to provide dark interiors behind missing rooms.
+	_box(p+Vector3(0,size.y*.44,-front+.16),Vector3(size.x,size.y*.88,.32),"soot")
+	_box(p+Vector3(-side+.15,size.y*.44,0),Vector3(.3,size.y*.88,size.z),wall)
+	for floor_index in range(stories+1):
+		var y:float=maxf(.25,float(floor_index)*storey_height)
+		var upper:bool=floor_index>=stories-1
+		# Half the roof is completely absent. Remaining slabs expose open floor plates.
+		var slab_width:float=size.x*(.47 if upper and damaged else .93)
+		var slab_x:float=-size.x*.25 if upper and damaged else 0.0
+		_box(p+Vector3(slab_x,y,0),Vector3(slab_width,.22,size.z*.94),"soot" if floor_index==stories else "concrete_dark")
+		if floor_index>0 and floor_index<stories:
+			_box(p+Vector3(size.x*.28,y-.25,size.z*.10),Vector3(size.x*.34,.22,size.z*.62),"concrete",Vector3(.08,.06,.15 if floor_index%2 else -.18))
+	# Masonry piers and intact bays contrast with two-storey open breaches.
+	for bay in range(bays):
+		var x:float=-side+(float(bay)+.5)*bay_width
+		var broken:bool=damaged and bay>=breach_start
+		var height:float=size.y-(storey_height*(.58+float(bay%2)*.6) if broken else 0.0)
+		_box(p+Vector3(x-bay_width*.48,height*.5,front),Vector3(.26,height,.42),"concrete_dark" if broken else wall)
+		for level in range(stories):
+			var y:float=float(level)*storey_height
+			var breached:bool=broken and level>=maxi(0,stories-2)
+			if not breached:
+				_box(p+Vector3(x,y+.48,front),Vector3(bay_width-.24,.95,.30),"brick" if (bay+level)%3==0 else wall)
+				_box(p+Vector3(x,y+storey_height-.23,front),Vector3(bay_width-.23,.43,.33),"soot" if (bay+level)%3==1 else wall)
+				_box(p+Vector3(x,y+storey_height*.57,front-.09),Vector3(bay_width-.35,storey_height*.48,.035),"void")
+				# Surviving mullions are bent/missing; glass is rarely present.
+				if (bay+level)%3==0:
+					_box(p+Vector3(x,y+storey_height*.56,front+.02),Vector3(.06,storey_height*.48,.06),"rust",Vector3(0,0,.11))
+				elif (bay+level)%4==0:
+					_box(p+Vector3(x-.2,y+storey_height*.58,front-.06),Vector3(bay_width*.35,storey_height*.28,.025),"glass")
 			else:
-				_box(p+Vector3(x,y+0.2,size.z*0.5+0.064),Vector3(width*0.86,0.6,0.03),"glass")
-			_box(p+Vector3(x,y,size.z*0.5+0.09),Vector3(0.08,1.36,0.08),"steel")
-			_box(p+Vector3(x,y+0.02,size.z*0.5+0.09),Vector3(width,0.065,0.08),"steel")
-		# Visible east facade.
-		var side_bays := maxi(2,int(size.z/2.3))
-		for bay in range(side_bays):
-			var z := -size.z*0.5+(bay+0.5)*size.z/side_bays
-			_box(p+Vector3(size.x*0.5+0.02,y,z),Vector3(0.06,1.25,size.z/side_bays-0.5),"void")
-			if _rng.randf() < 0.055:
-				_box(p+Vector3(size.x*0.5+0.065,y,z),Vector3(0.025,0.92,0.65),"window_lit")
-	for bay in range(bays+1):
-		var x := -size.x*0.5+bay*size.x/bays
-		_box(p+Vector3(x,size.y*0.5,size.z*0.5+0.1),Vector3(0.18,size.y,0.22),"concrete_light")
-	# Shutter, canopy, vents, exterior conduit and rooftop machinery.
-	_box(p+Vector3(size.x*0.22,0.95,size.z*0.5+0.10),Vector3(2.0,1.8,0.10),"steel")
-	for j in range(7):
-		_box(p+Vector3(size.x*0.22,0.2+j*0.23,size.z*0.5+0.18),Vector3(1.94,0.035,0.08),"rust")
-	_box(p+Vector3(size.x*0.22,2.13,size.z*0.5+0.65),Vector3(2.8,0.12,1.4),"rust")
-	_box(p+Vector3(-size.x*0.42,size.y*0.5,size.z*0.5+0.24),Vector3(0.1,size.y,0.1),"rust_light")
-	_box(p+Vector3(-size.x*0.18,size.y+0.5,-size.z*0.12),Vector3(2.1,0.85,1.45),"steel")
-	for j in range(6):
-		_box(p+Vector3(-size.x*0.18-0.78+j*0.3,size.y+0.94,-size.z*0.12),Vector3(0.08,0.03,1.3),"rust")
-	# Tall narrow sign housing evokes an old Japanese workshop without illegible text.
-	_box(p+Vector3(size.x*0.46,size.y*0.60,size.z*0.5+0.35),Vector3(0.5,2.6,0.48),"steel")
-	_box(p+Vector3(size.x*0.46,size.y*0.60,size.z*0.5+0.605),Vector3(0.31,2.27,0.03),"yellow")
-	for j in range(3):
-		_box(p+Vector3(size.x*0.46,size.y*0.60-0.6+j*0.62,size.z*0.5+0.63),Vector3(0.23,0.05,0.02),"void")
+				# Broken sill stubs and crooked reinforcement delineate the missing facade.
+				_box(p+Vector3(x-bay_width*.27,y+.3,front),Vector3(bay_width*.38,.55,.36),"brick",Vector3(0,0,-.16))
+				_beam(p+Vector3(x-.15,y+.15,front),p+Vector3(x+.2,y+storey_height*.7,front+.12),.045,"rust")
+				_box(p+Vector3(x,y+.20,front-.9),Vector3(bay_width*.8,.18,1.7),"soot",Vector3(.17,0,.09))
+		# Broad soot columns interrupt the remaining pale facade at gameplay zoom.
+		if bay%2==0 and not broken:
+			_box(p+Vector3(x-bay_width*.42,size.y*.40,front+.23),Vector3(.43,size.y*.69,.018),"soot")
+		if broken:
+			_beam(p+Vector3(x,height,front),p+Vector3(x+.20,height+1.1,front-.12),.05,"rust")
+	# Visible east wall gets a large missing upper corner rather than uniform windows.
+	var side_bays:int=maxi(3,int(size.z/2.3))
+	var side_width:float=size.z/float(side_bays)
+	for bay in range(side_bays):
+		var z:float=-front+(float(bay)+.5)*side_width
+		var upper_missing:bool=damaged and bay>=side_bays-2
+		var height:float=size.y*.52 if upper_missing else size.y*.92
+		_box(p+Vector3(side,height*.5,z-side_width*.47),Vector3(.35,height,.25),wall)
+		for level in range(stories):
+			if upper_missing and level>=maxi(1,stories-1):continue
+			var y:float=float(level)*storey_height
+			_box(p+Vector3(side,y+.5,z),Vector3(.30,.95,side_width-.20),"soot" if bay%2==0 else wall)
+			_box(p+Vector3(side,y+storey_height-.23,z),Vector3(.31,.4,side_width-.2),wall)
+			_box(p+Vector3(side+.025,y+storey_height*.57,z),Vector3(.035,storey_height*.48,side_width-.3),"void")
+	# Fallen roofing bends INTO the existing footprint and changes the dominant skyline.
 	if damaged:
-		# Jagged exposed upper-floor skeleton and fallen slab.
-		var roof_y := size.y+0.4
-		for j in range(3):
-			_box(p+Vector3(size.x*0.24+j*0.63,roof_y+_rng.randf_range(0.15,0.8),size.z*0.38),Vector3(0.18,_rng.randf_range(0.8,2.2),0.18),"rust")
-		_box(p+Vector3(size.x*0.3,size.y+0.37,size.z*0.05),Vector3(size.x*0.5,0.18,size.z*0.34),"concrete_light",Vector3(0.11,0.13,-0.12))
-		_box(p+Vector3(-size.x*0.22,0.50,size.z*0.5+1.20),Vector3(2.5,0.36,1.5),"concrete",Vector3(0.27,-0.25,-0.16))
+		_box(p+Vector3(size.x*.19,size.y*.73,size.z*.05),Vector3(size.x*.46,.24,size.z*.72),"roof",Vector3(.22,.08,-.38))
+		_box(p+Vector3(size.x*.32,.48,front-.50),Vector3(size.x*.42,.32,1.8),"concrete",Vector3(.21,.2,-.14))
+		for i in range(4):
+			_box(p+Vector3(size.x*.13+float(i)*.42,.30+float(i%2)*.15,front-.12),Vector3(.75,.45,.68),"brick" if i%2 else "concrete_dark",Vector3(.12,float(i)*.5,.12))
+	# Large, irregular overgrowth strips climb two bays rather than tiny ground confetti.
+	for section in range(2):
+		var x:float=-side+bay_width*(.25+float(section)*1.35)
+		var vine_height:float=size.y*(.59 if section==0 else .36)
+		_box(p+Vector3(x,vine_height*.5,front+.27),Vector3(.15,vine_height,.10),"moss_dark",Vector3(0,0,.08))
+		for clump in range(5):
+			var y:float=.5+float(clump)*vine_height*.19
+			_box(p+Vector3(x+sin(float(clump)*2)*.28,y,front+.31),Vector3(.65+float(clump%2)*.32,.64,.22),"moss_dark" if clump%2 else "moss",Vector3(0,.15,float(clump)*.16))
+	# Remaining corrugated shutter is visibly buckled and canopy has dropped one end.
+	_box(p+Vector3(-size.x*.20,.95,front+.1),Vector3(1.8,1.6,.1),"rust",Vector3(0,0,.09))
+	_box(p+Vector3(-size.x*.20,1.86,front+.45),Vector3(2.5,.12,1.1),"rust",Vector3(.16,0,-.18))
 
 func _crane(p: Vector3) -> void:
 	for dx in [-0.9,0.9]:
@@ -427,6 +562,9 @@ func _beam(a: Vector3, b: Vector3, thickness: float, mat: String) -> void:
 	_add_instance("box",mat,Transform3D(basis,(a+b)*0.5))
 
 func _add_instance(shape: String, mat: String, transform: Transform3D) -> void:
+	if _capturing_building:
+		_captured_parts.append({"shape":shape,"mat":mat,"transform":transform})
+		return
 	var key := shape+":"+mat
 	if not _batches.has(key):
 		_batches[key] = []
@@ -471,3 +609,23 @@ func _flush_batches() -> void:
 			node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		add_child(node)
 	_batches.clear()
+
+func restore_district_lights() -> void:
+	# Independent glass materials brighten without racing the occlusion fade alpha.
+	var surfaces: Array[StandardMaterial3D] = []
+	for key in ["glass", "window_lit"]: surfaces.append(_materials[key])
+	surfaces.append_array(_building_window_materials)
+	for surface: StandardMaterial3D in surfaces:
+		surface.emission_enabled=true
+		surface.emission=Color("e3b86b")
+		var start: Color = surface.albedo_color
+		var target := Color("d3b16e")
+		var tween=create_tween().set_parallel(true)
+		tween.tween_property(surface,"emission_energy_multiplier",1.8,1.8)
+		tween.tween_method(func(progress: float):
+			var current: Color = surface.albedo_color
+			current.r=lerpf(start.r,target.r,progress)
+			current.g=lerpf(start.g,target.g,progress)
+			current.b=lerpf(start.b,target.b,progress)
+			surface.albedo_color=current
+		,0.0,1.0,1.8)

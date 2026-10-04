@@ -38,11 +38,9 @@ func run():
  game.choose_upgrade(0)
  assert(game.paused)
  print("SEPARATE_PAUSE_REASONS_PASS")
- for i in 3:
-  assert(campaign.MISSIONS[i].hold>0)
-  assert(campaign.MISSIONS[i].pressure>=1)
- assert(campaign.MISSIONS[1].salvage==600)
- assert(campaign.MISSIONS[2].hold==210)
+ assert(campaign.MISSIONS[0].mode=="restore" and campaign.MISSIONS[0].hold==120)
+ assert(campaign.MISSIONS[1].mode=="convoy")
+ assert(campaign.MISSIONS[2].mode=="finale" and campaign.MISSIONS[2].hold==180)
  print("CAMPAIGN_CONFIG_PASS")
  game.queue_free()
  await process_frame

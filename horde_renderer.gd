@@ -121,11 +121,13 @@ func update_horde(enemies: Array, elapsed: float) -> void:
 				var motion_scale: float = 0.3 if reduced else 1.0
 				recoil = (0.10 if critical else (0.035 if armored_hit else 0.065)) * response * motion_scale
 				recoil_pitch = (0.18 if critical else (0.065 if armored_hit else 0.11)) * response * motion_scale
-			var body := world * Transform3D(Basis.from_euler(Vector3(lean + recoil_pitch, 0, gait * 0.028)), Vector3(0, hip + bob, recoil))
+			var strike := clampf(1.0-(safe_time-float(enemy.get("attack_at",-100.0)))/.32,0,1)
+			var raised := clampf((1.4-float(enemy.get("windup",0.0)))/1.4,0,1) if float(enemy.get("windup",0.0))>0 else 0.0
+			var body := world * Transform3D(Basis.from_euler(Vector3(lean + recoil_pitch - strike*.20, 0, gait * 0.028)), Vector3(0, hip + bob, recoil))
 			var leg_l := world * Transform3D(Basis(Vector3.RIGHT, gait * gait_amplitude), Vector3(-leg_width, hip, 0))
 			var leg_r := world * Transform3D(Basis(Vector3.RIGHT, -gait * gait_amplitude), Vector3(leg_width, hip, 0))
-			var arm_l := body * Transform3D(Basis(Vector3.RIGHT, -gait * arm_amplitude), Vector3(-arm_width, shoulder, 0))
-			var arm_r := body * Transform3D(Basis(Vector3.RIGHT, gait * arm_amplitude), Vector3(arm_width, shoulder, 0))
+			var arm_l := body * Transform3D(Basis(Vector3.RIGHT, -gait * arm_amplitude-strike*.9-raised*1.25), Vector3(-arm_width, shoulder, 0))
+			var arm_r := body * Transform3D(Basis(Vector3.RIGHT, gait * arm_amplitude-strike*.9-raised*1.25), Vector3(arm_width, shoulder, 0))
 			var offset: int = index * INSTANCE_STRIDE
 			_write_transform(bucket.buffers[0], offset, body)
 			_write_transform(bucket.buffers[1], offset, body)
@@ -172,3 +174,39 @@ static func _write_transform(buffer: PackedFloat32Array, offset: int, value: Tra
 	buffer[offset + 10] = value.basis.z.z
 	buffer[offset + 11] = value.origin.z
 
+
+# The friendly skeletons	still drive their original animation transforms; only
+# their meshes are collected here, so selection, orders and appearance remain intact.
+var _friendly_batches:Dictionary={}
+func update_friends(units:Array)->void:
+	if _friendly_batches.is_empty():
+		for kind in ["guard","worker","grenade"]:
+			var meshes=[]
+			for part in PARTS:
+				var mm=MultiMesh.new()
+				mm.transform_format=MultiMesh.TRANSFORM_3D
+				mm.mesh=ActorVisuals.mesh_for(kind,part)
+				mm.instance_count=64
+				mm.visible_instance_count=0
+				mm.custom_aabb=AABB(Vector3(-64,-20,-64),Vector3(128,80,128))
+				var visual=MultiMeshInstance3D.new()
+				visual.name="Survivors_"+kind+"_"+part
+				visual.multimesh=mm
+				visual.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_ON if part=="torso" else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+				add_child(visual)
+				meshes.append(mm)
+			_friendly_batches[kind]=meshes
+	var counts={"guard":0,"worker":0,"grenade":0}
+	var inverse=global_transform.affine_inverse()
+	for u in units:
+		if not counts.has(u.kind) or not is_instance_valid(u.node) or u.hp<=0:continue
+		var skeleton=u.node.get_meta(&"actor_visuals",null)
+		if not is_instance_valid(skeleton):continue
+		var index:int=counts[u.kind]
+		if index>=64:continue
+		var body:Node3D=skeleton.get_meta(&"body")
+		var parts=[body,body,skeleton.get_meta(&"leg_l"),skeleton.get_meta(&"leg_r"),skeleton.get_meta(&"arm_l"),skeleton.get_meta(&"arm_r")]
+		for i in 6:_friendly_batches[u.kind][i].set_instance_transform(index,inverse*parts[i].global_transform)
+		counts[u.kind]+=1
+	for kind in counts:
+		for mm in _friendly_batches[kind]:mm.visible_instance_count=counts[kind]
