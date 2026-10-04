@@ -5,6 +5,7 @@ const AMBER = Color("d2a148")
 const RED = Color("b9523e")
 const PALE = Color("ded7c7")
 const BG = Color("222520")
+const RTSHud=preload("res://rts_hud.gd")
 const CommandDeck=preload("res://command_deck.gd")
 const EnvironmentOverlay=preload("res://environment_overlay.gd")
 const BattleFX=preload("res://battle_fx.gd")
@@ -175,6 +176,11 @@ var options_previous_pause:bool=false
 var render_frames:int=0
 var command_font:Font
 var minimap:Control
+var hud_counters:Dictionary={}
+var queue_icons:HBoxContainer
+var queue_signature:String=""
+var command_detail:Label
+var hovered_command:Dictionary={}
 var hud_parts:Array=[]
 var portrait_cache:Dictionary={}
 var selection_portrait:TextureRect
@@ -201,6 +207,7 @@ func _ready():
  visual_rng.seed=754301
  font=load("res://assets/Japanese.ttc")
  command_font=load("res://assets/Command.ttf")
+ command_font.fallbacks=[font]
  nav.region=Rect2i(-31,-31,63,63)
  nav.cell_size=Vector2.ONE
  nav.diagonal_mode=AStarGrid2D.DIAGONAL_MODE_ONLY_IF_NO_OBSTACLES
@@ -427,37 +434,30 @@ func make_ui():
  theme.default_font=font
  theme.default_font_size=16
  root_ui.theme=theme
- var top=field_panel(Control.PRESET_TOP_WIDE,Vector4(0,0,0,58),Color("1b1e19"))
- var row=HBoxContainer.new()
- top.add_child(row)
- row.add_theme_constant_override("separation",22)
- var brand=label("R / 07",23,AMBER)
- brand.add_theme_font_override("font",command_font)
- brand.custom_minimum_size.x=112
- row.add_child(brand)
- stats=label("",18,PALE)
- stats.add_theme_font_override("font",command_font)
- stats.size_flags_horizontal=Control.SIZE_EXPAND_FILL
- stats.vertical_alignment=VERTICAL_ALIGNMENT_CENTER
- row.add_child(stats)
- idle_worker_button=button("待機0",select_idle_worker,78)
- idle_worker_button.tooltip_text=". : 次の待機作業員"
+ var top=field_panel(Control.PRESET_TOP_WIDE,Vector4(0,0,0,84),Color("1b1e19"))
+ var row=HBoxContainer.new();top.add_child(row)
+ row.add_theme_constant_override("separation",8)
+ for entry in [["food","食料",122],["salvage","廃材",122],["parts","部品",122],["population","人口",122],["age","発展段階",90],["experience","部隊成長",100],["ammo","弾薬",132],["power","電力",150]]:
+  var widget=RTSHud.counter(entry[0],entry[1],entry[2],font)
+  hud_counters[entry[0]]=widget;row.add_child(widget.root)
+ var stretch=Control.new();stretch.size_flags_horizontal=Control.SIZE_EXPAND_FILL;row.add_child(stretch)
+ stats=label("");stats.visible=false;root_ui.add_child(stats)
+ idle_worker_button=button("待機 0",select_idle_worker,86)
+ idle_worker_button.tooltip_text="次の待機作業員を選択  [ . ]"
  row.add_child(idle_worker_button)
- pause_button=button("II",toggle_pause,54)
+ pause_button=button("一時停止",toggle_pause,86)
  pause_button.tooltip_text="戦術ポーズ / Space"
  row.add_child(pause_button)
- row.add_child(button("保存",save_checkpoint,64))
- row.add_child(button("作戦",return_title,64))
- row.add_child(button("設定",show_options,64))
- var orders=field_panel(Control.PRESET_TOP_LEFT,Vector4(18,78,298,294),Color("242720"))
+ row.add_child(button("メニュー",show_options,92))
+ var orders=field_panel(Control.PRESET_TOP_LEFT,Vector4(18,100,280,320),Color("242720"))
  var mission_column=VBoxContainer.new()
  orders.add_child(mission_column)
- mission_column.add_child(label("作戦命令  /  %02d"%(campaign_state.current+1),14,AMBER))
+ mission_column.add_child(label("作戦  %02d"%(campaign_state.current+1),14,AMBER))
  mission_column.add_child(label(mission.title.substr(4),22,PALE))
- objective=label("",16,PALE)
+ objective=label("",14,Color("aaa995"))
  mission_column.add_child(objective)
  core_bar=ProgressBar.new()
- core_bar.custom_minimum_size=Vector2(256,8)
+ core_bar.custom_minimum_size=Vector2(230,6)
  core_bar.max_value=mission.core
  core_bar.show_percentage=false
  core_bar.add_theme_stylebox_override("background",bar_style(Color("10120f"),Color("10120f")))
@@ -465,27 +465,32 @@ func make_ui():
  mission_column.add_child(core_bar)
  status=label("",14,Color("aca994"))
  mission_column.add_child(status)
- guide=label("",14,PALE)
+ guide=label("",16,PALE)
  guide.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
- guide.custom_minimum_size.x=250
+ guide.custom_minimum_size.x=228
  mission_column.add_child(guide)
+ mission_column.move_child(guide,2)
  var site_actions=HBoxContainer.new()
  mission_column.add_child(site_actions)
- site_actions.add_child(button("発電所へ",func():assign_site("generator"),122))
- site_actions.add_child(button("復旧地点へ",func():assign_site("pump"),122))
- generator_button=button("発電  ON / OFF  [F]",toggle_generator,250)
+ site_actions.add_child(button("発電所へ",func():assign_site("generator"),110))
+ site_actions.add_child(button("復旧地点へ",func():assign_site("pump"),110))
+ generator_button=button("発電  ON / OFF  [F]",toggle_generator,228)
+ generator_button.visible=false
  generator_button.tooltip_text="初回起動: 12秒以内に増援。稼働中は襲撃間隔が短くなる。"
  mission_column.add_child(generator_button)
- mission_action_button=button("",mission_action,250)
+ mission_action_button=button("",mission_action,228)
  mission_action_button.visible=mission.mode!="restore"
  mission_column.add_child(mission_action_button)
- convoy_pause_button=button("車列を停車",toggle_convoy_stop,250)
+ convoy_pause_button=button("車列を停車",toggle_convoy_stop,228)
  convoy_pause_button.visible=false
  mission_column.add_child(convoy_pause_button)
- var mini_panel=field_panel(Control.PRESET_BOTTOM_LEFT,Vector4(18,-230,224,-18),Color("1b1f1a"))
+ var mini_panel=field_panel(Control.PRESET_BOTTOM_LEFT,Vector4(14,-274,230,-14),Color("1b1f1a"))
+ var map_col=VBoxContainer.new();mini_panel.add_child(map_col)
+ map_col.add_child(label("街区図",14,AMBER))
  minimap=Control.new()
- minimap.custom_minimum_size=Vector2(180,140)
- mini_panel.add_child(minimap)
+ minimap.custom_minimum_size=Vector2(180,180)
+ minimap.size_flags_vertical=Control.SIZE_EXPAND_FILL
+ map_col.add_child(minimap)
  minimap.mouse_filter=Control.MOUSE_FILTER_STOP
  minimap.gui_input.connect(func(event):
   if event is InputEventMouseButton and event.pressed and event.button_index==MOUSE_BUTTON_LEFT:
@@ -493,7 +498,7 @@ func make_ui():
    camera_focus=Vector3(clampf(map_pos.x,-18,18),0,clampf(map_pos.y,-18,18))
  )
  minimap.draw.connect(draw_minimap)
- var unit_panel=field_panel(Control.PRESET_BOTTOM_LEFT,Vector4(236,-230,566,-18),Color("25281f"))
+ var unit_panel=field_panel(Control.PRESET_BOTTOM_LEFT,Vector4(242,-274,562,-14),Color("25281f"))
  var selected_col=VBoxContainer.new()
  unit_panel.add_child(selected_col)
  selected_col.add_child(label("選択対象",14,AMBER))
@@ -505,12 +510,12 @@ func make_ui():
  selection_portrait.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED
  selection_portrait.texture=portrait_for("guard")
  unit_row.add_child(selection_portrait)
- selection_info=label("",15,PALE)
+ selection_info=label("",18,PALE)
  selection_info.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
- selection_info.custom_minimum_size=Vector2(205,64)
+ selection_info.custom_minimum_size=Vector2(196,90)
  unit_row.add_child(selection_info)
  selected_hp=ProgressBar.new()
- selected_hp.custom_minimum_size=Vector2(294,5)
+ selected_hp.custom_minimum_size=Vector2(288,8)
  selected_hp.show_percentage=false
  selected_hp.add_theme_stylebox_override("background",bar_style(Color("121510"),Color("121510")))
  selected_hp.add_theme_stylebox_override("fill",bar_style(Color("879b64"),Color("879b64")))
@@ -524,45 +529,50 @@ func make_ui():
  dismantle_button.visible=false
  building_actions.add_child(dismantle_button)
  xp_bar=ProgressBar.new()
- xp_bar.custom_minimum_size=Vector2(294,8)
+ xp_bar.custom_minimum_size=Vector2(288,6)
  xp_bar.show_percentage=false
  xp_bar.add_theme_stylebox_override("background",bar_style(Color("121510"),Color("121510")))
  xp_bar.add_theme_stylebox_override("fill",bar_style(Color("b89955"),Color("b89955")))
- selected_col.add_child(xp_bar)
- supply_status=label("",14,Color("bcb69d"))
+ selected_col.add_child(xp_bar);xp_bar.visible=false
+ supply_status=label("",15,Color("bcb69d"))
  supply_status.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
  selected_col.add_child(supply_status)
- var command_panel=field_panel(Control.PRESET_BOTTOM_RIGHT,Vector4(-852,-230,-18,-18),Color("252820"))
+ var command_panel=field_panel(Control.PRESET_BOTTOM_RIGHT,Vector4(-866,-274,-14,-14),Color("252820"))
  var command_col=VBoxContainer.new()
  command_panel.add_child(command_col)
- command_heading=label("",17,PALE)
+ command_heading=label("",20,PALE)
  command_col.add_child(command_heading)
- queue_caption=label("",13,AMBER)
- command_col.add_child(queue_caption)
+ queue_caption=label("",15,AMBER)
+ var queue_row=HBoxContainer.new();command_col.add_child(queue_row)
+ queue_row.add_child(queue_caption);queue_caption.size_flags_horizontal=Control.SIZE_EXPAND_FILL
+ queue_icons=HBoxContainer.new();queue_icons.add_theme_constant_override("separation",4);queue_row.add_child(queue_icons)
  queue_bar=ProgressBar.new();queue_bar.custom_minimum_size=Vector2(760,5);queue_bar.show_percentage=false
  queue_bar.add_theme_stylebox_override("background",bar_style(Color("121510"),Color("121510")))
  queue_bar.add_theme_stylebox_override("fill",bar_style(Color("b89955"),Color("b89955")))
  command_col.add_child(queue_bar)
  command_grid=GridContainer.new()
- command_grid.columns=5
+ command_grid.columns=4
  command_grid.add_theme_constant_override("h_separation",7)
  command_grid.add_theme_constant_override("v_separation",7)
  command_col.add_child(command_grid)
  set_command_tab("people")
 
  hint=label("H: 本部   .: 待機作業員   1/2: 戦闘員/作業員   矢印: 視点   Space: 停止",12,Color("999d86"))
- command_col.add_child(hint)
+ hint.visible=false;command_col.add_child(hint)
+ command_detail=label("",15,Color("d1c8ac"));command_detail.custom_minimum_size=Vector2(790,22)
+ command_detail.text_overrun_behavior=TextServer.OVERRUN_TRIM_ELLIPSIS
+ command_col.add_child(command_detail)
  center_notice=label("",18,AMBER)
  root_ui.add_child(center_notice)
  center_notice.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
- center_notice.offset_left=-380;center_notice.offset_right=380;center_notice.offset_top=77
+ center_notice.offset_left=-380;center_notice.offset_right=380;center_notice.offset_top=102
  center_notice.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
  center_notice.mouse_filter=Control.MOUSE_FILTER_IGNORE
  combo_label=label("",32,AMBER)
  root_ui.add_child(combo_label)
  combo_label.add_theme_font_override("font",command_font)
  combo_label.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
- combo_label.offset_left=-300;combo_label.offset_right=-26;combo_label.offset_top=98
+ combo_label.offset_left=-300;combo_label.offset_right=-26;combo_label.offset_top=122
  combo_label.horizontal_alignment=HORIZONTAL_ALIGNMENT_RIGHT
  combo_label.mouse_filter=Control.MOUSE_FILTER_IGNORE
  drag_overlay=Control.new()
@@ -607,7 +617,7 @@ func field_panel(preset:int,offsets:Vector4,color:Color)->PanelContainer:
  root_ui.add_child(p)
  p.set_anchors_and_offsets_preset(preset)
  p.offset_left=offsets.x;p.offset_top=offsets.y;p.offset_right=offsets.z;p.offset_bottom=offsets.w
- var skin=CommandDeck.skin("panel",14)
+ var skin=CommandDeck.skin("panel",10)
  p.add_theme_stylebox_override("panel",skin)
  hud_parts.append(p)
  return p
@@ -2033,7 +2043,7 @@ func load_checkpoint()->bool:
  return true
 
 func show_options():
- if title_open or active_card or ended:return
+ if title_open or active_card or ended or is_instance_valid(options_panel):return
  options_previous_pause=paused
  paused=true
  options_panel=PanelContainer.new()
@@ -2045,7 +2055,9 @@ func show_options():
  var v=VBoxContainer.new()
  center.add_child(v)
  v.add_theme_constant_override("separation",18)
- v.add_child(label("設定",32,CYAN))
+ v.add_child(label("作戦メニュー",32,CYAN))
+ v.add_child(button("作戦を保存",func():save_checkpoint();close_options(),350))
+ v.add_child(button("保存して作戦選択へ",return_title,350))
  var audio_toggle=CheckButton.new()
  audio_toggle.text="効果音"
  audio_toggle.button_pressed=not muted
@@ -2684,6 +2696,7 @@ func refresh_context_commands(force:bool=false):
  var identity="%s/%s/%s/%s/%s"%[str(selected.map(func(unit):return unit.node.get_instance_id())),inspected.get("node",null),settlement_age,worker_build_page,inspected_resource.get("node",null)]
  if force or identity!=context_signature:
   context_signature=identity
+  hovered_command={}
   for child in command_grid.get_children():command_grid.remove_child(child);child.queue_free()
   context_actions.clear()
   if not selected.is_empty():
@@ -2730,11 +2743,20 @@ func refresh_context_commands(force:bool=false):
    add_context_action("house","本部へ","増員・発展",select_headquarters,Callable(),KEY_H)
    add_context_action("worker","待機作業員","次の1人を選択",select_idle_worker,Callable(),KEY_PERIOD)
  for action in context_actions:
+  var blocked=""
   if action.check.is_valid():
    var check=action.check.call()
-   action.button.disabled=not check.ok
-   action.button.tooltip_text=check.get("reason","") if not check.ok else action.get("detail","")
+   if not check.ok:blocked=check.get("reason","")
+  action.button.tooltip_text=action.get("detail","")
+  CommandDeck.set_command_state(action.button,blocked,build_mode==action.kind or (attack_move and action.kind=="attack"))
+  CommandDeck.set_command_affordability(action.button,stockpile,action.cost)
+  if not blocked.is_empty():action.button.tooltip_text=blocked+"  /  "+action.get("detail","")
  update_queue_display()
+ if is_instance_valid(command_detail):
+  command_detail.text=hovered_command.get("button").tooltip_text if not hovered_command.is_empty() and is_instance_valid(hovered_command.get("button")) else "H 本部  /  . 待機作業員  /  右クリック 命令"
+  if hovered_command.is_empty() and inspected.get("kind","")=="hq" and settlement_age<3:
+   var next_age=production.can_queue_age(inspected)
+   command_detail.text=(next_age.get("reason","") if not next_age.ok else "発展費用: "+GameRules.cost_text(GameRules.age(settlement_age+1).cost))
 
 func build_availability(kind:String)->Dictionary:
  var check=GameRules.can_build(kind,settlement_age,buildings)
@@ -2743,7 +2765,7 @@ func build_availability(kind:String)->Dictionary:
  return {"ok":true,"reason":""}
 
 func add_context_action(kind:String,title:String,cost:String,callback:Callable,check:Callable=Callable(),key:int=0):
- var keys=[KEY_Q,KEY_W,KEY_E,KEY_R,KEY_T,KEY_A,KEY_S,KEY_D,KEY_F,KEY_G]
+ var keys=[KEY_Q,KEY_W,KEY_E,KEY_R,KEY_A,KEY_S,KEY_D,KEY_F,KEY_Z,KEY_X]
  if key==0:key=keys[mini(context_actions.size(),keys.size()-1)]
  var caption=OS.get_keycode_string(key)+" "+title
  var b=command_icon_button(kind,caption,cost,func():callback.call();context_signature="")
@@ -2752,7 +2774,14 @@ func add_context_action(kind:String,title:String,cost:String,callback:Callable,c
  elif GameRules.UNITS.has(kind):detail=GameRules.cost_text(GameRules.unit(kind).cost)+" / %d秒 / 人口%d"%[int(GameRules.unit(kind).time),int(GameRules.unit(kind).population)]
  b.tooltip_text=detail
  command_grid.add_child(b)
- context_actions.append({"key":key,"call":callback,"check":check,"button":b,"detail":detail})
+ var price:Dictionary={}
+ if GameRules.BUILDINGS.has(kind):price=GameRules.building(kind).cost
+ elif GameRules.UNITS.has(kind):price=GameRules.unit(kind).cost
+ elif kind=="research" and settlement_age<3:price=GameRules.age(settlement_age+1).cost
+ var action={"key":key,"call":callback,"check":check,"button":b,"detail":detail,"kind":kind,"cost":price}
+ context_actions.append(action)
+ b.mouse_entered.connect(func():hovered_command=action)
+ b.mouse_exited.connect(func():if hovered_command==action:hovered_command={})
 
 func activate_context_key(key:int)->bool:
  for action in context_actions:
@@ -2761,9 +2790,24 @@ func activate_context_key(key:int)->bool:
    return true
  return false
 
+
+func update_queue_icons():
+ if not is_instance_valid(queue_icons):return
+ var queue:Array=inspected.get("queue",[]) if not inspected.is_empty() else []
+ var signature=str(queue.map(func(item):return item.get("kind",item.get("target_age",""))))
+ if signature==queue_signature:return
+ queue_signature=signature
+ for child in queue_icons.get_children():queue_icons.remove_child(child);child.queue_free()
+ for i in mini(5,queue.size()):
+  var item=queue[i]
+  var kind=str(item.get("kind","research")) if item.get("type")=="unit" else "research"
+  var title=GameRules.unit(kind).title if item.get("type")=="unit" else "段階の発展"
+  queue_icons.add_child(RTSHud.queue_slot(kind,title,i==0,queue.size()-4 if i==4 else 1,font))
+
 func update_queue_display():
  if not is_instance_valid(queue_caption):return
  queue_bar.visible=false
+ update_queue_icons()
  if not inspected.is_empty():
   var building=inspected
   if building.built<1:
@@ -2789,9 +2833,21 @@ func set_command_tab(_tab:String):refresh_context_commands(true)
 
 func update_ui():
  if not is_instance_valid(stats):return
- stats.text="食料 %d   廃材 %d   部品 %d   人口 %d/%d   段階 %s   成長 %d"%[int(stockpile.food),int(resources),int(stockpile.parts),production.population_used(),production.population_cap(),["I","II","III"][clampi(settlement_age-1,0,2)],level]
+ for kind in ["food","salvage","parts"]:hud_counters[kind].value.text=str(int(stockpile[kind]))
+ hud_counters.population.value.text="%d / %d"%[production.population_used(),production.population_cap()]
+ hud_counters.population.value.add_theme_color_override("font_color",RED if production.population_used()>=production.population_cap() else PALE)
+ hud_counters.population.root.tooltip_text="居住枠。住居1棟で上限+5。予約中の部隊は完成時に人口を使用。"
+ hud_counters.age.value.text=["I","II","III"][clampi(settlement_age-1,0,2)]
+ hud_counters.age.root.tooltip_text="復興本部を選択して次の段階へ発展"
+ hud_counters.experience.value.text="Lv %d"%level
+ hud_counters.experience.root.tooltip_text="共有XP %d / %d。撃破して部隊全体を強化。"%[int(xp),int(xp_needed())]
+ hud_counters.ammo.value.text="%d"%int(ammo)
+ hud_counters.ammo.value.add_theme_color_override("font_color",RED if ammo<40 else PALE)
+ hud_counters.ammo.root.tooltip_text="弾薬 %d / 400。弾薬工房で補給。枯渇時は予備弾で威力40%%。"%int(ammo)
+ hud_counters.power.value.text=str(snappedf(power_used,.1))+" / "+str(snappedf(power_capacity,.1))
+ hud_counters.power.root.tooltip_text="使用電力 / 発電容量。施設は送電範囲と空き電力が必要。"
  var idle_count=units.filter(func(unit):return unit.kind=="worker" and (unit.task=="idle" or unit.get("economy_phase","") in ["waiting_resource","waiting_dropoff"])).size()
- idle_worker_button.text="待機%d"%idle_count;idle_worker_button.disabled=idle_count==0
+ idle_worker_button.text="待機 %d"%idle_count;idle_worker_button.disabled=idle_count==0
  var gen=get_site("generator");var pump=get_site("pump")
  objective.text="発電所  "+("稼働" if generator_on else "復旧済" if gen.reclaimed else "段階IIで復旧")
  objective.text+="\n"+mission.facility+"  "+("復旧済" if pump.reclaimed else "段階IIIで復旧")
@@ -2807,18 +2863,18 @@ func update_ui():
   objective.text+="\n送電 %d/%d秒 / 破砕体%s"%[int(hold_time),int(mission.hold),"撃破" if boss_defeated else "接近" if boss_spawned else "未到達"]
   mission_action_button.text="変電所へ"
  else:objective.text+="\n揚水 %d/%d秒"%[int(hold_time),int(mission.hold)]
- pause_button.text="再開" if paused else "II"
+ pause_button.text="再開" if paused else "一時停止"
  core_bar.value=buildings[0].hp if not buildings.is_empty() else 0
  guide.text=tutorial_instruction();guide.visible=not guide.text.is_empty()
  generator_button.text="発電停止" if generator_on else "発電起動"
  generator_button.disabled=not gen.reclaimed
- status.text="騒音 %d / 次の群れ %d秒\n襲撃 %02d"%[int(noise),int(maxf(0,wave_clock)),wave]
+ status.text="次の襲撃 %d秒  /  騒音 %d"%[int(maxf(0,wave_clock)),int(noise)]
  if buildings.any(func(building):return building.kind=="relay" and building.powered):status.text+=" / 次は"+wave_direction_text(wave+1)
  context_button.visible=false
  dismantle_button.visible=can_dismantle(inspected)
  if dismantle_button.visible:dismantle_button.text="解体"
- xp_bar.visible=not dismantle_button.visible;supply_status.visible=xp_bar.visible
- supply_status.text="弾薬 %d/400 / 電力 %.1f/%.1f\nXP %d/%d"%[int(ammo),power_used,power_capacity,int(xp),int(xp_needed())]
+ xp_bar.visible=false;supply_status.visible=true
+ supply_status.text="左クリックで選択\n右クリックで命令"
  var portrait_kind="hq";var hp_sum:float=0;var max_sum:float=0
  selection_info.text="未選択"
  if not selected.is_empty():
@@ -2829,6 +2885,7 @@ func update_ui():
    var title=GameRules.unit(unit.kind).get("title",unit.kind)
    if not title in names:names.append(title)
   selection_info.text="%s ×%d\n%s"%["・".join(names),selected.size(),selected_order_text()]
+  supply_status.text="耐久 %d / %d"%[int(hp_sum),int(max_sum)]
   if selected.size()==1 and selected[0].kind=="worker" and selected[0].get("cargo",0)>0:
    selection_info.text+="\n運搬: %s %d"%[GameRules.RESOURCE_TITLES.get(selected[0].cargo_kind,""),int(selected[0].cargo)]
  elif not inspected.is_empty() and is_instance_valid(inspected.get("node")):
@@ -2836,11 +2893,14 @@ func update_ui():
   portrait_kind=inspected.kind;hp_sum=inspected.hp;max_sum=inspected.maxhp
   selection_info.text="%s\n耐久 %d/%d"%[rule.title,int(hp_sum),int(max_sum)]
   if rule.power>0:selection_info.text+=" / "+("給電中" if inspected.powered else "未給電")
+  supply_status.text={"hq":"作業員の生産・段階の発展","barracks":"生存者・爆薬手を訓練","vehicle_workshop":"補給車・移動迫撃車を生産","house":"人口上限 +5","depot":"3資源の搬入先","garden":"作業員が食料を耕作","factory":"電力で弾薬を補給","relay":"送電範囲を延長","yard":"近くの採取・修理を支援","tower":"自動迎撃","mortar":"範囲砲撃","wall":"感染者の進行を遮る"}.get(inspected.kind,"")
  elif not inspected_resource.is_empty():
   portrait_kind=inspected_resource.resource
+  supply_status.text="作業員を選択して右クリックで採取"
   selection_info.text=GameRules.RESOURCE_TITLES[inspected_resource.resource]+"\n"+("菜園 / 継続生産" if inspected_resource.renewable else "残量 %d"%int(inspected_resource.stock))
  elif not inspected_site.is_empty():
   portrait_kind="relay"
+  supply_status.text="作業員を選択して右クリックで復旧"
   selection_info.text=site_title(inspected_site.kind)+"\n"+("復旧済" if inspected_site.reclaimed else "復旧 %d%%"%int(inspected_site.progress*100))
  if portrait_kind!=last_portrait_kind:selection_portrait.texture=portrait_for(portrait_kind);last_portrait_kind=portrait_kind
  selected_hp.max_value=maxf(1,max_sum);selected_hp.value=hp_sum;selected_hp.visible=max_sum>0
@@ -2863,7 +2923,7 @@ func update_ui():
 
 func tutorial_instruction()->String:
  if settlement_age==1:
-  if gathered<20:return "本部で作業員を増員。作業員を選び、食料・廃材・部品を右クリック。"
+  if gathered<20:return "次: 作業員で資源を採取\n資源を右クリック / 本部で増員"
   if production.population_cap()-production.population_used()<2:return "人口枠が少ない。作業員を選び、住居を建設。"
   return "住居2・集積所・訓練所を整え、本部で段階IIへ発展。"
  if settlement_age==2:

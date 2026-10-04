@@ -8,4 +8,4 @@
 - Export Web single-threaded with PWA disabled; preserve all generated relative runtime filenames. Do not add a custom domain, PAT, account token or other persistent credentials.
 - Verify the workflow completed successfully for the exact tag, the public version.json identifies that commit/version, and the browser actually boots the game. Passing packaging checks alone is not a runtime test. Report unverified platform behavior accurately.
 
-- Keep the immutable v0.8.0 runtime at `releases/v0.8.0/` when publishing schema-2 versions. The helper pins its existing ZIP/source identities. Do not rewrite legacy assets or assume browser saves are isolated by URL. Retain this one compatibility boundary, not every historic build; the combined site must stay below 900 MiB.
+- Before a formal release, gameplay, UI and save-schema compatibility are not release requirements. Breaking changes are allowed; do not add migration or legacy-retention work as a release gate unless explicitly requested. This does not authorize deletion of unrelated data. The existing publishing helper may retain a historical runtime, but compatibility must not delay current game improvements.
