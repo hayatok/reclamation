@@ -747,12 +747,13 @@ func draw_minimap():
  minimap.draw_rect(Rect2(view-Vector2(36,26),Vector2(72,52)),Color("c6b991"),false,1)
 
 func update_building_attack_alert():
- var sound=building_attack_alerts.update(elapsed,buildings)
+ var sound=building_attack_alerts.update(elapsed,buildings+units.filter(func(unit):return unit.kind=="worker"))
  var alert=building_attack_alerts.current
  building_attack_button.visible=not alert.is_empty() and not title_open and not ended
  building_attack_button.disabled=active_card or is_instance_valid(options_panel) or is_instance_valid(dismantle_panel) or is_instance_valid(route_panel)
  if not alert.is_empty():
-  building_attack_button.text=building_attack_alerts.text_for(GameRules.building(alert.target.kind).get("title",alert.target.kind))
+  var title="作業員" if alert.target.kind=="worker" else GameRules.building(alert.target.kind).get("title",alert.target.kind)
+  building_attack_button.text=building_attack_alerts.text_for(title)
   if sound and building_attack_button.visible:tone("warning")
 
 func focus_building_attack():
@@ -982,8 +983,9 @@ func command_at(p:Vector3,screen:Vector2=Vector2.INF,append_orders:bool=false):
   if enemy.dead:continue
   var separation=camera.unproject_position(enemy.node.position+Vector3(0,.9*enemy.node.scale.y,0)).distance_to(screen) if screen!=Vector2.INF else enemy.node.position.distance_to(p)
   if separation<nearest:nearest=separation;enemy_target=enemy
- if enemy_target!=null:
-  if append_orders:return
+ # Enemy hits consume only ordinary combat orders; workers still resolve their
+ # destination or work target, and Shift remains a worker queue command.
+ if enemy_target!=null and not append_orders:
   var fighters=0
   for u in selected:
    if u.kind not in ["guard","grenade","siegecart"]:continue
@@ -995,7 +997,7 @@ func command_at(p:Vector3,screen:Vector2=Vector2.INF,append_orders:bool=false):
    pulse(enemy_target.node.position,RED,2.2,.5)
    notify("集中攻撃："+("破砕体" if enemy_target.get("boss",false) else "重装感染者" if enemy_target.get("armored",false) else "感染者"),3)
    tone("order")
-  return
+   return
  var friendly_target:Variant=null
  var friendly_distance:float=25.0 if screen!=Vector2.INF else 1.65
  if not attack_move:
@@ -2735,7 +2737,9 @@ func boss_impact(enemy:Dictionary):
  var p=enemy.attack_pos
  explosion_visual(p,4.5,true)
  for u in units:
-  if u.node.position.distance_to(p)<4.5:u.hp-=45
+  if u.node.position.distance_to(p)<4.5:
+   u.hp-=45
+   building_attack_alerts.record_hit(u,elapsed)
  for b in buildings:
   if b.node.position.distance_to(p)<4.5+b.radius:
    b.hp-=175 if b.kind=="wall" else 120

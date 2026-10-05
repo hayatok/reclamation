@@ -15,7 +15,7 @@ func reset() -> void:
  recent.clear();current.clear();last_shown=-1000.0;last_sound=-1000.0
 
 func record_hit(target: Dictionary, now: float) -> void:
- if not target.has("built") or target.get("kind", "") in ["wall", "tower", "mortar"]:return
+ if target.get("kind", "")!="worker" and (not target.has("built") or target.get("kind", "") in ["wall", "tower", "mortar"]):return
  if not is_instance_valid(target.get("node")):return
  var id: int=target.node.get_instance_id()
  if not recent.has(id):
@@ -24,6 +24,7 @@ func record_hit(target: Dictionary, now: float) -> void:
  var fresh: bool=now-float(entry.last_hit)>=QUIET_GAP
  if fresh:entry.critical_sent=false
  entry.last_hit=now
+ entry.position=target.node.position
  var severity: int=3 if float(target.hp)<=0 else 2 if float(target.hp)<=float(target.maxhp)*CRITICAL else 1
  # One start, one critical deterioration, and one truthful loss per engagement.
  if severity==3 or (severity==2 and not entry.critical_sent) or fresh:
@@ -31,17 +32,18 @@ func record_hit(target: Dictionary, now: float) -> void:
   entry.ready_at=now if severity>1 else maxf(now,float(entry.last_alert)+TARGET_GAP)
   if severity==2:entry.critical_sent=true
 
-func update(now: float, buildings: Array) -> bool:
+func update(now: float, targets: Array) -> bool:
  var changed := false
  if not current.is_empty():
   var target: Dictionary=current.target
+  if float(target.hp)>0 and is_instance_valid(target.get("node")):current.position=target.node.position
   # Keep the last location after destruction, never dereference its freed node.
   if current.severity<3 and float(target.hp)<=0:
    current.severity=3;current.until=now+LIFETIME
    var entry: Dictionary=recent.get(current.id,{})
-   if not entry.is_empty():entry.pending=0;entry.last_alert=now
+   if not entry.is_empty():current.position=entry.position;entry.pending=0;entry.last_alert=now
    last_shown=now;changed=true
-  elif current.severity<3 and target not in buildings:
+  elif current.severity<3 and target not in targets:
    current.clear() # Voluntary removal is not an enemy destruction alert.
   if not current.is_empty() and now>=float(current.until):current.clear()
  var best: Dictionary={}
@@ -52,7 +54,7 @@ func update(now: float, buildings: Array) -> bool:
   if now-float(entry.last_hit)>60.0:
    recent.erase(id);continue
   if int(entry.pending)==0:continue
-  if float(target.hp)>0 and target not in buildings:
+  if float(target.hp)>0 and target not in targets:
    recent.erase(id);continue
   if now-float(entry.last_hit)>QUIET_GAP:
    entry.pending=0;continue # No delayed warning for an engagement already over.
@@ -64,6 +66,7 @@ func update(now: float, buildings: Array) -> bool:
   if priority>best_priority:best=entry;best_priority=priority
  if not best.is_empty():
   current={"id":best.id,"target":best.target,"position":best.position,"severity":best.pending,"until":now+LIFETIME}
+  if float(best.target.hp)>0 and is_instance_valid(best.target.get("node")):current.position=best.target.node.position
   best.pending=0;best.last_alert=now;last_shown=now;changed=true
  if changed and now-last_sound>=SOUND_GAP:
   last_sound=now;return true
