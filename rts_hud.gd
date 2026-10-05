@@ -15,11 +15,11 @@ static func counter(kind:String,title:String,width:float,font:Font)->Dictionary:
  if ResourceLoader.exists(path):icon.texture=load(path)
  icon.mouse_filter=Control.MOUSE_FILTER_IGNORE
  box.add_child(icon)
- var words=VBoxContainer.new();words.add_theme_constant_override("separation",0);box.add_child(words)
- var caption=Label.new();caption.text=title
+ var words=VBoxContainer.new();words.mouse_filter=Control.MOUSE_FILTER_IGNORE;words.add_theme_constant_override("separation",0);box.add_child(words)
+ var caption=Label.new();caption.mouse_filter=Control.MOUSE_FILTER_IGNORE;caption.text=title
  caption.add_theme_font_override("font",font);caption.add_theme_font_size_override("font_size",14)
  caption.add_theme_color_override("font_color",Color("b6b5a7"));words.add_child(caption)
- var value=Label.new();value.text="0"
+ var value=Label.new();value.mouse_filter=Control.MOUSE_FILTER_IGNORE;value.text="0"
  value.add_theme_font_override("font",font);value.add_theme_font_size_override("font_size",23)
  value.add_theme_color_override("font_color",Color("f2ead7"));words.add_child(value)
  return {"root":box,"value":value,"caption":caption}
@@ -39,3 +39,7 @@ static func queue_slot(kind:String,title:String,active:bool,number:int,font:Font
   var count=Label.new();count.text=str(number);count.add_theme_font_override("font",font);count.add_theme_font_size_override("font_size",13)
   count.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT);count.position=Vector2(27,18);box.add_child(count)
  return box
+
+static func set_growth_pending(widget:Dictionary,count:int)->void:
+ widget.caption.text="強化 %d [Tab]"%count if count>0 else "部隊成長"
+ widget.caption.add_theme_color_override("font_color",Color("d2a148") if count>0 else Color("b6b5a7"))

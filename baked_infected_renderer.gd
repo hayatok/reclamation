@@ -35,7 +35,7 @@ func _ready() -> void:
     batches[key]=mm;buffers[key]=PackedFloat32Array();capacities[key]=0;members[key]=[]
  active=true
 
-func update_crowd(enemies:Array,elapsed:float,camera:Camera3D)->void:
+func update_crowd(enemies:Array,elapsed:float,camera:Camera3D,rendered:Dictionary={})->void:
  if not active:return
  visible_count=0;near_count=0;far_count=0
  for key in members:members[key].clear()
@@ -51,7 +51,9 @@ func update_crowd(enemies:Array,elapsed:float,camera:Camera3D)->void:
   var actor:Node3D=e.get("node")
   if not is_instance_valid(actor) or actor.is_queued_for_deletion():continue
   var id:int=actor.get_instance_id()
-  var position:Vector3=actor.global_position
+  var state:Dictionary=rendered.get(id,{})
+  var world:Transform3D=state.get("world",actor.global_transform)
+  var position:Vector3=world.origin
   var moving:bool=position.distance_squared_to(last_positions.get(id,position+Vector3.ONE))>.000001
   surviving[id]=position
   if camera!=null and (camera.is_position_behind(position) or not rect.has_point(camera.unproject_position(position+Vector3.UP*.8))):continue
@@ -59,16 +61,17 @@ func update_crowd(enemies:Array,elapsed:float,camera:Camera3D)->void:
   var age:float=elapsed
   var phase:float=float(id%127)/127.0
   var corpse:bool=e.has("life")
-  if corpse:clip="death";age=3.5-float(e.life);phase=0
+  if corpse:clip="death";age=3.5-float(state.get("life",e.life));phase=0
   elif elapsed-float(e.get("attack_at",-100.0))<.8:clip="attack";age=elapsed-float(e.attack_at);phase=0
   var frame:int=Library.frame_index(clip,age,phase)
   var far_lod:bool=force_far or not near_lod
   var key:String="%s_%02d_%s"%[clip,frame,str(far_lod)]
   # Corpse animation is already baked. Ignore the legacy procedural topple root.
-  var world:Transform3D=actor.global_transform
   if corpse:
-   world=actor.get_parent().global_transform*e.start
-   if e.life<1:world.basis=world.basis.scaled(Vector3.ONE*maxf(.03,e.life))
+   if state.has("baked_world"):world=state.baked_world
+   else:
+    world=actor.get_parent().global_transform*e.start
+    if e.life<1:world.basis=world.basis.scaled(Vector3.ONE*maxf(.03,e.life))
   var stature:float=.94+float(id%7)*.02
   world.basis=world.basis.scaled(Vector3(stature,stature,stature))
   var hit_response:float=clampf((float(e.get("hit_until",0))-elapsed)/.12,0,1)

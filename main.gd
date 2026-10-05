@@ -1,5 +1,19 @@
 extends Node3D
 
+const SimulationClock=preload("res://simulation_clock.gd")
+var simulation_clock=SimulationClock.new()
+const RenderInterpolation=preload("res://render_interpolation.gd")
+var render_interpolation=RenderInterpolation.new()
+const CheckpointValidation=preload("res://checkpoint_validation.gd")
+const AtomicSave=preload("res://atomic_save.gd")
+const ControlGroups=preload("res://control_groups.gd")
+const CONTROL_GROUP_DOUBLE_TAP_MS:int=350
+var control_groups=ControlGroups.new()
+var last_control_group:int=0
+var last_control_group_msec:int=0
+var result_progress_error:Error=OK
+var result_won:bool=false
+
 const CYAN = Color("c5b78e")
 const AMBER = Color("d2a148")
 const RED = Color("b9523e")
@@ -14,11 +28,21 @@ const ConvoyPlan=preload("res://convoy_plan.gd")
 const GameRules=preload("res://settlement_rules.gd")
 const StructureVisuals=preload("res://structure_visuals.gd")
 const AudioSystem=preload("res://reclamation_audio.gd")
+const BuildingAttackAlerts=preload("res://building_attack_alerts.gd")
+var building_attack_alerts=BuildingAttackAlerts.new()
+var building_attack_button:Button
 const ResourceVisuals=preload("res://resource_visuals.gd")
 const EscortOrders=preload("res://escort_orders.gd")
+# Newly implemented recovery navigation; not a restored late-version helper.
+const FriendlyNavigation=preload("res://friendly_navigation.gd")
+var friendly_navigation=FriendlyNavigation.new()
+const WorkerRoutePreview=preload("res://worker_route_preview.gd")
+var worker_route_preview:Node3D
 const CrowdSteering=preload("res://crowd_steering.gd")
 var crowd_steering=CrowdSteering.new()
-var enemy_approach_cells:Dictionary={}
+const EnemyNavigation=preload("res://enemy_navigation.gd")
+var enemy_navigation=EnemyNavigation.new()
+var enemy_approach_cells:Dictionary=enemy_navigation.approach_cells
 const HordeRenderer=preload("res://horde_renderer.gd")
 const TacticalMap=preload("res://tactical_map.gd")
 const ActorVisuals=preload("res://actor_visuals.gd")
@@ -81,6 +105,7 @@ var upgrades:Dictionary={}
 var cards:Array=[]
 var active_card:bool=false
 var pending_card_delay:float=0.0
+var pending_upgrade_levels:Array=[]
 var paused:bool=false
 var ended:bool=false
 var build_mode:String=""
@@ -119,6 +144,7 @@ var effects:Array=[]
 var impact_mesh:ArrayMesh
 var impact_materials:Dictionary={}
 var ghost:MeshInstance3D
+var run_seed:int=0
 var rng=RandomNumberGenerator.new()
 var visual_rng=RandomNumberGenerator.new()
 var card_rng=RandomNumberGenerator.new()
@@ -202,9 +228,10 @@ func _ready():
  performance_mode=(campaign_state.performance_mode or "--performance" in OS.get_cmdline_user_args()) and not "--quality" in OS.get_cmdline_user_args()
  apply_graphics_quality()
  apply_graphics_quality.call_deferred()
- rng.seed=48109+campaign_state.current*113
- card_rng.seed=89342
- visual_rng.seed=754301
+ if campaign_state.run_seed<0:
+  campaign_state.choose_run_seed(campaign_state.seed_from_args(OS.get_cmdline_user_args()))
+ run_seed=campaign_state.run_seed
+ seed_run_streams()
  font=load("res://assets/Japanese.ttc")
  command_font=load("res://assets/Command.ttf")
  command_font.fallbacks=[font]
@@ -249,7 +276,8 @@ func _ready():
  make_resource("parts",Vector3(-20,0,-15),1200)
  if mission.mode=="finale":make_site("substation",Vector3(17,0,14))
  for i in 2:make_unit("guard",Vector3(-1+i*2,0,3))
- for i in 6:make_unit("worker",Vector3(-3+(i%3)*1.4,0,12+floori(i/3.0)*1.4))
+ # The HQ padded navigation footprint includes z=12; start workers outside it.
+ for i in 6:make_unit("worker",Vector3(-3+(i%3)*1.4,0,13+floori(i/3.0)*1.4))
  make_ui()
  make_audio()
  battle_fx=BattleFX.new()
@@ -257,7 +285,9 @@ func _ready():
  horde_renderer=HordeRenderer.new()
  add_child(horde_renderer)
  horde_renderer.setup()
+ worker_route_preview=WorkerRoutePreview.new();add_child(worker_route_preview)
  horde_renderer.low_detail=performance_mode
+ render_interpolation.reset(units,enemies,corpses)
  battle_visibility=BattleVisibility.new()
  battle_visibility.district=district_art
  add_child(battle_visibility)
@@ -266,15 +296,27 @@ func _ready():
  ghost.material_override.transparency=BaseMaterial3D.TRANSPARENCY_ALPHA
  ghost.material_override.albedo_color.a=.35
  get_viewport().size_changed.connect(func(): drag_overlay.queue_redraw())
+ var resumed_checkpoint=false
  if "--self-test" in OS.get_cmdline_user_args():call_deferred("run_tests")
  elif campaign_state.resume:
   campaign_state.resume=false
-  if not load_checkpoint():show_title()
+  resumed_checkpoint=load_checkpoint()
+  if not resumed_checkpoint:show_title()
  elif not campaign_state.launch and not "--showcase" in OS.get_cmdline_user_args():show_title()
  if "--showcase" in OS.get_cmdline_user_args(): debug_run=true
- if not title_open and elapsed<1:
+ if not title_open and elapsed<1 and not resumed_checkpoint:
   select_headquarters()
   notify(ConvoyPlan.opening(campaign_state.current),8)
+
+func seed_run_streams():
+ # Domain-separated streams: art, voices and corpses cannot reroll mechanics.
+ # Hash all 64 seed bits before seeding PCG (nearby seeds need not be correlated).
+ rng.seed=stream_seed("combat")
+ card_rng.seed=stream_seed("cards")
+ visual_rng.seed=stream_seed("visual")
+
+func stream_seed(domain:String)->int:
+ return ("reclamation:%s:%d:%d"%[domain,campaign_state.current,run_seed]).sha256_buffer().decode_s64(0)
 
 func material(c:Color,emission:float=0)->StandardMaterial3D:
  var m=StandardMaterial3D.new()
@@ -343,7 +385,7 @@ func make_unit(kind:String,p:Vector3)->Dictionary:
  n.position=p
  decorate_unit(kind,n)
  var c=CYAN if kind=="guard" else AMBER
- var r=ring(Vector3(0,.06,0),.62,c,n)
+ var r=ring(Vector3(0,.06,0),.62,c,render_interpolation.visual_root(n))
  r.visible=false
  var base_hp=float(GameRules.unit(kind).hp)
  var max_hp=base_hp*(1+bonus("armor","max_hp_add"))
@@ -371,11 +413,11 @@ func make_site(kind:String,p:Vector3):
  var label:Label3D
  if kind=="scrap":
   for i in 7:
-   var b=box(Vector3(rng.randf_range(.5,1.8),rng.randf_range(.3,.9),rng.randf_range(.5,1.2)),Color("6d7775"),Vector3(rng.randf_range(-1.2,1.2),.5,rng.randf_range(-1,1)),n)
-   b.rotation.y=rng.randf()*3
+   var b=box(Vector3(visual_rng.randf_range(.5,1.8),visual_rng.randf_range(.3,.9),visual_rng.randf_range(.5,1.2)),Color("6d7775"),Vector3(visual_rng.randf_range(-1.2,1.2),.5,visual_rng.randf_range(-1,1)),n)
+   b.rotation.y=visual_rng.randf()*3
   label=world_label(n,"廃材の山",Vector3(0,2.6,0),AMBER)
  else:
-  var art_kind="rail_depot" if kind=="pump" and mission.mode=="convoy" else "substation" if kind=="substation" else "generator" if kind=="generator" else "pump"
+  var art_kind="rail_depot" if kind=="pump" and mission.mode=="convoy" else "substation" if kind=="substation" or (kind=="pump" and mission.mode=="finale") else "generator" if kind=="generator" else "pump"
   StructureVisuals.add_site(n,art_kind)
   label=world_label(n,site_title(kind)+" [未復旧]",Vector3(0,4.3,0),AMBER if kind=="generator" else CYAN)
 
@@ -389,7 +431,7 @@ func spawn_enemy(p:Vector3,fast:bool=false,armored:bool=false,boss:bool=false):
  var boss_label:Label3D
  if boss:
   n.scale=Vector3.ONE*2.2
-  boss_label=world_label(n,"破砕体 100%",Vector3(0,2.0,0),RED)
+  boss_label=world_label(render_interpolation.visual_root(n),"破砕体 100%",Vector3(0,2.0,0),RED)
  enemies.append({"node":n,"boss_label":boss_label,"boss":boss,"windup":0.0,"attack_pos":p,"hp":3600.0 if boss else 150.0 if armored else 30.0 if fast else 45.0,"armored":armored,"charged_until":0.0,"speed":1.45 if boss else 1.2 if armored else 2.7 if fast else 1.65,"cd":rng.randf(),"dead":false,"route":[],"path_cd":0.0})
 
 func style(c:Color,border:Color=Color("29414b"))->StyleBoxFlat:
@@ -440,6 +482,12 @@ func make_ui():
  for entry in [["food","食料",122],["salvage","廃材",122],["parts","部品",122],["population","人口",122],["age","発展段階",90],["experience","部隊成長",100],["ammo","弾薬",132],["power","電力",150]]:
   var widget=RTSHud.counter(entry[0],entry[1],entry[2],font)
   hud_counters[entry[0]]=widget;row.add_child(widget.root)
+  if entry[0]=="experience":
+   widget.root.mouse_default_cursor_shape=Control.CURSOR_POINTING_HAND
+   widget.root.gui_input.connect(func(event):
+    if event is InputEventMouseButton and event.pressed and event.button_index==MOUSE_BUTTON_LEFT:
+     open_growth_choices();widget.root.accept_event()
+   )
  var stretch=Control.new();stretch.size_flags_horizontal=Control.SIZE_EXPAND_FILL;row.add_child(stretch)
  stats=label("");stats.visible=false;root_ui.add_child(stats)
  idle_worker_button=button("待機 0",select_idle_worker,86)
@@ -498,6 +546,15 @@ func make_ui():
    camera_focus=Vector3(clampf(map_pos.x,-18,18),0,clampf(map_pos.y,-18,18))
  )
  minimap.draw.connect(draw_minimap)
+ building_attack_button=button("",focus_building_attack,300)
+ root_ui.add_child(building_attack_button)
+ building_attack_button.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT)
+ building_attack_button.offset_left=14;building_attack_button.offset_top=-326
+ building_attack_button.offset_right=344;building_attack_button.offset_bottom=-284
+ building_attack_button.add_theme_color_override("font_color",Color("e7af72"))
+ building_attack_button.tooltip_text="クリックで現場へ"
+ building_attack_button.mouse_default_cursor_shape=Control.CURSOR_POINTING_HAND
+ building_attack_button.visible=false
  var unit_panel=field_panel(Control.PRESET_BOTTOM_LEFT,Vector4(242,-274,562,-14),Color("25281f"))
  var selected_col=VBoxContainer.new()
  unit_panel.add_child(selected_col)
@@ -557,7 +614,7 @@ func make_ui():
  command_col.add_child(command_grid)
  set_command_tab("people")
 
- hint=label("H: 本部   .: 待機作業員   1/2: 戦闘員/作業員   矢印: 視点   Space: 停止",12,Color("999d86"))
+ hint=label("Ctrl+1–9: 登録  /  1–9: 呼出・2連打で視点  /  C/V: 全戦闘員/全作業員  /  H: 本部  .: 待機",12,Color("999d86"))
  hint.visible=false;command_col.add_child(hint)
  command_detail=label("",15,Color("d1c8ac"));command_detail.custom_minimum_size=Vector2(790,22)
  command_detail.text_overrun_behavior=TextServer.OVERRUN_TRIM_ELLIPSIS
@@ -667,8 +724,31 @@ func draw_minimap():
    else:
     minimap.draw_line(Vector2(size.x-2,size.y*.2),Vector2(size.x-2,size.y*.8),danger,3)
     minimap.draw_colored_polygon(PackedVector2Array([Vector2(size.x-3,size.y*.5-5),Vector2(size.x-13,size.y*.5),Vector2(size.x-3,size.y*.5+5)]),danger)
+ if not building_attack_alerts.current.is_empty() and building_attack_button.visible:
+  var alert=building_attack_alerts.current
+  var point=(Vector2(alert.position.x,alert.position.z)+Vector2(32,32))/64*size
+  var radius=6.0+2.0*sin(elapsed*5.0)
+  var color=Color("e7af72")
+  minimap.draw_arc(point,radius,0,TAU,24,color,2,true)
+  if int(alert.severity)==3:
+   minimap.draw_line(point-Vector2(3,3),point+Vector2(3,3),color,2,true)
+   minimap.draw_line(point-Vector2(3,-3),point+Vector2(3,-3),color,2,true)
  var view=(Vector2(camera_focus.x,camera_focus.z)+Vector2(32,32))/64*size
  minimap.draw_rect(Rect2(view-Vector2(36,26),Vector2(72,52)),Color("c6b991"),false,1)
+
+func update_building_attack_alert():
+ var sound=building_attack_alerts.update(elapsed,buildings)
+ var alert=building_attack_alerts.current
+ building_attack_button.visible=not alert.is_empty() and not title_open and not ended
+ building_attack_button.disabled=active_card or is_instance_valid(options_panel) or is_instance_valid(dismantle_panel) or is_instance_valid(route_panel)
+ if not alert.is_empty():
+  building_attack_button.text=building_attack_alerts.text_for(GameRules.building(alert.target.kind).get("title",alert.target.kind))
+  if sound and building_attack_button.visible:tone("warning")
+
+func focus_building_attack():
+ if building_attack_alerts.current.is_empty() or building_attack_button.disabled:return
+ var p=building_attack_alerts.current.position
+ camera_focus=Vector3(clampf(p.x,-18,18),0,clampf(p.z,-18,18))
 
 func notify(txt:String,duration:float=4):
  center_notice.text=txt
@@ -692,13 +772,41 @@ func set_build(kind:String):
 func select_guards():select_kind("guard")
 func select_workers():select_kind("worker")
 func select_kind(kind:String):
- inspected={}
+ inspected={};inspected_resource={};inspected_site={}
  selected.clear()
  for u in units:
-  if u.kind==kind or kind=="guard" and u.kind in ["grenade","siegecart"]:selected.append(u)
+  if ControlGroups.alive(u) and (u.kind==kind or kind=="guard" and u.kind in ["grenade","siegecart"]):selected.append(u)
  update_selection()
 
+func reset_control_group_tap():
+ last_control_group=0;last_control_group_msec=0
+
+func assign_control_group(slot:int):
+ reset_control_group_tap()
+ if control_groups.assign(slot,selected,inspected,units,buildings):notify("グループ%d 登録"%slot,2)
+ else:notify("部隊か建物を選択して Ctrl+%d で登録"%slot,2)
+
+func recall_control_group(slot:int,now_msec:int=-1):
+ var group=control_groups.resolve(slot,units,buildings)
+ if group.units.is_empty() and group.building.is_empty():
+  reset_control_group_tap();notify("グループ%d は空です"%slot,2);return
+ if now_msec<0:now_msec=Time.get_ticks_msec()
+ var center=last_control_group==slot and now_msec>=last_control_group_msec and now_msec-last_control_group_msec<=CONTROL_GROUP_DOUBLE_TAP_MS
+ selected=group.units;inspected=group.building;inspected_resource={};inspected_site={}
+ build_mode="";attack_move=false;ghost.visible=false;dragging=false
+ update_selection()
+ if center:
+  var point=Vector3.ZERO
+  if not inspected.is_empty():point=inspected.node.position
+  else:
+   for unit in selected:point+=unit.node.position
+   point/=selected.size()
+  camera_focus=Vector3(clampf(point.x,-18,18),0,clampf(point.z,-18,18))
+ else:
+  last_control_group=slot;last_control_group_msec=now_msec
+
 func update_selection():
+ reset_control_group_tap()
  for u in units:u.ring.visible=u in selected
  context_signature=""
  refresh_context_commands(true)
@@ -743,11 +851,22 @@ func ground_at(screen:Vector2)->Vector3:
  var t=-from.y/dir.y
  return from+dir*t
 
+func _input(event):
+ # Any intervening key/click (including HUD actions) breaks a double tap.
+ if event is InputEventMouseButton and event.pressed:reset_control_group_tap()
+ if event is InputEventKey and event.pressed and not event.echo and (event.keycode<KEY_1 or event.keycode>KEY_9 or event.ctrl_pressed or event.alt_pressed or event.meta_pressed or event.shift_pressed):reset_control_group_tap()
+ if event is InputEventKey and event.pressed and not event.echo and event.keycode==KEY_TAB:
+  var focus=get_viewport().gui_get_focus_owner()
+  if focus is LineEdit or focus is TextEdit:return
+  if active_card or open_growth_choices():get_viewport().set_input_as_handled()
+
 func _unhandled_input(event):
  if is_instance_valid(dismantle_panel):
   if event is InputEventKey and event.pressed and event.keycode==KEY_ESCAPE:close_dismantle()
   return
  if event is InputEventKey and event.pressed and not event.echo:
+  var focus=get_viewport().gui_get_focus_owner()
+  if focus is LineEdit or focus is TextEdit:return
   if event.keycode==KEY_F6:
    save_checkpoint()
   if event.keycode==KEY_F12:
@@ -763,21 +882,29 @@ func _unhandled_input(event):
    if event.keycode==KEY_ESCAPE:close_options()
    return
   if active_card:
-   if is_instance_valid(choice_panel) and event.keycode in [KEY_1,KEY_2,KEY_3]:choose_upgrade(int(event.keycode-KEY_1))
+   if event.keycode==KEY_ESCAPE:postpone_growth_choice();get_viewport().set_input_as_handled();return
+   if is_instance_valid(choice_panel) and not (event.ctrl_pressed or event.alt_pressed or event.meta_pressed or event.shift_pressed) and event.keycode in [KEY_1,KEY_2,KEY_3]:choose_upgrade(int(event.keycode-KEY_1))
    return
   if ended:return
   if event.keycode==KEY_ESCAPE:
    build_mode="";attack_move=false;ghost.visible=false
    return
   if event.keycode==KEY_SPACE:toggle_pause();return
+  if event.keycode>=KEY_1 and event.keycode<=KEY_9:
+   if event.alt_pressed or event.meta_pressed or event.shift_pressed:reset_control_group_tap();return
+   var slot=int(event.keycode-KEY_1)+1
+   if event.ctrl_pressed:assign_control_group(slot)
+   else:recall_control_group(slot)
+   get_viewport().set_input_as_handled();return
+  reset_control_group_tap()
   if not build_mode.is_empty():return
   if activate_context_key(event.keycode):return
   match event.keycode:
    KEY_DELETE:
     if event.shift_pressed:request_dismantle()
    KEY_BACKSPACE:cancel_recruit()
-   KEY_1:select_guards()
-   KEY_2:select_workers()
+   KEY_C:select_guards()
+   KEY_V:select_workers()
    KEY_H:select_headquarters()
    KEY_PERIOD:select_idle_worker()
  if active_card or ended or title_open:return
@@ -845,6 +972,7 @@ func command_at(p:Vector3,screen:Vector2=Vector2.INF):
   var fighters=0
   for u in selected:
    if u.kind not in ["guard","grenade","siegecart"]:continue
+   friendly_navigation.invalidate_order(u)
    u.task="focus_fire";u.target=enemy_target;u.goal=enemy_target.node.position;u.planned=Vector3.INF;u["focus_repath"]=0.0
    fighters+=1
   if fighters>0:
@@ -871,6 +999,7 @@ func command_at(p:Vector3,screen:Vector2=Vector2.INF):
  for i in selected.size():
   var u=selected[i]
   if u.kind=="convoy":continue
+  friendly_navigation.invalidate_order(u)
   if u.kind=="worker" and not resource_target.is_empty() and b_target==null:
    economy.assign_resource(u,resource_target)
    continue
@@ -899,6 +1028,12 @@ func command_at(p:Vector3,screen:Vector2=Vector2.INF):
  else:pulse(p,CYAN,1.5,.55)
  tone("order")
 
+func building_nav_rect(kind:String,p:Vector3)->Rect2i:
+ var radius=float(GameRules.building(kind).radius)+.3
+ var low=Vector2i(floori(p.x-radius),floori(p.z-radius))
+ var high=Vector2i(ceili(p.x+radius),ceili(p.z+radius))
+ return Rect2i(low,high-low+Vector2i.ONE)
+
 func placement_issue(kind:String,p:Vector3)->String:
  var allowed=build_availability(kind)
  if not allowed.ok:return allowed.reason
@@ -913,7 +1048,48 @@ func placement_issue(kind:String,p:Vector3)->String:
  for resource in resource_nodes:
   if not resource.renewable and resource.stock<=0:continue
   if resource.node.position.distance_to(p)<radius+float(resource.radius)+.35:return "資源の作業場所に重なっています"
+ var footprint=building_nav_rect(kind,p)
+ for unit in units:
+  if unit.hp>0 and footprint.has_point(FriendlyNavigation.cell_of(unit.node.position)):
+   return "部隊がいます。移動させてから建設してください。"
+ if construction_perimeter(kind,p).is_empty():return "建設の作業場所がありません。周囲を空けてください。"
  return ""
+
+func construction_perimeter(kind:String,p:Vector3)->Array[Vector2i]:
+ var footprint=building_nav_rect(kind,p)
+ var cells:Array[Vector2i]=[]
+ for x in range(footprint.position.x,footprint.end.x):
+  for z in [footprint.position.y-1,footprint.end.y]:
+   var cell=Vector2i(x,z)
+   if FriendlyNavigation.cell_open(nav,cell):cells.append(cell)
+ for z in range(footprint.position.y,footprint.end.y):
+  for x in [footprint.position.x-1,footprint.end.x]:
+   var cell=Vector2i(x,z)
+   if FriendlyNavigation.cell_open(nav,cell):cells.append(cell)
+ return cells
+
+func construction_reachable(kind:String,p:Vector3,workers:Array)->bool:
+ # One bounded flood at placement time. Preview only checks free perimeter.
+ # Treat the prospective foundation as solid without mutating live navigation.
+ var footprint=building_nav_rect(kind,p)
+ var destinations={}
+ for cell in construction_perimeter(kind,p):destinations[cell]=true
+ if destinations.is_empty():return false
+ var queue:Array[Vector2i]=[]
+ var visited={}
+ for worker in workers:
+  var cell=FriendlyNavigation.cell_of(worker.node.position)
+  if not footprint.has_point(cell) and FriendlyNavigation.cell_open(nav,cell) and not visited.has(cell):
+   visited[cell]=true;queue.append(cell)
+ var cursor=0
+ while cursor<queue.size():
+  var cell=queue[cursor];cursor+=1
+  if destinations.has(cell):return true
+  for direction in [Vector2i.LEFT,Vector2i.RIGHT,Vector2i.UP,Vector2i.DOWN]:
+   var next=cell+direction
+   if not visited.has(next) and not footprint.has_point(next) and FriendlyNavigation.cell_open(nav,next):
+    visited[next]=true;queue.append(next)
+ return false
 
 func place_building(p:Vector3)->bool:
  if build_mode.is_empty():return false
@@ -921,11 +1097,13 @@ func place_building(p:Vector3)->bool:
  if workers.is_empty():return false
  var issue=placement_issue(build_mode,p)
  if not issue.is_empty():notify(issue,2);return false
+ if not construction_reachable(build_mode,p,workers):notify("作業員が建設場所に到達できません。通路を確保してください。",3);return false
  var rule=GameRules.building(build_mode)
  if not spend_cost(rule.cost):return false
  var building=make_building(build_mode,p)
  building.paid_resources=rule.cost.duplicate(true);building.paid_cost=rule.cost.get("salvage",0)
  for worker in workers:
+  friendly_navigation.invalidate_order(worker)
   economy.suspend_for_construction(worker)
   worker.task="build";worker.target=building;worker.goal=p+Vector3(0,0,float(rule.radius)+1)
   worker.route.clear();worker.planned=Vector3.INF
@@ -936,14 +1114,16 @@ func _process(delta):
  var script_start=Time.get_ticks_usec()
  var simulation_usec=0
  render_frames+=1
- var dt=minf(delta,.05)
+ var dt=clampf(delta,0,.4)
  shot_tick-=delta
  notice_timer-=delta
  if notice_timer<=0:center_notice.text=""
  drag_overlay.queue_redraw()
  if ghost.visible:
   var build_point=ground_at(get_viewport().get_mouse_position())
-  ghost.position=build_point+Vector3(0,.08,0)
+  var footprint=building_nav_rect(build_mode,build_point)
+  ghost.position=Vector3(footprint.position.x+(footprint.size.x-1)*.5,.08,footprint.position.y+(footprint.size.y-1)*.5)
+  ghost.scale=Vector3(footprint.size.x/2.1,1,footprint.size.y/2.1)
   ghost.material_override.albedo_color=Color(.55,.7,.55,.35) if placement_issue(build_mode,build_point).is_empty() else Color(.8,.23,.15,.4)
  var pan=Vector3.ZERO
  if Input.is_physical_key_pressed(KEY_LEFT):pan+=Vector3(-1,0,1)
@@ -956,16 +1136,12 @@ func _process(delta):
  camera.position=camera_focus+Vector3(37,48,43)
  camera.look_at(camera_focus)
  update_effects(dt)
- if not paused and not active_card and not ended and not title_open:
-  var sim_start=Time.get_ticks_usec()
-  simulate(dt)
-  simulation_usec=Time.get_ticks_usec()-sim_start
-  auto_save_clock-=dt
-  if auto_save_clock<=0:
-   auto_save_clock=30
-   save_checkpoint(false)
- horde_renderer.update_horde(enemies+corpses,elapsed)
- horde_renderer.update_friends(units)
+ var sim_start=Time.get_ticks_usec()
+ advance_simulation_time(delta)
+ simulation_usec=Time.get_ticks_usec()-sim_start
+ update_building_attack_alert()
+ render_actors()
+ update_worker_route_preview()
  battle_visibility.update_visibility(camera,units,enemies,shells,delta)
  battle_fx.update(dt,camera)
  if pending_card_delay>0:
@@ -980,7 +1156,40 @@ func _process(delta):
    showcase_sim_ms.append(simulation_usec/1000.0)
   showcase_step()
 
+func simulation_running()->bool:
+ return not paused and not active_card and not ended and not title_open
+
+func advance_simulation_time(real_delta:float)->int:
+ var steps=simulation_clock.take_steps(real_delta,simulation_running())
+ var completed=0
+ for step in steps:
+  if not simulation_running():
+   simulation_clock.reset();break
+  render_interpolation.before_step(units,enemies,corpses)
+  # Navigation resets its eight-query allowance inside simulate(), per logical tick.
+  simulate(SimulationClock.STEP)
+  render_interpolation.after_step(units,enemies,corpses)
+  auto_save_clock-=SimulationClock.STEP
+  completed+=1
+  if not simulation_running():
+   simulation_clock.reset();break
+ if completed>0 and auto_save_clock<=0 and not ended:
+  auto_save_clock=30
+  save_checkpoint(false)
+ return completed
+
+func render_actors()->void:
+ var running=simulation_running()
+ if not running:render_interpolation.reset(units,enemies,corpses)
+ var alpha=clampf(simulation_clock.remainder/SimulationClock.STEP,0,1) if running else 1.0
+ var rendered=render_interpolation.frame(alpha)
+ var rendered_time=maxf(0.0,elapsed-SimulationClock.STEP*(1.0-alpha)) if running else elapsed
+ horde_renderer.update_horde(enemies+corpses,rendered_time,rendered)
+ horde_renderer.update_friends(units,rendered)
+
 func simulate(dt:float):
+ friendly_navigation.begin_frame(dt,units)
+ enemy_navigation.begin_step(nav)
  elapsed+=dt
  update_economy(dt)
  threat_voice_clock-=dt
@@ -1001,6 +1210,7 @@ func simulate(dt:float):
  update_corpses(dt)
  for u in units.duplicate():
   if u.hp<=0:
+   friendly_navigation.release_unit(u)
    if u.kind=="convoy":
     failure_reason="輸送隊が感染群に飲まれた。"
     finish(false)
@@ -1011,7 +1221,12 @@ func simulate(dt:float):
    u.node.queue_free()
    continue
   u.cd-=dt
-  if u.kind=="worker":economy.update_worker(u,dt)
+  if u.kind=="worker":
+   if u.task in ["build","repair"]:
+    var work_target:Variant=u.target
+    if work_target==null or not is_instance_valid(work_target.get("node")) or work_target.node.is_queued_for_deletion() or work_target.get("hp",0)<=0 or (u.task=="build" and work_target.built>=1) or (u.task=="repair" and work_target.hp>=work_target.maxhp):
+     finish_construction_order(u)
+   economy.update_worker(u,dt)
   if u.task=="escort":EscortOrders.update(u,units,dt)
   if u.task=="focus_fire":
    if u.target==null or u.target.get("dead",false) or not is_instance_valid(u.target.get("node")):
@@ -1021,24 +1236,12 @@ func simulate(dt:float):
     if u.focus_repath<=0:
      u.goal=u.target.node.position;u.focus_repath=.3
   var previous_position=u.node.position
-  var distance=u.node.position.distance_to(u.goal)
   var stop_to_fire=u.task=="attack_move" and nearest_enemy(u.node.position,float(GameRules.unit(u.kind).range)*(1+bonus("range","range_add")))!=null
   if u.task=="focus_fire" and u.target!=null:stop_to_fire=u.node.position.distance_to(u.target.node.position)<=float(GameRules.unit(u.kind).range)*(1+bonus("range","range_add"))*.97
-  if distance>.35 and not stop_to_fire:
-   if u.planned!=u.goal:
-    u.route=route_to(u.node.position,u.goal)
-    var safe_end=open_cell(u.goal,u.node.position)
-    u.goal=Vector3(safe_end.x,0,safe_end.y)
-    u.planned=u.goal
-   var waypoint=u.goal
-   if not u.route.is_empty():
-    waypoint=u.route[0]
-    if u.node.position.distance_to(waypoint)<.3:
-     u.route.pop_front()
-     if not u.route.is_empty():waypoint=u.route[0]
-   var direction=(waypoint-u.node.position).normalized()
-   u.node.position+=direction*dt*float(GameRules.unit(u.kind).speed)*(1+bonus("move","move_speed_add"))
-   u.node.rotation.y=atan2(-direction.x,-direction.z)
+  friendly_navigation.advance(u,nav,dt,float(GameRules.unit(u.kind).speed)*(1+bonus("move","move_speed_add")),stop_to_fire)
+  if not friendly_navigation.is_arrived(u):pass
+  elif u.task in ["move","attack_move"]:
+   u.task="idle";u.target=null
   elif u.task=="site" and u.target!=null:
    work_site(u,dt)
   elif u.task=="build" and u.target!=null:
@@ -1048,8 +1251,8 @@ func simulate(dt:float):
     b.node.scale.y=.2+.8*b.built
     if b.built>=1:
      building_completed(b)
-     u.task="idle";economy.resume_after_construction(u);tone("build")
-   else:u.task="idle"
+     finish_construction_order(u);tone("build")
+   else:finish_construction_order(u)
   elif u.task=="repair" and u.target!=null:
    var building=u.target
    if is_instance_valid(building.get("node")) and building.hp>0:
@@ -1057,8 +1260,8 @@ func simulate(dt:float):
     var paid=minf(resources,healed*.1)
     building.hp=minf(building.maxhp,building.hp+paid*10);resources-=paid
     if building.hp>=building.maxhp:
-     u.task="idle";u.target=null;economy.resume_after_construction(u)
-   else:u.task="idle";u.target=null;economy.resume_after_construction(u)
+     finish_construction_order(u)
+   else:finish_construction_order(u)
   if u.kind in ["guard","grenade","siegecart"] and u.cd<=0:
    var weapon=GameRules.unit(u.kind)
    var range_value=float(weapon.range)*(1+bonus("range","range_add"))
@@ -1074,7 +1277,7 @@ func simulate(dt:float):
    var attack_age=elapsed-float(u.get("attack_at",-100))
    var cycle=float(u.get("shot_cycle",.72))
    var reload_phase=clampf((attack_age-.2)/maxf(.2,cycle-.2),0,1) if attack_age>.2 and attack_age<cycle else -1.0
-   ActorVisuals.pose(u.node,elapsed*8+u.node.get_instance_id()%17,u.node.position.distance_to(previous_position)>.001,attack_age,reload_phase,u.kind=="worker" and u.task in ["site","build","repair","gather"] and u.node.position.distance_to(u.goal)<.5)
+   ActorVisuals.pose(u.node,elapsed*8+u.node.get_instance_id()%17,u.node.position.distance_to(previous_position)>.001,attack_age,reload_phase,u.kind=="worker" and u.task in ["site","build","repair","gather"] and friendly_navigation.is_arrived(u))
  for b in buildings.duplicate():
   if b.hp<=0:
    if b.kind=="hq":finish(false);return
@@ -1118,10 +1321,7 @@ func simulate(dt:float):
     if wall.kind=="wall" and wall.built>=1 and e.node.position.distance_to(wall.node.position)<2.7:e.charged_until=elapsed+4
   var can_attack=best<=(3.8 if e.get("boss",false) else 1.3)
   if not can_attack:
-   e.path_cd-=dt
-   if e.path_cd<=0 or e.route.is_empty():
-    e.route=enemy_route(e.node.position,target)
-    e.path_cd=1.2
+   enemy_navigation.update_route(e,target,nav,dt)
    if not e.route.is_empty():
     var waypoint=e.route[0]
     if e.node.position.distance_to(waypoint)<.6:
@@ -1141,6 +1341,7 @@ func simulate(dt:float):
      continue
     e["attack_at"]=elapsed
     target.hp-=18 if e.get("armored",false) else 9
+    building_attack_alerts.record_hit(target,elapsed)
     e.cd=.9 if e.get("armored",false) else .75
     if not low_fx:pulse(target.node.position,RED,.6,.15)
 
@@ -1156,7 +1357,7 @@ func simulate(dt:float):
   return
  update_mission(dt)
  if ended:return
- if xp>=xp_needed() and not active_card:offer_upgrade()
+ bank_earned_upgrades()
 
 
 func nearest_enemy(p:Vector3,radius:float,excluded:Array=[])->Variant:
@@ -1345,27 +1546,57 @@ func spawn_wave():
 
 func xp_needed()->float:return 60+float(level-1)*35
 
+func bank_earned_upgrades()->int:
+ var was_empty=pending_upgrade_levels.is_empty()
+ var earned=0
+ while xp>=xp_needed():
+  xp-=xp_needed()
+  level+=1
+  pending_upgrade_levels.append(level)
+  earned+=1
+ if earned>0 and was_empty and is_instance_valid(audio_system):tone("level")
+ return earned
+
+# Developer fixture compatibility; ordinary simulation calls bank_earned_upgrades.
 func offer_upgrade():
- xp-=xp_needed()
- level+=1
- cards=UpgradeCatalog.draw_for_level(upgrades,card_rng,level,preferred_family,family_misses)
- if not preferred_family.is_empty():
-  var found=false
-  for card in cards:
-   if card.get("family","")==preferred_family:found=true
-  family_misses=0 if found else family_misses+1
+ bank_earned_upgrades()
+ open_growth_choices()
+
+func open_growth_choices()->bool:
+ if active_card or ended or title_open or pending_upgrade_levels.is_empty():return false
+ if is_instance_valid(options_panel) or is_instance_valid(route_panel) or is_instance_valid(dismantle_panel):return false
+ if cards.is_empty():
+  cards=UpgradeCatalog.draw_for_level(upgrades,card_rng,int(pending_upgrade_levels[0]),preferred_family,family_misses)
+  if not preferred_family.is_empty():
+   var found=false
+   for card in cards:
+    if card.get("family","")==preferred_family:found=true
+   family_misses=0 if found else family_misses+1
  active_card=true
  dragging=false;build_mode="";ghost.visible=false
- pending_card_delay=.28
+ pending_card_delay=0
+ display_cards()
+ return true
+
+func postpone_growth_choice():
+ if not active_card:return
+ active_card=false
+ pending_card_delay=0
+ if is_instance_valid(choice_panel):choice_panel.queue_free()
+ choice_panel=null
+ update_ui()
 
 func reroll_cards():
- if not active_card or rerolls<=0:return
+ if not active_card or pending_upgrade_levels.is_empty() or rerolls<=0:return
  rerolls-=1
- cards=UpgradeCatalog.draw_for_level(upgrades,card_rng,level,preferred_family,family_misses)
+ cards=UpgradeCatalog.draw_for_level(upgrades,card_rng,int(pending_upgrade_levels[0]),preferred_family,family_misses)
  if is_instance_valid(choice_panel):choice_panel.queue_free()
+ choice_panel=null
  display_cards()
 
 func display_cards():
+ if not active_card or pending_upgrade_levels.is_empty() or cards.size()!=3:return
+ if is_instance_valid(choice_panel):return
  pending_card_delay=0
  active_card=true
  dragging=false
@@ -1383,8 +1614,7 @@ func display_cards():
  center.add_child(content)
  var heading=label("生存者の成長",36,PALE)
  content.add_child(heading)
- var sub=label("SURVIVORS %02d  /  生き延びる力を選ぶ"%level,17,AMBER)
- sub.add_theme_font_override("font",command_font)
+ var sub=label("LV %02d の強化  /  未選択 %d件"%[int(pending_upgrade_levels[0]),pending_upgrade_levels.size()],17,AMBER)
  content.add_child(sub)
  var row=HBoxContainer.new()
  row.add_theme_constant_override("separation",18)
@@ -1407,7 +1637,6 @@ func display_cards():
   var ink=Color("303329")
   var tier={"basic":"基礎装備","advanced":"戦術改装","ultimate":"決戦仕様","fallback":"補給指令"}.get(data.get("tier","basic"),"装備")
   var serial=label("0%d    /    %s"%[i+1,tier],15,Color("71603d"))
-  serial.add_theme_font_override("font",command_font)
   v.add_child(serial)
   var name_label=label(data.name,29,ink)
   v.add_child(name_label)
@@ -1434,13 +1663,19 @@ func display_cards():
  var reroll_button=button("候補更新  /  残り%d回"%rerolls,reroll_cards,260)
  reroll_button.disabled=rerolls<=0
  content.add_child(reroll_button)
+ content.add_child(button("あとで選ぶ  [Esc]",postpone_growth_choice,260))
 
 func equipment_diagram(id:String)->Control:
  return CommandDeck.equipment(UpgradeCatalog.family_for(id))
 
 func choose_upgrade(index:int):
- if not active_card or index>=cards.size():return
+ if not active_card or pending_upgrade_levels.is_empty() or index<0 or index>=cards.size():return
+ # Consume before effects or UI callbacks so repeated input cannot apply twice.
+ active_card=false
+ pending_card_delay=0
  var data=cards[index]
+ pending_upgrade_levels.pop_front()
+ cards=[]
  upgrades[data.id]=upgrades.get(data.id,0)+1
  if data.id in ["chain","blast","multi","salvo","storm","cascade","sweep","fortress"]:
   var family=UpgradeCatalog.family_for(data.id)
@@ -1459,18 +1694,21 @@ func choose_upgrade(index:int):
   for b in buildings:b.hp=b.maxhp
  active_card=false
  if is_instance_valid(choice_panel):choice_panel.queue_free()
+ choice_panel=null
  tone("power")
  notify("成長："+data.name,4)
+ update_ui()
 
 func finish(won:bool):
  if ended:return
  ended=true
+ result_won=won
+ result_progress_error=campaign_state.complete(elapsed,kills) if won else OK
  if won:
-  campaign_state.complete(elapsed,kills)
   for child in get_children():
    if child.has_method("restore_district_lights"):child.restore_district_lights()
   if mission.mode=="convoy":camera_focus=Vector3(18,0,18)
- if FileAccess.file_exists("user://settlement_v2/checkpoint.json"):DirAccess.remove_absolute("user://settlement_v2/checkpoint.json")
+ if result_progress_error==OK:clear_finished_checkpoint()
  active_card=false
  if is_instance_valid(choice_panel):choice_panel.queue_free()
  modal=PanelContainer.new()
@@ -1486,6 +1724,9 @@ func finish(won:bool):
  v.add_child(label("OPERATION COMPLETE" if won else "COMMAND LOST",20,AMBER))
  v.add_child(label("経過 %02d:%02d  /  撃破 %d  /  生存者 Lv.%d"%[int(elapsed)/60,int(elapsed)%60,kills,level],21))
  v.add_child(label(ConvoyPlan.ending(campaign_state.current) if won else failure_reason,18))
+ if result_progress_error!=OK:
+  v.add_child(label("達成記録を保存できませんでした。前回の途中保存を保持しています。",16,RED))
+  v.add_child(button("達成記録の保存を再試行",retry_completion_save,440))
  if won and campaign_state.current<2:
   v.add_child(button("次の作戦へ",func():start_mission(campaign_state.current+1),440))
  elif won:
@@ -1561,7 +1802,7 @@ func showcase_step():
   select_guards()
   for s in sites:
    if s.kind!="scrap":
-    s.reclaimed=true;s.progress=1
+    s.reclaimed=true;s.progress=1;StructureVisuals.set_site_reclaimed(s.node,true)
     s.label.text=site_title(s.kind)+" [復旧済]"
   generator_on=true
   upgrades={"chain":2,"storm":1,"power":2,"multi":1,"damage":3,"rate":3,"range":1,"crit":2,"salvo":1}
@@ -1696,9 +1937,12 @@ func run_tests():
 
 func capture_frame():
  await RenderingServer.frame_post_draw
- var path="res://builds/gameplay_%d.png"%Time.get_unix_time_from_system()
- get_viewport().get_texture().get_image().save_png(path)
- print("SCREENSHOT: ",path)
+ var directory="res://builds" if OS.has_feature("editor") else "user://screenshots"
+ if DirAccess.make_dir_recursive_absolute(directory)!=OK:return
+ var path=directory+"/gameplay_%d.png"%Time.get_unix_time_from_system()
+ var result=get_viewport().get_texture().get_image().save_png(path)
+ if result==OK:print("SCREENSHOT: ",path)
+ else:push_warning("Screenshot could not be saved: "+str(result))
 
 func rebuild_navigation():
  enemy_approach_cells.clear()
@@ -1718,7 +1962,8 @@ func rebuild_navigation():
    for z in range(floori(p.z-radius),ceili(p.z+radius)+1):
     var cell=Vector2i(x,z)
     if nav.is_in_boundsv(cell):nav.set_point_solid(cell,true)
- for u in units:u.planned=Vector3.INF
+ friendly_navigation.navigation_changed()
+ enemy_navigation.navigation_changed()
  for e in enemies:e.path_cd=0;e.route.clear()
 
 func open_cell(p:Vector3,approach:Vector3=Vector3.INF)->Vector2i:
@@ -1737,31 +1982,7 @@ func open_cell(p:Vector3,approach:Vector3=Vector3.INF)->Vector2i:
  return cell
 
 func enemy_route(start:Vector3,target:Dictionary)->Array:
- var direct=route_to(start,target.node.position)
- if not direct.is_empty():return direct
- var source=open_cell(start)
- var key:int=target.node.get_instance_id()
- if enemy_approach_cells.has(key):
-  var cached:Vector2i=enemy_approach_cells[key]
-  if nav.is_in_boundsv(cached) and not nav.is_point_solid(cached):
-   var points=nav.get_id_path(source,cached)
-   if not points.is_empty():return path_vectors(points)
- # A nearest empty tile can be an enclosed pocket between adjacent buildings.
- # Try a reachable perimeter tile instead of leaving an entire approach idle.
- var center:Vector2i=Vector2i(roundi(target.node.position.x),roundi(target.node.position.z))
- var radius:int=ceili(float(target.get("radius",.7))+2.0)
- var candidates:Array[Vector2i]=[]
- for x in range(-radius,radius+1):
-  for z in range(-radius,radius+1):
-   var cell:Vector2i=center+Vector2i(x,z)
-   if nav.is_in_boundsv(cell) and not nav.is_point_solid(cell):candidates.append(cell)
- candidates.sort_custom(func(a,b):return a.distance_to(center)*5+a.distance_to(source)<b.distance_to(center)*5+b.distance_to(source))
- for cell in candidates:
-  var points=nav.get_id_path(source,cell)
-  if not points.is_empty():
-   enemy_approach_cells[key]=cell
-   return path_vectors(points)
- return []
+ return enemy_navigation.route_now(nav,start,target)
 
 func path_vectors(points)->Array:
  var result=[]
@@ -1843,8 +2064,8 @@ func show_title():
  v.add_child(label("オルタ湾復旧作戦",25,Color("b9b29b")))
  v.add_child(label("2091.  廃墟に電力を、水を、生活を。",16,Color("939985")))
  v.add_child(label(" ",10))
- if FileAccess.file_exists("user://settlement_v2/checkpoint.json"):
-  var saved=JSON.parse_string(FileAccess.get_file_as_string("user://settlement_v2/checkpoint.json"))
+ if not CheckpointValidation.read("user://settlement_v2/checkpoint.json").is_empty():
+  var saved=CheckpointValidation.read("user://settlement_v2/checkpoint.json")
   if valid_checkpoint(saved):v.add_child(button("作戦を再開",resume_checkpoint,555))
   else:v.add_child(label("旧版の保存は元のリリースで再開できます。この版は新規作戦から開始。",14,RED))
  for i in 3:
@@ -1864,19 +2085,20 @@ func show_title():
  v.add_child(label("選択して指揮。回収して建設。群れを迎え撃つ。",16,PALE))
  v.add_child(label("左ドラッグ 選択  /  右クリック 指示  /  Space 戦術停止",14,Color("a29c85")))
 
-func start_mission(index:int):
+func start_mission(index:int,seed_override:int=-1):
  campaign_state.current=index
+ campaign_state.choose_run_seed(seed_override if seed_override>=0 else campaign_state.seed_from_args(OS.get_cmdline_user_args()))
  campaign_state.launch=true
  campaign_state.resume=false
  get_tree().reload_current_scene()
 
 func return_title():
- if not ended and not title_open:save_checkpoint(false)
+ if not ended and not title_open and save_checkpoint(false)!=OK:return
  campaign_state.launch=false
  get_tree().reload_current_scene()
 
 func resume_checkpoint():
- var data=JSON.parse_string(FileAccess.get_file_as_string("user://settlement_v2/checkpoint.json"))
+ var data=CheckpointValidation.read("user://settlement_v2/checkpoint.json")
  if not valid_checkpoint(data):
   notify("保存データを読み込めません。新しい作戦を開始してください。",5)
   return
@@ -1888,12 +2110,16 @@ func resume_checkpoint():
 func vec_data(v:Vector3)->Array:return [v.x,v.y,v.z]
 func from_data(a:Array)->Vector3:return Vector3(float(a[0]),float(a[1]),float(a[2]))
 
-func save_checkpoint(announce:bool=true):
- if ended or title_open:return
- if DirAccess.make_dir_recursive_absolute("user://settlement_v2")!=OK:
-  if announce:notify("保存先を作成できませんでした。",3)
-  return
- var data={"version":2,"stockpile":stockpile.duplicate(),"settlement_age":settlement_age,"resource_nodes":[],"preferred_family":preferred_family,"family_misses":family_misses,"blast_queue":[],"ammo":ammo,"rerolls":rerolls,"build_boost":build_boost,"victory_boost":victory_boost,"recruit_queue":recruit_queue.duplicate(true),"mission":campaign_state.current,"resources":resources,"gathered":gathered,"kills":kills,"xp":xp,"level":level,"upgrades":upgrades.duplicate(),"elapsed":elapsed,"wave_clock":wave_clock,"wave":wave,"hold":hold_time,"noise":noise,"generator":generator_on,"first_activation":first_activation,"surge":incoming_surge,"paused":paused,"active_card":active_card,"rng":str(rng.state),"card_rng":str(card_rng.state),"cards":[],"units":[],"enemies":[],"buildings":[],"sites":[],"selected":[]}
+func save_checkpoint(announce:bool=true)->Error:
+ if ended or title_open:return ERR_UNAVAILABLE
+ var result=DirAccess.make_dir_recursive_absolute("user://settlement_v2")
+ if result==OK:result=AtomicSave.write_json("user://settlement_v2/checkpoint.json",checkpoint_data(),CheckpointValidation.validate)
+ if announce or result!=OK:notify("作戦を保存しました。" if result==OK else "保存ファイルを更新できませんでした。",3)
+ return result
+
+func checkpoint_data()->Dictionary:
+ var living_enemies=enemies.filter(func(enemy):return not enemy.dead)
+ var data={"version":3,"run_seed":str(run_seed),"visual_rng":str(visual_rng.state),"stockpile":stockpile.duplicate(),"settlement_age":settlement_age,"resource_nodes":[],"preferred_family":preferred_family,"family_misses":family_misses,"blast_queue":[],"ammo":ammo,"rerolls":rerolls,"build_boost":build_boost,"victory_boost":victory_boost,"recruit_queue":recruit_queue.duplicate(true),"mission":campaign_state.current,"resources":resources,"gathered":gathered,"kills":kills,"xp":xp,"level":level,"pending_upgrade_levels":pending_upgrade_levels.duplicate(),"upgrades":upgrades.duplicate(),"elapsed":elapsed,"wave_clock":wave_clock,"wave":wave,"hold":hold_time,"noise":noise,"generator":generator_on,"first_activation":first_activation,"surge":incoming_surge,"paused":paused,"active_card":active_card,"rng":str(rng.state),"card_rng":str(card_rng.state),"cards":[],"units":[],"enemies":[],"buildings":[],"sites":[],"selected":[]}
  data.merge({"tech_level":tech_level,"research_active":research_active,"research_time":research_time,"convoy_started":convoy_started,"convoy_index":convoy_index,"boss_spawned":boss_spawned,"boss_defeated":boss_defeated,"convoy_route_choice":convoy_route_choice,"convoy_halted":convoy_halted,"convoy_encounter_stage":convoy_encounter_stage,"convoy_pending":{},"shells":[]})
  if not convoy_pending.is_empty():data.convoy_pending={"stage":convoy_pending.stage,"clock":convoy_pending.clock}
  for shell in shells:
@@ -1910,11 +2136,13 @@ func save_checkpoint(announce:bool=true):
   if u.target!=null:
    if u.task=="site":target_type="site";target_index=sites.find(u.target)
    if u.task in ["build","repair"]:target_type="build";target_index=buildings.find(u.target)
-   if u.task=="focus_fire":target_type="enemy";target_index=enemies.find(u.target)
+   if u.task=="focus_fire":target_type="enemy";target_index=living_enemies.find(u.target)
    if u.task=="escort":target_type="unit";target_index=units.find(u.target)
    if u.task=="gather":target_type="resource";target_index=resource_nodes.find(u.target)
+  if target_index<0:target_type=""
   data.units.append({"kind":u.kind,"pos":vec_data(u.node.position),"hp":u.hp,"maxhp":u.maxhp,"goal":vec_data(u.goal),"task":u.task,"target_type":target_type,"target_index":target_index,"escort_slot":u.get("escort_slot",0),"escort_repath":u.get("escort_repath",0),"yaw":u.node.rotation.y,"cd":u.cd,"work":u.work,"shots":u.shots})
   var saved=data.units.back()
+  if target_type=="" and u.task in ["site","build","repair","focus_fire","escort"]:saved.task="idle"
   for field in ["cargo_kind","cargo","resource_kind","economy_phase"]:
    if u.has(field):saved[field]=u[field]
   saved["resource_target_index"]=resource_nodes.find(u.get("resource_target"))
@@ -1922,21 +2150,22 @@ func save_checkpoint(announce:bool=true):
   var assignment=u.get("return_assignment",{})
   saved["return_assignment"]={"resource":assignment.get("resource",""),"target_index":resource_nodes.find(assignment.get("target"))}
   if u in selected:data.selected.append(units.find(u))
- for e in enemies:
+ for e in living_enemies:
   if not e.dead:data.enemies.append({"pos":vec_data(e.node.position),"hp":e.hp,"speed":e.speed,"cd":e.cd,"armored":e.get("armored",false),"charged_until":e.get("charged_until",0),"convoy_hunter":e.get("convoy_hunter",false),"boss":e.get("boss",false),"windup":e.get("windup",0),"attack_pos":vec_data(e.get("attack_pos",e.node.position))})
- var file=FileAccess.open("user://settlement_v2/checkpoint.json.tmp",FileAccess.WRITE)
- if file==null:
-  if announce:notify("保存に失敗しました。空き容量とフォルダを確認してください。")
-  return
- file.store_string(JSON.stringify(data))
- file.close()
- var result=DirAccess.rename_absolute("user://settlement_v2/checkpoint.json.tmp","user://settlement_v2/checkpoint.json")
- if announce:notify("作戦を保存しました。" if result==OK else "保存ファイルを更新できませんでした。",3)
+ data["control_groups"]=control_groups.snapshot(units,buildings)
+ # Selection shortcuts can set focus before the next frame clamps the view.
+ data["camera"]={"focus":vec_data(Vector3(clampf(camera_focus.x,-18,18),0,clampf(camera_focus.z,-18,18))),"size":clampf(camera.size,26,85)}
+ return data
 
 func load_checkpoint()->bool:
- if not FileAccess.file_exists("user://settlement_v2/checkpoint.json"):return false
- var d=JSON.parse_string(FileAccess.get_file_as_string("user://settlement_v2/checkpoint.json"))
- if not valid_checkpoint(d):return false
+ var d=CheckpointValidation.read("user://settlement_v2/checkpoint.json")
+ if ended or not valid_checkpoint(d) or int(d.mission)!=campaign_state.current:return false
+ var recovered=CheckpointValidation.last_read_used_backup
+ building_attack_alerts.reset()
+ building_attack_button.visible=false
+ active_card=false;cards.clear();pending_upgrade_levels.clear();pending_card_delay=0
+ if is_instance_valid(choice_panel):choice_panel.queue_free()
+ choice_panel=null
  for shell in shells:shell.node.queue_free()
  shells.clear()
  for corpse in corpses:corpse.node.queue_free()
@@ -1944,6 +2173,7 @@ func load_checkpoint()->bool:
  for resource in resource_nodes:
   if resource.source_building.is_empty():resource.node.queue_free()
  resource_nodes.clear()
+ friendly_navigation.clear_reservations()
  for collection in [units,enemies,buildings,sites]:
   for item in collection:item.node.queue_free()
   collection.clear()
@@ -1964,6 +2194,7 @@ func load_checkpoint()->bool:
   var s=sites.back()
   for key in ["progress","reclaimed","stock","paid"]:s[key]=raw[key]
   if s.reclaimed:
+   StructureVisuals.set_site_reclaimed(s.node,true)
    s.label.text=site_title(s.kind)+" [復旧済]"
    s.label.modulate=CYAN
  for raw in d.resource_nodes:
@@ -2028,18 +2259,32 @@ func load_checkpoint()->bool:
  upgrades=d.upgrades
  elapsed=d.elapsed;wave_clock=d.wave_clock;wave=int(d.wave);hold_time=d.hold;noise=d.noise
  generator_on=d.generator;first_activation=d.first_activation;incoming_surge=d.surge;paused=d.paused
- rng.state=int(d.rng);card_rng.state=int(d.card_rng)
+ run_seed=int(d.run_seed);campaign_state.run_seed=run_seed
+ # Restore after constructors have consumed random draws. Re-seed first so
+ # both the seed metadata and exact continuation state describe the saved run.
+ seed_run_streams()
+ rng.state=int(d.rng);card_rng.state=int(d.card_rng);visual_rng.state=int(d.visual_rng)
+ for earned_level in d.pending_upgrade_levels:pending_upgrade_levels.append(int(earned_level))
+ for id in d.cards:cards.append(UpgradeCatalog.by_id(id))
  for index in d.selected:
   if index<units.size():selected.append(units[index])
+ control_groups.restore(d.get("control_groups",[]),units,buildings)
  update_selection()
+ # Checkpoints without a saved view use the original camera defaults. Restore
+ # synchronously so Continue opens here before the first process frame.
+ var view:Dictionary=d.get("camera",{"focus":[0,0,0],"size":54})
+ camera_focus=from_data(view.focus)
+ camera.size=float(view.size)
+ camera.position=camera_focus+Vector3(37,48,43)
+ camera.look_at(camera_focus)
  if d.active_card:
-  cards.clear()
-  for id in d.cards:
-   var card=UpgradeCatalog.by_id(id)
-   if not card.is_empty():cards.append(card)
+  active_card=true
   display_cards()
  recompute_power()
- notify("前回の作戦を再開しました。",3)
+ simulation_clock.reset()
+ render_interpolation.reset(units,enemies,corpses)
+ notify("直前の保存から再開しました。" if recovered else "前回の作戦を再開しました。",3)
+ rebuild_navigation()
  return true
 
 func show_options():
@@ -2081,40 +2326,7 @@ func close_options():
  paused=options_previous_pause
 
 func valid_checkpoint(d:Variant)->bool:
- if not d is Dictionary or d.get("version",0)!=2:return false
- if not d.get("stockpile") is Dictionary or not d.get("resource_nodes") is Array:return false
- if int(d.get("settlement_age",0)) not in [1,2,3]:return false
- for kind in ["food","salvage","parts"]:
-  if not (d.stockpile.get(kind) is float or d.stockpile.get(kind) is int) or float(d.stockpile[kind])<0:return false
- for resource in d.resource_nodes:
-  if not resource is Dictionary or not resource.get("resource","") in ["food","salvage","parts"] or not resource.get("pos") is Array or resource.pos.size()!=3:return false
-  if not resource.get("renewable") is bool or not (resource.get("stock") is float or resource.get("stock") is int):return false
- for key in ["mission","resources","gathered","kills","xp","level","elapsed","wave_clock","wave","hold","noise"]:
-  if not d.has(key) or not (d[key] is float or d[key] is int):return false
- if int(d.mission)<0 or int(d.mission)>2:return false
- for key in ["generator","first_activation","surge","paused","active_card"]:
-  if not d.has(key) or not d[key] is bool:return false
- for key in ["rng","card_rng"]:
-  if not d.has(key) or not d[key] is String or not d[key].is_valid_int():return false
- if not d.get("upgrades") is Dictionary:return false
- for key in ["cards","units","enemies","buildings","sites","selected"]:
-  if not d.get(key) is Array:return false
- if d.buildings.is_empty() or not d.buildings[0] is Dictionary or d.buildings[0].get("kind")!="hq":return false
- if d.active_card and d.cards.size()!=3:return false
- for kind in ["units","enemies","buildings","sites"]:
-  for item in d[kind]:
-   if not item is Dictionary or not item.get("pos") is Array or item.pos.size()!=3:return false
-   for value in item.pos:
-    if not (value is float or value is int):return false
-   var fields={"units":["kind","hp","maxhp","goal","task","target_type","target_index","cd","work"],"enemies":["hp","speed","cd"],"buildings":["kind","hp","maxhp","built","cd"],"sites":["kind","progress","reclaimed","stock","paid"]}[kind]
-   for field in fields:
-    if not item.has(field):return false
-   if kind=="units" and (not item.goal is Array or item.goal.size()!=3 or not GameRules.UNITS.has(item.kind)):return false
-   if kind=="buildings":
-    if not GameRules.BUILDINGS.has(item.kind) or not item.get("queue",[]) is Array:return false
-    for order in item.get("queue",[]):
-     if not order is Dictionary or not order.get("paid_cost") is Dictionary or not order.has("remaining") or not order.has("duration"):return false
- return true
+ return CheckpointValidation.validate(d)
 
 func construction_multiplier()->float:
  return 1+bonus("build","build_speed_add")+(.5 if build_boost>0 else 0)
@@ -2202,9 +2414,9 @@ func bar_style(color:Color,border:Color)->StyleBoxFlat:
  return skin
 
 func decorate_unit(kind:String,n:Node3D):
- if kind in ["truck","convoy"]:StructureVisuals.add_vehicle(n,kind)
+ if kind in ["truck","convoy"]:StructureVisuals.add_vehicle(render_interpolation.visual_root(n),kind)
  elif kind=="siegecart":
-  n.add_child((load("res://assets/models/siege_cart.glb") as PackedScene).instantiate())
+  render_interpolation.visual_root(n).add_child((load("res://assets/models/siege_cart.glb") as PackedScene).instantiate())
  else:
   ActorVisuals.add_human(n,kind)
   for mesh in n.find_children("*","MeshInstance3D",true,false):mesh.visible=false
@@ -2227,13 +2439,16 @@ func selected_order_text()->String:
  if selected.is_empty():return "未選択"
  var kinds=[]
  for u in selected:
+  var navigation_status=friendly_navigation.current_status(u)
+  if navigation_status in [FriendlyNavigation.BLOCKED,FriendlyNavigation.WORK_WAITING]:return friendly_navigation.status_text(u)
   var task=u.task
+  if task=="move" and navigation_status==FriendlyNavigation.PENDING:task="move_pending"
   if task=="gather":
    task={"to_resource":"採取へ移動","gathering":"採取中","to_dropoff":"搬入中","waiting_resource":"近くの資源が枯渇","waiting_dropoff":"搬入先なし"}.get(u.get("economy_phase",""),"採取・搬入")
   if task=="site" and u.target!=null:task="salvage" if u.target.kind=="scrap" else "restore"
   if not task in kinds:kinds.append(task)
  if kinds.size()>1:return "複数命令"
- return {"idle":"待機","move":"移動中","attack_move":"攻撃移動","focus_fire":"集中攻撃","escort":"護衛・追尾","gather":"採取・搬入","repair":"修理中","salvage":"回収中","restore":"復旧中","build":"建設中"}.get(kinds[0],kinds[0])
+ return {"idle":"待機","move":"移動中","move_pending":"経路を確認中","attack_move":"攻撃移動","focus_fire":"集中攻撃","escort":"護衛・追尾","gather":"採取・搬入","repair":"修理中","salvage":"回収中","restore":"復旧中","build":"建設中"}.get(kinds[0],kinds[0])
 
 func factory_status(b:Dictionary)->String:
  if b.built<1:return "建設中"
@@ -2379,7 +2594,7 @@ func launch_convoy():
  var vehicle=make_unit("convoy",convoy_route()[0])
  vehicle.goal=convoy_route()[1]
  vehicle.task="convoy"
- world_label(vehicle.node,"物資輸送隊",Vector3(0,3.2,0),AMBER)
+ world_label(render_interpolation.visual_root(vehicle.node),"物資輸送隊",Vector3(0,3.2,0),AMBER)
  wave_clock=minf(wave_clock,6)
  notify("輸送隊が出発。護衛を付けて東の避難所へ。",7)
  audio_system.play_event("power",vehicle.node.position)
@@ -2401,7 +2616,7 @@ func update_mission(dt:float):
    var convoy=convoy_unit()
    if convoy.is_empty():failure_reason="輸送隊を失った。";finish(false);return
    if convoy_halted:return
-   if convoy.node.position.distance_to(convoy_route()[convoy_index])<1.2 or (convoy.planned!=Vector3.INF and convoy.node.position.distance_to(convoy.goal)<.55):
+   if friendly_navigation.is_arrived(convoy):
     convoy_index+=1
     if convoy_index>=convoy_route().size():finish(true);return
     convoy.goal=convoy_route()[convoy_index]
@@ -2426,7 +2641,9 @@ func boss_impact(enemy:Dictionary):
  for u in units:
   if u.node.position.distance_to(p)<4.5:u.hp-=45
  for b in buildings:
-  if b.node.position.distance_to(p)<4.5+b.radius:b.hp-=175 if b.kind=="wall" else 120
+  if b.node.position.distance_to(p)<4.5+b.radius:
+   b.hp-=175 if b.kind=="wall" else 120
+   building_attack_alerts.record_hit(b,elapsed)
  enemy.cd=3.2
  audio_system.play_event("heavy_hit",p,1.4)
 
@@ -2588,6 +2805,11 @@ func building_completed(building:Dictionary):
   make_resource("food",building.node.position,0,true,building)
  context_signature=""
 
+func finish_construction_order(worker:Dictionary):
+ friendly_navigation.invalidate_order(worker)
+ worker.task="idle";worker.target=null;worker.goal=worker.node.position
+ economy.resume_after_construction(worker)
+
 func remove_garden_resource(building:Dictionary):
  for resource in resource_nodes.duplicate():
   if resource.get("source_building",{})==building:
@@ -2595,7 +2817,7 @@ func remove_garden_resource(building:Dictionary):
    if is_instance_valid(resource.get("label")):resource.label.queue_free()
  for worker in units:
   if worker.kind=="worker" and worker.task in ["build","repair"] and worker.target==building:
-   worker.task="idle";worker.target=null;economy.resume_after_construction(worker)
+   finish_construction_order(worker)
 
 func spend_cost(cost:Dictionary)->bool:
  if not GameRules.can_afford(stockpile,cost):return false
@@ -2636,7 +2858,9 @@ func spawn_produced_unit(kind:String,building:Dictionary)->Dictionary:
  if kind=="worker" and resource!=null and resource in resource_nodes:
   economy.assign_resource(unit,resource)
  else:
-  unit.goal=building.get("rally",point);unit.task="move";unit.planned=Vector3.INF
+  var rally:Vector3=building.get("rally",point)
+  unit.goal=friendly_navigation.rally_destination(nav,rally,unit,units) if kind in ["guard","grenade","siegecart"] else rally
+  unit.task="move";unit.planned=Vector3.INF
  if is_instance_valid(audio_system):audio_system.play_event("build_complete",unit.node.position)
  return unit
 
@@ -2677,6 +2901,7 @@ func select_idle_worker():
 func stop_selected():
  for unit in selected:
   if unit.kind=="convoy":continue
+  friendly_navigation.invalidate_order(unit)
   if unit.kind=="worker":economy.cancel_assignment(unit)
   unit.task="idle";unit.target=null;unit.goal=unit.node.position;unit.route.clear();unit.planned=Vector3.INF
  context_signature=""
@@ -2753,10 +2978,11 @@ func refresh_context_commands(force:bool=false):
   if not blocked.is_empty():action.button.tooltip_text=blocked+"  /  "+action.get("detail","")
  update_queue_display()
  if is_instance_valid(command_detail):
-  command_detail.text=hovered_command.get("button").tooltip_text if not hovered_command.is_empty() and is_instance_valid(hovered_command.get("button")) else "H 本部  /  . 待機作業員  /  右クリック 命令"
+  command_detail.text=hovered_command.get("button").tooltip_text if not hovered_command.is_empty() and is_instance_valid(hovered_command.get("button")) else "Ctrl+1–9 登録 / 1–9 呼出・2連打で視点 / C 全戦闘員 / V 全作業員"
+
   if hovered_command.is_empty() and inspected.get("kind","")=="hq" and settlement_age<3:
    var next_age=production.can_queue_age(inspected)
-   command_detail.text=(next_age.get("reason","") if not next_age.ok else "発展費用: "+GameRules.cost_text(GameRules.age(settlement_age+1).cost))
+   command_detail.text="発展費用: "+GameRules.cost_text(GameRules.age(settlement_age+1).cost)+(" / "+next_age.get("reason","") if not next_age.ok else "")
 
 func build_availability(kind:String)->Dictionary:
  var check=GameRules.can_build(kind,settlement_age,buildings)
@@ -2840,7 +3066,8 @@ func update_ui():
  hud_counters.age.value.text=["I","II","III"][clampi(settlement_age-1,0,2)]
  hud_counters.age.root.tooltip_text="復興本部を選択して次の段階へ発展"
  hud_counters.experience.value.text="Lv %d"%level
- hud_counters.experience.root.tooltip_text="共有XP %d / %d。撃破して部隊全体を強化。"%[int(xp),int(xp_needed())]
+ RTSHud.set_growth_pending(hud_counters.experience,pending_upgrade_levels.size())
+ hud_counters.experience.root.tooltip_text="共有XP %d / %d。強化 %d件。クリック / Tabで選択、Escで保留。"%[int(xp),int(xp_needed()),pending_upgrade_levels.size()]
  hud_counters.ammo.value.text="%d"%int(ammo)
  hud_counters.ammo.value.add_theme_color_override("font_color",RED if ammo<40 else PALE)
  hud_counters.ammo.root.tooltip_text="弾薬 %d / 400。弾薬工房で補給。枯渇時は予備弾で威力40%%。"%int(ammo)
@@ -2860,7 +3087,7 @@ func update_ui():
  elif mission.mode=="finale":
   var sub=get_site("substation")
   objective.text+="\n変電所 "+("復旧済" if sub.reclaimed else "未復旧")
-  objective.text+="\n送電 %d/%d秒 / 破砕体%s"%[int(hold_time),int(mission.hold),"撃破" if boss_defeated else "接近" if boss_spawned else "未到達"]
+  objective.text+="\n初期送電 %d/%d秒 / 破砕体%s"%[int(hold_time),int(mission.hold),"撃破" if boss_defeated else "接近" if boss_spawned else "未到達"]
   mission_action_button.text="変電所へ"
  else:objective.text+="\n揚水 %d/%d秒"%[int(hold_time),int(mission.hold)]
  pause_button.text="再開" if paused else "一時停止"
@@ -2886,6 +3113,9 @@ func update_ui():
    if not title in names:names.append(title)
   selection_info.text="%s ×%d\n%s"%["・".join(names),selected.size(),selected_order_text()]
   supply_status.text="耐久 %d / %d"%[int(hp_sum),int(max_sum)]
+  if selected.size()==1 and selected[0].kind=="worker":
+   var destination=worker_destination_text(selected[0])
+   if not destination.is_empty():supply_status.text+="\n"+destination
   if selected.size()==1 and selected[0].kind=="worker" and selected[0].get("cargo",0)>0:
    selection_info.text+="\n運搬: %s %d"%[GameRules.RESOURCE_TITLES.get(selected[0].cargo_kind,""),int(selected[0].cargo)]
  elif not inspected.is_empty() and is_instance_valid(inspected.get("node")):
@@ -2899,8 +3129,11 @@ func update_ui():
   supply_status.text="作業員を選択して右クリックで採取"
   selection_info.text=GameRules.RESOURCE_TITLES[inspected_resource.resource]+"\n"+("菜園 / 継続生産" if inspected_resource.renewable else "残量 %d"%int(inspected_resource.stock))
  elif not inspected_site.is_empty():
-  portrait_kind="relay"
+  portrait_kind="pump" if inspected_site.kind=="pump" and mission.mode=="restore" else "depot" if inspected_site.kind=="pump" and mission.mode=="convoy" else "electric"
   supply_status.text="作業員を選択して右クリックで復旧"
+  if not inspected_site.reclaimed:
+   var restoration=site_rule(inspected_site.kind)
+   supply_status.text="段階%d / %s\n%s"%[int(restoration.age),"支払済み" if inspected_site.paid else GameRules.cost_text(restoration.cost),"作業員を選択して右クリックで復旧"]
   selection_info.text=site_title(inspected_site.kind)+"\n"+("復旧済" if inspected_site.reclaimed else "復旧 %d%%"%int(inspected_site.progress*100))
  if portrait_kind!=last_portrait_kind:selection_portrait.texture=portrait_for(portrait_kind);last_portrait_kind=portrait_kind
  selected_hp.max_value=maxf(1,max_sum);selected_hp.value=hp_sum;selected_hp.visible=max_sum>0
@@ -2953,6 +3186,7 @@ func work_site(unit:Dictionary,dt:float):
  site.progress=minf(1,site.progress+dt/float(rule.time))
  if site.progress>=1:
   site.reclaimed=true;site.label.text=site_title(site.kind)+" [復旧済]"
+  StructureVisuals.set_site_reclaimed(site.node,true)
   if site.kind=="pump":rerolls+=1
   pulse(site.node.position,CYAN,5,1);tone("power")
   notify(site_title(site.kind)+"を復旧",5)
@@ -2965,3 +3199,39 @@ func worker_resource_approach(worker:Dictionary,resource:Dictionary)->Vector3:
  var angle:float=float(slot%10)*TAU/10.0
  var radius:float=float(resource.radius)+.85+float(slot/10)*.10
  return resource.node.position+Vector3(cos(angle)*radius,0,sin(angle)*radius)
+
+# Economy travel retains depletion/reassignment updates while using safe arrival.
+func worker_navigation_arrived(worker:Dictionary)->bool:
+ return friendly_navigation.is_arrived(worker)
+
+func clear_finished_checkpoint():
+ for suffix in ["",".bak",".tmp",".bak.tmp"]:
+  var path="user://settlement_v2/checkpoint.json"+suffix
+  if FileAccess.file_exists(path):DirAccess.remove_absolute(path)
+
+func retry_completion_save():
+ if not ended or not result_won:return
+ result_progress_error=campaign_state.complete(elapsed,kills)
+ if result_progress_error==OK:
+  clear_finished_checkpoint()
+  notify("達成記録を保存しました。",4)
+ else:notify("達成記録を保存できませんでした。途中保存を保持しています。",4)
+
+func update_worker_route_preview():
+ if not is_instance_valid(worker_route_preview):return
+ if title_open or ended or active_card or is_instance_valid(options_panel) or is_instance_valid(route_panel) or is_instance_valid(dismantle_panel) or selected.size()!=1:
+  worker_route_preview.clear_preview();return
+ var worker=selected[0]
+ if worker.kind!="worker" or worker.hp<=0 or not is_instance_valid(worker.node) or worker.node.is_queued_for_deletion() or friendly_navigation.current_status(worker)!=FriendlyNavigation.MOVING:
+  worker_route_preview.clear_preview();return
+ worker_route_preview.set_selected_worker_route(worker.node.get_instance_id(),worker.node.global_position,worker.route,{"world_position":worker.get("nav_endpoint",Vector3.INF)},true)
+
+func worker_destination_text(worker:Dictionary)->String:
+ if worker.task!="gather":return ""
+ if worker.get("economy_phase","")=="to_dropoff":
+  var depot=worker.get("dropoff_target",{})
+  if depot is Dictionary and not depot.is_empty() and is_instance_valid(depot.get("node")):
+   return "搬入先: "+str(GameRules.building(depot.kind).title)
+ elif worker.get("economy_phase","") in ["to_resource","gathering"]:
+  return "採取先: "+str(GameRules.RESOURCE_TITLES.get(worker.get("resource_kind",""),""))
+ return ""

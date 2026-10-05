@@ -243,6 +243,8 @@ func _approach_point(worker: Dictionary, destination: Dictionary, default_radius
 	return point
 
 func _arrived(worker: Dictionary) -> bool:
+	if _host.has_method("worker_navigation_arrived"):
+		return bool(_host.call("worker_navigation_arrived", worker))
 	return _position(worker).distance_to(worker.get("goal", Vector3.INF)) <= ARRIVAL_DISTANCE
 
 func _nearest_resource(worker: Dictionary, kind: String) -> Dictionary:

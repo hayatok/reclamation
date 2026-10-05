@@ -187,7 +187,7 @@ static func set_command_state(button:Button,blocked_reason:String,highlighted:bo
  var detail:Label=button.get_meta("command_detail")
  var cost_row:HBoxContainer=button.get_meta("command_cost_row")
  var has_costs:bool=not (button.get_meta("command_costs",{}) as Dictionary).is_empty()
- var show_costs:bool=has_costs and (blocked_reason.is_empty() or _command_resource_block(blocked_reason))
+ var show_costs:bool=has_costs
  cost_row.visible=show_costs
  detail.visible=not show_costs
  detail.text=_command_short_reason(blocked_reason) if not blocked_reason.is_empty() else str(button.get_meta("command_description",""))

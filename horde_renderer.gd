@@ -60,12 +60,12 @@ func setup() -> void:
 		_grow(bucket, MIN_CAPACITY)
 		_buckets.append(bucket)
 
-func update_horde(enemies: Array, elapsed: float) -> void:
+func update_horde(enemies: Array, elapsed: float, rendered: Dictionary = {}) -> void:
 	if not _initialized:
 		setup()
 	if is_instance_valid(baked):
 		baked.force_far=low_detail
-		baked.update_crowd(enemies,elapsed,get_viewport().get_camera_3d())
+		baked.update_crowd(enemies,elapsed,get_viewport().get_camera_3d(),rendered)
 	visible_enemies = baked.visible_count if is_instance_valid(baked) else 0
 	overflow_enemies = 0
 	for bucket: Bucket in _buckets:
@@ -112,7 +112,8 @@ func update_horde(enemies: Array, elapsed: float) -> void:
 		for index: int in count:
 			var enemy: Dictionary = bucket.members[index]
 			var actor: Node3D = enemy["node"]
-			var world: Transform3D = inverse * actor.global_transform
+			var state: Dictionary = rendered.get(actor.get_instance_id(), {})
+			var world: Transform3D = inverse * state.get("world", actor.global_transform)
 			var seed_value:int=actor.get_instance_id()%97
 			var stature:float=.90+float(seed_value%7)*.028
 			world.basis=world.basis.scaled(Vector3(stature,stature,stature))
@@ -197,7 +198,7 @@ static func _write_transform(buffer: PackedFloat32Array, offset: int, value: Tra
 # The friendly skeletons	still drive their original animation transforms; only
 # their meshes are collected here, so selection, orders and appearance remain intact.
 var _friendly_batches:Dictionary={}
-func update_friends(units:Array)->void:
+func update_friends(units:Array,rendered:Dictionary={})->void:
 	if _friendly_batches.is_empty():
 		for kind in ["guard","worker","grenade"]:
 			var meshes=[]
@@ -218,14 +219,20 @@ func update_friends(units:Array)->void:
 	var counts={"guard":0,"worker":0,"grenade":0}
 	var inverse=global_transform.affine_inverse()
 	for u in units:
-		if not counts.has(u.kind) or not is_instance_valid(u.node) or u.hp<=0:continue
+		if not counts.has(u.kind) or not is_instance_valid(u.node) or u.node.is_queued_for_deletion() or u.hp<=0:continue
 		var skeleton=u.node.get_meta(&"actor_visuals",null)
 		if not is_instance_valid(skeleton):continue
 		var index:int=counts[u.kind]
 		if index>=64:continue
 		var body:Node3D=skeleton.get_meta(&"body")
 		var parts=[body,body,skeleton.get_meta(&"leg_l"),skeleton.get_meta(&"leg_r"),skeleton.get_meta(&"arm_l"),skeleton.get_meta(&"arm_r")]
-		for i in 6:_friendly_batches[u.kind][i].set_instance_transform(index,inverse*parts[i].global_transform)
+		var state: Dictionary = rendered.get(u.node.get_instance_id(), {})
+		var actor_world: Transform3D = state.get("world", u.node.global_transform)
+		var actor_inverse: Transform3D = u.node.global_transform.affine_inverse()
+		var rendered_parts: Array = state.get("parts", [])
+		for i in 6:
+			var local_part: Transform3D = rendered_parts[i] if rendered_parts.size()==6 else actor_inverse * parts[i].global_transform
+			_friendly_batches[u.kind][i].set_instance_transform(index,inverse * actor_world * local_part)
 		counts[u.kind]+=1
 	for kind in counts:
 		for mm in _friendly_batches[kind]:mm.visible_instance_count=counts[kind]
