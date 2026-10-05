@@ -1,6 +1,7 @@
 extends Node3D
 ## Original layered battlefield effects. Fixed shared batches, no gameplay RNG/state.
 const LIMIT=256
+const WeaponMuzzles=preload("res://weapon_muzzles.gd")
 # Persistent critical-state cues share the existing two textured batches. Combat
 # bursts cannot consume these slots, including when reduced effects is enabled.
 const CRITICAL_BUILDING_LIMIT=16
@@ -58,18 +59,29 @@ func _ready():
   var light=OmniLight3D.new();light.shadow_enabled=false;light.light_color=Color("ffb25f");light.light_energy=0;light.omni_range=7
   add_child(light);lights.append({"node":light,"life":0.0})
 
-func spawn(kind:String,p:Vector3,duration:float,size:float,color:Color,velocity:Vector3=Vector3.ZERO,growth:float=0):
+func spawn(kind:String,p:Vector3,duration:float,size:float,color:Color,velocity:Vector3=Vector3.ZERO,growth:float=0)->Dictionary:
  var cap=32 if kind=="scorch" else mini(96,LIMIT-CRITICAL_SMOKE_SLOTS) if kind=="smoke" else LIMIT-CRITICAL_FLAME_SLOTS if kind=="flame" else LIMIT
- if particles[kind].size()>=cap:return
- particles[kind].append({"pos":p,"life":duration,"total":duration,"size":size,"color":color,"velocity":velocity,"growth":growth,"angle":rng.randf_range(-PI,PI)})
+ if particles[kind].size()>=cap:return {}
+ var item={"pos":p,"life":duration,"total":duration,"size":size,"color":color,"velocity":velocity,"growth":growth,"angle":rng.randf_range(-PI,PI)}
+ particles[kind].append(item)
+ return item
 
-func streak(a:Vector3,b:Vector3,color:Color,duration:float,width:float):
+func streak(a:Vector3,b:Vector3,color:Color,duration:float,width:float,socket:Dictionary={}):
  if a.distance_squared_to(b)<.0001 or particles.streak.size()>=LIMIT:return
  var direction=b-a
- var basis=Basis.looking_at(direction.normalized(),Vector3.UP if absf(direction.normalized().y)<.98 else Vector3.RIGHT)
- particles.streak.append({"pos":(a+b)*.5,"life":duration,"total":duration,"size":1.0,"color":color,"velocity":Vector3.ZERO,"growth":0.0,"angle":0.0,"basis":basis.scaled(Vector3(width,width,direction.length()))})
+ var item={"pos":(a+b)*.5,"life":duration,"total":duration,"size":1.0,"color":color,"velocity":Vector3.ZERO,"growth":0.0,"angle":0.0,"basis":_streak_basis(direction,width)}
+ if not socket.is_empty():
+  item.muzzle=socket;item.endpoint=b;item.width=width;item.muzzle_fallback=a
+ particles.streak.append(item)
 
-func beam(a:Vector3,b:Vector3,color:Color,duration:float,width:float):
+static func _streak_basis(direction:Vector3,width:float)->Basis:
+ var axis:Vector3=direction.normalized()
+ var rotation:Basis=Basis.looking_at(axis,Vector3.UP if absf(axis.y)<.98 else Vector3.RIGHT)
+ # The BoxMesh is one unit long on local Z. Scale its columns, not world axes:
+ # rotation.scaled(Vector3(width,width,length)) collapses oblique X/Y travel.
+ return Basis(rotation.x*width,rotation.y*width,rotation.z*direction.length())
+
+func beam(a:Vector3,b:Vector3,color:Color,duration:float,width:float,socket:Dictionary={}):
  if color.b>color.r*1.03:
   var points=[a]
   for i in range(1,6):points.append(a.lerp(b,float(i)/6)+Vector3(rng.randf_range(-.45,.45),rng.randf_range(-.3,.4),rng.randf_range(-.45,.45)))
@@ -78,12 +90,16 @@ func beam(a:Vector3,b:Vector3,color:Color,duration:float,width:float):
    streak(points[i-1],points[i],Color(.24,.57,.79,.35),duration,.13)
    streak(points[i-1],points[i],Color(.76,.93,1,.9),duration,.032)
  else:
-  streak(a,b,Color(color.r,color.g,color.b,.65),duration,maxf(.022,width*.65))
-  streak(a,b,Color(1,.94,.74,.9),duration*.65,maxf(.012,width*.23))
+  streak(a,b,Color(color.r,color.g,color.b,.65),duration,maxf(.022,width*.65),socket)
+  streak(a,b,Color(1,.94,.74,.9),duration*.65,maxf(.012,width*.23),socket)
 
-func muzzle(p:Vector3,heavy:bool=false):
- spawn("flash",p,.12 if heavy else .075,1.15 if heavy else .65,Color(1,.91,.72,.9))
- spawn("smoke",p,.45,.38,Color(.72,.73,.69,.28),Vector3(0,.45,0),.7)
+func muzzle(p:Vector3,heavy:bool=false,socket:Dictionary={}):
+ var flash=spawn("flash",p,.12 if heavy else .075,1.15 if heavy else .65,Color(1,.91,.72,.9))
+ var smoke=spawn("smoke",p,.45,.38,Color(.72,.73,.69,.28),Vector3(0,.45,0),.7)
+ if not socket.is_empty():
+  if not flash.is_empty():flash.muzzle=socket
+  # Smoke detaches after its first displayed position; the brief flame follows the barrel.
+  if not smoke.is_empty():smoke.muzzle=socket;smoke.muzzle_once=true
 
 func impact(p:Vector3,kind:String):
  var metal=kind in ["armored","critical"]
@@ -160,10 +176,11 @@ func _critical_particles(buildings:Array,camera:Camera3D)->Dictionary:
    cues.smoke.append({"pos":anchor+Vector3(.08+age*.24,.94+age*1.22,.04+age*.12),"life":1.0,"total":1.0,"size":1.0,"growth":0.0,"angle":phase+age*.35,"color":Color(.32,.28,.24,.76*fade),"shape":Vector3(size,size*1.10,1)})
  return cues
 
-func update(delta:float,camera:Camera3D,buildings:Array=[]):
+func update(delta:float,camera:Camera3D,buildings:Array=[],actor_frames:Dictionary={}):
  visual_clock+=delta;blast_budget=0
  if last_blast.size()>256:last_blast.clear()
  var critical:Dictionary=_critical_particles(buildings,camera)
+ var muzzle_positions:Dictionary={}
  for light in lights:
   light.life=maxf(0,light.life-delta);light.node.light_energy=3*light.life/.12
  for kind in particles:
@@ -171,6 +188,23 @@ func update(delta:float,camera:Camera3D,buildings:Array=[]):
   for i in range(list.size()-1,-1,-1):
    var item:Dictionary=list[i];item.life-=delta
    if item.life<=0:list.remove_at(i);continue
+   if item.has("muzzle"):
+    var socket:Dictionary=item.muzzle
+    var actor:Variant=socket.get("node")
+    var id:int=actor.get_instance_id() if is_instance_valid(actor) else 0
+    var key:int=id*2+int(socket.get("barrel",0))
+    var fallback:Vector3=item.get("muzzle_fallback",item.pos)
+    var point:Vector3=muzzle_positions.get(key,fallback)
+    if id!=0 and not muzzle_positions.has(key):
+     point=WeaponMuzzles.world_position(socket,actor_frames,fallback);muzzle_positions[key]=point
+    if kind=="streak":item.muzzle_fallback=point
+    if kind=="streak":
+     var direction:Vector3=item.endpoint-point
+     item.pos=(point+item.endpoint)*.5
+     if direction.length_squared()>.0001:
+      item.basis=_streak_basis(direction,item.width)
+    else:item.pos=point
+    if item.get("muzzle_once",false):item.erase("muzzle")
    if kind=="debris":item.velocity.y-=9*delta
    item.pos+=item.velocity*delta
   # Do not put persistent cues in the expiring combat particle lists. Repair,

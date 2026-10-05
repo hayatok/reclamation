@@ -7,6 +7,11 @@ extends RefCounted
 static var _meshes: Dictionary = {}
 static var _material: StandardMaterial3D
 
+## Front-face centres of the actual ArmR barrel geometry in _human_geometry.
+## Rifle: -.745 - .28/2. Launcher: -1.055 - .03/2.
+static func muzzle_local(kind: String) -> Vector3:
+	return Vector3(-.035, -.18, -1.070) if kind in ["grenade", "grenadier"] else Vector3(-.035, -.175, -.885)
+
 static func add_human(parent: Node3D, kind: String) -> void:
 	_add(parent, "grenade" if kind in ["grenade", "grenadier"] else ("guard" if kind == "guard" else "worker"))
 

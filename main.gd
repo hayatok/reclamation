@@ -59,6 +59,7 @@ var enemy_approach_cells:Dictionary=enemy_navigation.approach_cells
 const HordeRenderer=preload("res://horde_renderer.gd")
 const TacticalMap=preload("res://tactical_map.gd")
 const ActorVisuals=preload("res://actor_visuals.gd")
+const WeaponMuzzles=preload("res://weapon_muzzles.gd")
 const UpgradeCatalog=preload("res://upgrade_catalog.gd")
 const BUILD_COSTS={"tower":65,"wall":18,"factory":75,"relay":40,"mortar":120,"yard":80}
 const UNIT_COSTS={"guard":45,"worker":30,"truck":80,"grenade":75}
@@ -1237,10 +1238,11 @@ func _process(delta):
  advance_simulation_time(delta)
  simulation_usec=Time.get_ticks_usec()-sim_start
  update_building_attack_alert()
- render_actors()
+ var actor_frames=render_actors()
+ resolve_shell_muzzles(actor_frames)
  update_worker_route_preview()
  battle_visibility.update_visibility(camera,units,[] if aftermath_settled else enemies,[] if aftermath_settled else shells,delta)
- battle_fx.update(dt,camera,buildings)
+ battle_fx.update(dt,camera,buildings,actor_frames)
  if pending_card_delay>0:
   pending_card_delay-=dt
   if pending_card_delay<=0 and active_card and not ended:display_cards()
@@ -1275,7 +1277,7 @@ func advance_simulation_time(real_delta:float)->int:
   save_checkpoint(false)
  return completed
 
-func render_actors()->void:
+func render_actors()->Dictionary:
  var running=simulation_running()
  if not running:render_interpolation.reset(units,enemies,corpses)
  var alpha=clampf(simulation_clock.remainder/SimulationClock.STEP,0,1) if running else 1.0
@@ -1283,6 +1285,7 @@ func render_actors()->void:
  var rendered_time=maxf(0.0,elapsed-SimulationClock.STEP*(1.0-alpha)) if running else elapsed
  horde_renderer.update_horde([] if aftermath_settled else enemies+corpses,rendered_time,rendered)
  horde_renderer.update_friends(units,rendered)
+ return rendered
 
 func simulate(dt:float):
  friendly_navigation.begin_frame(dt,units)
@@ -1495,6 +1498,8 @@ func fire(origin:Vector3,target:Dictionary,base:float,kind:String,source:Diction
    var aim=target.node.position-source.node.position
    if aim.length_squared()>.01:source.node.rotation.y=atan2(-aim.x,-aim.z)
  if source.get("kind","")=="siegecart":origin=source.node.to_global(Vector3(0,2.116018,-1.205950))
+ # Simulation origin remains unchanged for aura, piercing, salvo and supply rules.
+ var socket:Dictionary=WeaponMuzzles.anchor(source)
  var ammo_cost=(3.0 if kind in ["grenade","mortar"] else 1.0)*maxf(.4,1-bonus("supply","ammo_reduction_add")-(.1 if (kind in ["guard","grenade"] or source.get("kind","")=="siegecart") and mobile_aura(origin) else 0.0))
  var supplied=ammo>=ammo_cost
  if supplied:ammo-=ammo_cost
@@ -1507,25 +1512,25 @@ func fire(origin:Vector3,target:Dictionary,base:float,kind:String,source:Diction
  var pos=target.node.position
  if kind in ["grenade","mortar"]:
   var radius=3.0 if kind=="grenade" else 4.1
-  launch_shell(origin,pos,damage,radius,kind,critical)
+  launch_shell(origin,pos,damage,radius,kind,critical,socket)
   var shell_targets=[target]
   for i in int(upgrades.get("multi",0)):
    var extra=nearest_enemy(pos,7,shell_targets)
    if extra==null:break
    shell_targets.append(extra)
-   launch_shell(origin,extra.node.position,damage*.65,radius,kind,false)
+   launch_shell(origin,extra.node.position,damage*.65,radius,kind,false,socket)
   if kind=="mortar" and not source.is_empty():
    source.shots+=1
    var interval=4 if upgrades.get("salvo",0)>1 else 6
    if upgrades.get("salvo",0)>0 and int(source.shots)%interval==0:
     var forward=Vector3(pos.x-origin.x,0,pos.z-origin.z).normalized()
     var across=Vector3(-forward.z,0,forward.x)
-    for side in [-1,1]:launch_shell(origin,pos+across*side*3.6,damage*.6,radius,kind,false)
+    for side in [-1,1]:launch_shell(origin,pos+across*side*3.6,damage*.6,radius,kind,false,socket)
     if upgrades.get("sweep",0)>0:
-     for distance in [4.0,8.0]:launch_shell(origin,pos+forward*distance,damage*.6,radius,kind,false)
+     for distance in [4.0,8.0]:launch_shell(origin,pos+forward*distance,damage*.6,radius,kind,false,socket)
   return
- battle_fx.muzzle(origin,false)
- beam(origin,pos+Vector3(0,.7,0),Color("fff1bd") if critical else AMBER,.10)
+ battle_fx.muzzle(origin,false,socket)
+ beam(origin,pos+Vector3(0,.7,0),Color("fff1bd") if critical else AMBER,.10,.055,socket)
  var hit_targets=[target]
  hit(target,damage,true,0,false,critical)
  var direction=Vector3(pos.x-origin.x,0,pos.z-origin.z).normalized()
@@ -1545,7 +1550,7 @@ func fire(origin:Vector3,target:Dictionary,base:float,kind:String,source:Diction
   var other=nearest_enemy(pos,6,hit_targets)
   if other==null:break
   hit_targets.append(other)
-  beam(origin,other.node.position+Vector3(0,.7,0),AMBER,.12)
+  beam(origin,other.node.position+Vector3(0,.7,0),AMBER,.12,.055,socket)
   hit(other,damage*.65,false)
  if upgrades.get("chain",0)>0:
   audio_system.play_event("chain",origin)
@@ -1885,8 +1890,8 @@ func settle_aftermath_presentation()->void:
  aftermath_scene.show();aftermath_scene.set_process(true)
 
 
-func beam(a:Vector3,b:Vector3,c:Color,duration:float,width:float=.055):
- if is_instance_valid(battle_fx):battle_fx.beam(a,b,c,duration,width)
+func beam(a:Vector3,b:Vector3,c:Color,duration:float,width:float=.055,socket:Dictionary={}):
+ if is_instance_valid(battle_fx):battle_fx.beam(a,b,c,duration,width,socket)
 
 func pulse(p:Vector3,c:Color,r:float,duration:float):
  if effects.size()>180:return
@@ -2276,7 +2281,9 @@ func checkpoint_data()->Dictionary:
  data.merge({"tech_level":tech_level,"research_active":research_active,"research_time":research_time,"convoy_started":convoy_started,"convoy_index":convoy_index,"boss_spawned":boss_spawned,"boss_defeated":boss_defeated,"convoy_route_choice":convoy_route_choice,"convoy_halted":convoy_halted,"convoy_encounter_stage":convoy_encounter_stage,"convoy_pending":{},"shells":[]})
  if not convoy_pending.is_empty():data.convoy_pending={"stage":convoy_pending.stage,"clock":convoy_pending.clock}
  for shell in shells:
-  data.shells.append({"from":vec_data(shell.from),"to":vec_data(shell.to),"time":shell.time,"duration":shell.duration,"damage":shell.damage,"radius":shell.radius,"kind":shell.kind,"critical":shell.critical})
+  var visual_from:Vector3=shell.get("visual_from",shell.from)
+  if shell.has("muzzle_anchor"):visual_from=WeaponMuzzles.world_position(shell.muzzle_anchor,{},shell.from)
+  data.shells.append({"from":vec_data(shell.from),"visual_from":vec_data(visual_from),"to":vec_data(shell.to),"time":shell.time,"duration":shell.duration,"damage":shell.damage,"radius":shell.radius,"kind":shell.kind,"critical":shell.critical})
  for event in blast_queue:data.blast_queue.append({"pos":vec_data(event.pos),"radius":event.radius,"damage":event.damage,"generation":event.generation})
  for card in cards:data.cards.append(card.id)
  for b in buildings:data.buildings.append({"kind":b.kind,"pos":vec_data(b.node.position),"hp":b.hp,"maxhp":b.maxhp,"built":b.built,"cd":b.cd,"shots":b.shots,"enabled":b.enabled,"paid_cost":b.get("paid_cost",0),"paid_resources":b.get("paid_resources",{}).duplicate(),"queue":b.get("queue",[]).duplicate(true),"rally":vec_data(b.get("rally",b.node.position)),"rally_target_index":resource_nodes.find(b.get("rally_target"))})
@@ -2409,6 +2416,9 @@ func load_checkpoint()->bool:
   launch_shell(from_data(raw.from),from_data(raw.to),raw.damage,raw.radius,raw.kind,raw.critical)
   var shell=shells.back()
   shell.radius=raw.radius;shell.time=raw.time;shell.duration=raw.duration
+  shell.visual_from=from_data(raw.get("visual_from",raw.from))
+  var t:float=minf(1,shell.time/shell.duration)
+  shell.node.position=shell.visual_from.lerp(shell.to,t)+Vector3(0,sin(t*PI)*(3 if shell.kind=="grenade" else 7),0)
  if campaign_state.current==2 and not sites.any(func(site):return site.kind=="substation"):make_site("substation",Vector3(17,0,14))
  set_command_tab(command_tab)
  preferred_family=d.get("preferred_family","");family_misses=int(d.get("family_misses",0))
@@ -2684,8 +2694,8 @@ func start_research():
  production.queue_age(inspected)
  refresh_context_commands(true)
 
-func launch_shell(origin:Vector3,target:Vector3,damage:float,radius:float,kind:String,critical:bool=false):
- if is_instance_valid(battle_fx):battle_fx.muzzle(origin,kind=="mortar")
+func launch_shell(origin:Vector3,target:Vector3,damage:float,radius:float,kind:String,critical:bool=false,socket:Dictionary={}):
+ if is_instance_valid(battle_fx):battle_fx.muzzle(origin,kind=="mortar",socket)
  pulse(target,Color("bd975c"),radius,.8 if kind=="grenade" else 1.35)
  var node=Node3D.new()
  add_child(node)
@@ -2695,15 +2705,27 @@ func launch_shell(origin:Vector3,target:Vector3,damage:float,radius:float,kind:S
  var tail=box(Vector3(.08,.08,.38),AMBER,Vector3(0,0,.25),node)
  tail.material_override=material(AMBER,1.4)
  shells.append({"node":node,"from":origin,"to":target,"time":0.0,"duration":.8 if kind=="grenade" else 1.35,"damage":damage,"radius":radius*(1+bonus("blast_radius","blast_radius_add")),"kind":kind,"critical":critical})
+ if not socket.is_empty():shells.back()["muzzle_anchor"]=socket
  audio_system.play_event("grenade_launch" if kind=="grenade" else "mortar_launch",origin)
+
+func resolve_shell_muzzles(actor_frames:Dictionary)->void:
+ for shell:Dictionary in shells:
+  if not shell.has("muzzle_anchor"):continue
+  # Resolve once against the first displayed pose, then let the projectile depart.
+  # Keep `from` as the original simulation coordinate for existing combat contracts.
+  shell.visual_from=WeaponMuzzles.world_position(shell.muzzle_anchor,actor_frames,shell.from)
+  shell.erase("muzzle_anchor")
+  var t:float=minf(1,shell.time/shell.duration)
+  shell.node.position=shell.visual_from.lerp(shell.to,t)+Vector3(0,sin(t*PI)*(3 if shell.kind=="grenade" else 7),0)
 
 func update_shells(dt:float):
  for shell in shells.duplicate():
   var previous=shell.node.position
   shell.time+=dt
   var t=minf(1,shell.time/shell.duration)
-  shell.node.position=shell.from.lerp(shell.to,t)+Vector3(0,sin(t*PI)*(3 if shell.kind=="grenade" else 7),0)
-  if dt>0 and not low_fx:battle_fx.trail(previous,shell.node.position,shell.kind=="mortar")
+  var visual_from:Vector3=shell.get("visual_from",shell.from)
+  shell.node.position=visual_from.lerp(shell.to,t)+Vector3(0,sin(t*PI)*(3 if shell.kind=="grenade" else 7),0)
+  if dt>0 and not low_fx and not shell.has("muzzle_anchor"):battle_fx.trail(previous,shell.node.position,shell.kind=="mortar")
   if t>=1:
    detonate_shell(shell)
    shell.node.queue_free()

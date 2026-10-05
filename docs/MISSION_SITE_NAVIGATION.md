@@ -45,3 +45,7 @@ The first focused run exposed the HQ corner-approach issue described above; the 
 A separate Python integer-grid connectivity audit matches the authored M3 geometry: generator, central station and substation have 20, 19 and 28 reachable perimeter cells respectively. Runtime tests additionally restored all three with six distinct worker positions.
 
 Several scene fixtures emit an ObjectDB cleanup warning when exiting. Malformed-checkpoint fixtures also produce expected JSON warnings. No final test timed out or exited unsuccessfully. Native visual/playthrough, macOS and Web behavior remain unverified for this change. The pre-change live project and its user-data directory were not modified.
+
+## Integrated native check
+
+In an isolated copy of an unedited ordinary M3 opening checkpoint, two guards were selected with C and ordered by a real right-click to the generator centre. Both stopped in distinct open positions outside the pad. A subsequent Q plus minimap right-click took them around the generator to its opposite side. The ordinary game saved both results. See [outside stop](images/v34_native_generator_stop.png) and [opposite-side arrival](images/v34_native_generator_across.png). The focused simulation fixture and combat/save/mesh-endpoint regressions also pass after the muzzle fix was integrated. This short native check is not a full new-navigation campaign playthrough.

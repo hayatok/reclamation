@@ -140,6 +140,7 @@ static func validate(value:Variant)->bool:
  if not _control_groups(d):return false
  for s in d.shells:
   if not s is Dictionary or not vector(s.get("from")) or not vector(s.get("to")):return false
+  if s.has("visual_from") and not vector(s.visual_from):return false
   if not fields(s,["time","duration","damage","radius"],["critical"]):return false
   if not s.get("kind") in ["grenade","mortar","siegecart"] or s.time<0 or s.duration<=0 or s.time>s.duration or s.damage<0 or s.radius<=0:return false
  for event in d.blast_queue:
