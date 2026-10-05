@@ -22,10 +22,10 @@ static func counter(kind:String,title:String,width:float,font:Font)->Dictionary:
  caption.add_theme_color_override("font_color",Color("b6b5a7"));heading.add_child(caption)
  var assigned:Label
  if kind in ["food","salvage","parts"]:
-  assigned=Label.new();assigned.mouse_filter=Control.MOUSE_FILTER_IGNORE;assigned.text="担当 0"
+  assigned=Label.new();assigned.mouse_filter=Control.MOUSE_FILTER_IGNORE;assigned.text="0人"
   assigned.add_theme_font_override("font",font);assigned.add_theme_font_size_override("font_size",13)
   assigned.add_theme_color_override("font_color",Color("d1c8ac"));heading.add_child(assigned)
-  box.tooltip_text="担当はこの資源の採取を指示した人数。移動・搬入も含み、収入量ではありません。\n建設・修理・次の予約・枯渇待機は除外。経路・搬入待ちは「待機」にも含みます。"
+  box.tooltip_text="人数はこの資源の採取担当。移動・搬入も含み、収入量ではありません。\n建設・修理・次の予約・枯渇待機は除外。経路・搬入待ちは「待機」にも含みます。"
  var value=Label.new();value.mouse_filter=Control.MOUSE_FILTER_IGNORE;value.text="0"
  value.add_theme_font_override("font",font);value.add_theme_font_size_override("font_size",23)
  value.add_theme_color_override("font_color",Color("f2ead7"));words.add_child(value)
@@ -49,4 +49,9 @@ static func queue_slot(kind:String,title:String,active:bool,number:int,font:Font
 
 static func set_growth_pending(widget:Dictionary,count:int)->void:
  widget.caption.text="強化 %d [Tab]"%count if count>0 else "部隊成長"
- widget.caption.add_theme_color_override("font_color",Color("d2a148") if count>0 else Color("b6b5a7"))
+ set_label_color(widget.caption,Color("d2a148") if count>0 else Color("b6b5a7"))
+
+## Reapplying a theme override invalidates the Control even when its value is
+## unchanged. Ordinary frame updates should only invalidate an actual change.
+static func set_label_color(label:Label,color:Color)->void:
+ if label.get_theme_color("font_color")!=color:label.add_theme_color_override("font_color",color)

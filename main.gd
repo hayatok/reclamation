@@ -9,6 +9,7 @@ const AtomicSave=preload("res://atomic_save.gd")
 const WorkerOrders=preload("res://worker_orders.gd")
 const ControlGroups=preload("res://control_groups.gd")
 const CONTROL_GROUP_DOUBLE_TAP_MS:int=350
+const CONTROLS_HELP="左クリック・ドラッグ: 選択 / 右クリック: 移動・作業・攻撃\nShift+右クリック: 作業予約 / Shift+配置: 連続建設\nCtrl+1–9: 登録 / 1–9: 呼出 / 同じ番号を2連打: 視点移動\nC 全戦闘員 / V 全作業員 / H 本部 / . 待機作業員\n矢印: 視点移動 / ホイール: 拡大縮小 / Space: 一時停止\n生産施設で右クリック: 集合地点 / 本部から資源指定: 採取\nEsc・右クリック: 配置取消 / Backspace: 最後の生産予約を取消"
 var control_groups=ControlGroups.new()
 var last_control_group:int=0
 var last_control_group_msec:int=0
@@ -506,13 +507,15 @@ func make_ui():
  pause_button=button("一時停止",toggle_pause,86)
  pause_button.tooltip_text="戦術ポーズ / Space"
  row.add_child(pause_button)
- row.add_child(button("メニュー",show_options,92))
- var orders=field_panel(Control.PRESET_TOP_LEFT,Vector4(18,100,280,320),Color("242720"))
+ var menu_button=button("メニュー",show_options,92)
+ menu_button.tooltip_text="保存・設定・操作方法"
+ row.add_child(menu_button)
+ var orders=field_panel(Control.PRESET_TOP_LEFT,Vector4(18,100,280,280),Color("242720"))
  var mission_column=VBoxContainer.new()
  orders.add_child(mission_column)
  mission_column.add_child(label("作戦  %02d"%(campaign_state.current+1),14,AMBER))
  mission_column.add_child(label(mission.title.substr(4),22,PALE))
- objective=label("",14,Color("aaa995"))
+ objective=label("",15,Color("aaa995"))
  mission_column.add_child(objective)
  core_bar=ProgressBar.new()
  core_bar.custom_minimum_size=Vector2(230,6)
@@ -521,7 +524,9 @@ func make_ui():
  core_bar.add_theme_stylebox_override("background",bar_style(Color("10120f"),Color("10120f")))
  core_bar.add_theme_stylebox_override("fill",bar_style(Color("8d9768"),Color("8d9768")))
  mission_column.add_child(core_bar)
- status=label("",14,Color("aca994"))
+ status=label("",16,Color("aca994"))
+ status.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
+ status.custom_minimum_size.x=228
  mission_column.add_child(status)
  guide=label("",16,PALE)
  guide.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
@@ -530,8 +535,13 @@ func make_ui():
  mission_column.move_child(guide,2)
  var site_actions=HBoxContainer.new()
  mission_column.add_child(site_actions)
- site_actions.add_child(button("発電所へ",func():assign_site("generator"),110))
- site_actions.add_child(button("復旧地点へ",func():assign_site("pump"),110))
+ var generator_focus=button("発電所へ",func():assign_site("generator"),110)
+ generator_focus.tooltip_text="発電所を選択・表示。復旧は作業員で右クリック。\n段階II / "+GameRules.cost_text(site_rule("generator").cost)
+ site_actions.add_child(generator_focus)
+ var pump_caption={"restore":"揚水場へ","convoy":"貨物庫へ","finale":"送電所へ"}.get(mission.mode,"復旧地点へ")
+ var pump_focus=button(pump_caption,func():assign_site("pump"),110)
+ pump_focus.tooltip_text=mission.facility+"を選択・表示。復旧は作業員で右クリック。\n段階III / "+GameRules.cost_text(site_rule("pump").cost)
+ site_actions.add_child(pump_focus)
  generator_button=button("発電  ON / OFF  [F]",toggle_generator,228)
  generator_button.visible=false
  generator_button.tooltip_text="初回起動: 12秒以内に増援。稼働中は襲撃間隔が短くなる。"
@@ -578,6 +588,7 @@ func make_ui():
  selection_portrait.texture=portrait_for("guard")
  unit_row.add_child(selection_portrait)
  selection_info=label("",18,PALE)
+ selection_info.mouse_filter=Control.MOUSE_FILTER_STOP
  selection_info.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
  selection_info.custom_minimum_size=Vector2(196,90)
  unit_row.add_child(selection_info)
@@ -602,14 +613,17 @@ func make_ui():
  xp_bar.add_theme_stylebox_override("fill",bar_style(Color("b89955"),Color("b89955")))
  selected_col.add_child(xp_bar);xp_bar.visible=false
  supply_status=label("",15,Color("bcb69d"))
+ supply_status.mouse_filter=Control.MOUSE_FILTER_STOP
  supply_status.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
  selected_col.add_child(supply_status)
  var command_panel=field_panel(Control.PRESET_BOTTOM_RIGHT,Vector4(-866,-274,-14,-14),Color("252820"))
  var command_col=VBoxContainer.new()
  command_panel.add_child(command_col)
  command_heading=label("",20,PALE)
+ command_heading.mouse_filter=Control.MOUSE_FILTER_STOP
  command_col.add_child(command_heading)
  queue_caption=label("",15,AMBER)
+ queue_caption.mouse_filter=Control.MOUSE_FILTER_STOP
  var queue_row=HBoxContainer.new();command_col.add_child(queue_row)
  queue_row.add_child(queue_caption);queue_caption.size_flags_horizontal=Control.SIZE_EXPAND_FILL
  queue_icons=HBoxContainer.new();queue_icons.add_theme_constant_override("separation",4);queue_row.add_child(queue_icons)
@@ -2416,6 +2430,9 @@ func show_options():
  quality.selected=1 if performance_mode else 0
  quality.item_selected.connect(func(index):performance_mode=index==1;campaign_state.performance_mode=performance_mode;apply_graphics_quality();campaign_state.save_progress())
  v.add_child(quality)
+ var controls=label(CONTROLS_HELP,16,Color("bcb69d"))
+ controls.name="ControlsHelp"
+ v.add_child(controls)
  v.add_child(button("作戦に戻る",close_options,350))
 
 func close_options():
@@ -2543,6 +2560,10 @@ func selected_order_text()->String:
   if task=="move" and navigation_status==FriendlyNavigation.PENDING:task="move_pending"
   if task=="gather":
    task={"to_resource":"採取へ移動","gathering":"採取中","to_dropoff":"搬入中","waiting_resource":"近くの資源が枯渇","waiting_dropoff":"搬入先なし"}.get(u.get("economy_phase",""),"採取・搬入")
+   if selected.size()==1:
+    var resource_title=str(GameRules.RESOURCE_TITLES.get(u.get("resource_kind",""),"資源"))
+    if u.get("economy_phase","") in ["to_resource","gathering"]:task=resource_title+" "+task
+    elif u.get("economy_phase","")=="waiting_resource":task=resource_title+"が枯渇"
   if task=="site" and u.target!=null:task="salvage" if u.target.kind=="scrap" else "restore"
   if not task in kinds:kinds.append(task)
  if kinds.size()>1:return "複数命令"
@@ -3032,7 +3053,7 @@ func refresh_context_commands(force:bool=false):
   if not selected.is_empty():
    var worker_count=selected.filter(func(unit):return unit.kind=="worker").size()
    if worker_count==selected.size():
-    command_heading.text="作業員  /  "+("住居・経済" if worker_build_page=="economy" else "生産・防衛")
+    command_heading.text="建設  /  "+("住居・経済" if worker_build_page=="economy" else "生産・防衛")
     var types=["house","depot","garden","factory","yard"] if worker_build_page=="economy" else ["barracks","tower","wall","relay","vehicle_workshop","mortar"]
     for kind in types:
      var rule=GameRules.building(kind)
@@ -3053,7 +3074,7 @@ func refresh_context_commands(force:bool=false):
     add_context_action("select","停止","命令を解除",stop_selected)
   elif not inspected.is_empty():
    var building=inspected
-   command_heading.text=GameRules.building(building.kind).title
+   command_heading.text="生産・発展" if building.kind=="hq" else "部隊生産" if not GameRules.unit_kinds_for(building.kind).is_empty() else "施設操作"
    if building.built>=1:
     for kind in GameRules.unit_kinds_for(building.kind):
      var rule=GameRules.unit(kind)
@@ -3072,6 +3093,8 @@ func refresh_context_commands(force:bool=false):
    command_heading.text="対象を選択"
    add_context_action("house","本部へ","増員・発展",select_headquarters,Callable(),KEY_H)
    add_context_action("worker","待機作業員","次の1人を選択",select_idle_worker,Callable(),KEY_PERIOD)
+  command_heading.tooltip_text="Shift+右クリックで作業を予約。通常の右クリックで現在の命令を変更。\n建設中はShift+左クリックで連続配置。詳しい操作はメニュー。" if selected.any(func(unit):return unit.kind=="worker") else "地面を右クリックで移動、敵で集中攻撃、仲間で護衛。詳しい操作はメニュー。"
+  if not inspected.is_empty() and not GameRules.unit_kinds_for(inspected.kind).is_empty():command_heading.tooltip_text="右クリックで集合地点を設定。"+("資源を指定すると作業員が採取へ向かいます。" if inspected.kind=="hq" else "")
  for action in context_actions:
   var blocked=""
   if action.check.is_valid():
@@ -3083,11 +3106,13 @@ func refresh_context_commands(force:bool=false):
   if not blocked.is_empty():action.button.tooltip_text=blocked+"  /  "+action.get("detail","")
  update_queue_display()
  if is_instance_valid(command_detail):
-  command_detail.text=hovered_command.get("button").tooltip_text if not hovered_command.is_empty() and is_instance_valid(hovered_command.get("button")) else "Ctrl+1–9 登録 / 1–9 呼出・2連打で視点 / C 全戦闘員 / V 全作業員"
-
+  var detail_text=hovered_command.get("button").tooltip_text if not hovered_command.is_empty() and is_instance_valid(hovered_command.get("button")) else ""
   if hovered_command.is_empty() and inspected.get("kind","")=="hq" and settlement_age<3:
    var next_age=production.can_queue_age(inspected)
-   command_detail.text="発展費用: "+GameRules.cost_text(GameRules.age(settlement_age+1).cost)+(" / "+next_age.get("reason","") if not next_age.ok else "")
+   if not next_age.ok:
+    detail_text=next_age.get("reason","")
+    if detail_text.begins_with("必要施設:"):detail_text="発展 "+compact_cost(GameRules.age(settlement_age+1).cost)+" / "+detail_text
+  command_detail.text=detail_text
 
 func build_availability(kind:String)->Dictionary:
  var check=GameRules.can_build(kind,settlement_age,buildings)
@@ -3103,6 +3128,7 @@ func add_context_action(kind:String,title:String,cost:String,callback:Callable,c
  var detail=cost
  if GameRules.BUILDINGS.has(kind):detail=GameRules.cost_text(GameRules.building(kind).cost)+" / 建築%d秒"%int(GameRules.building(kind).build_time)
  elif GameRules.UNITS.has(kind):detail=GameRules.cost_text(GameRules.unit(kind).cost)+" / %d秒 / 人口%d"%[int(GameRules.unit(kind).time),int(GameRules.unit(kind).population)]
+ if GameRules.BUILDINGS.has(kind) and not selected.is_empty():detail+=" / Shift+配置で連続建設"
  b.tooltip_text=detail
  command_grid.add_child(b)
  var price:Dictionary={}
@@ -3141,11 +3167,13 @@ func update_queue_icons():
 func update_queue_display():
  if not is_instance_valid(queue_caption):return
  queue_bar.visible=false
+ queue_caption.tooltip_text=""
  update_queue_icons()
  if not inspected.is_empty():
   var building=inspected
   if building.built<1:
-   queue_caption.text="建築 %d%% / 作業員を右クリックで追加"%int(building.built*100)
+   queue_caption.text="建築 %d%%"%int(building.built*100)
+   queue_caption.tooltip_text="作業員を選択して右クリックで工事に追加"
    queue_bar.visible=true;queue_bar.value=building.built*100
   elif not building.get("queue",[]).is_empty():
    var item=building.queue[0]
@@ -3153,17 +3181,14 @@ func update_queue_display():
    var state={"population":"人口上限","unpowered":"未給電","disabled":"停止中","spawn_blocked":"出口が塞がれている"}.get(building.get("queue_state",""),"")
    queue_caption.text="%s  %s  /  予約%d"%[title,state if not state.is_empty() else "残り%d秒"%int(ceil(item.remaining)),building.queue.size()]
    queue_bar.visible=true;queue_bar.value=100*(1-float(item.remaining)/maxf(1,float(item.duration)))
-  elif not GameRules.unit_kinds_for(building.kind).is_empty():
-   queue_caption.text="右クリック: 集合地点"+(" / 作業員は資源を指定すると採取へ" if building.kind=="hq" else "")
-  elif building.kind=="house":queue_caption.text="人口上限 +5"
-  elif building.kind=="depot":queue_caption.text="食料・廃材・部品の搬入先"
-  elif building.kind=="garden":queue_caption.text="作業員で右クリックして食料を生産"
   else:queue_caption.text=""
  elif not selected.is_empty():
   var queue_summary=WorkerOrders.summary(selected)
   if not queue_summary.is_empty():queue_caption.text=queue_summary
-  else:queue_caption.text="Shift+クリック: 作業予約 / 右クリック: 変更" if selected.any(func(unit):return unit.kind=="worker") else "地面: 移動 / 敵: 集中攻撃 / 仲間: 護衛"
+  else:queue_caption.text=""
  else:queue_caption.text=""
+ queue_caption.visible=not queue_caption.text.is_empty()
+ queue_icons.visible=queue_icons.get_child_count()>0
 
 func set_command_tab(_tab:String):refresh_context_commands(true)
 
@@ -3172,9 +3197,9 @@ func update_ui():
  var resource_workers:Dictionary=economy.resource_worker_counts(units)
  for kind in ["food","salvage","parts"]:
   hud_counters[kind].value.text=str(int(stockpile[kind]))
-  hud_counters[kind].assigned.text="担当 %d"%resource_workers[kind]
+  hud_counters[kind].assigned.text="%d人"%resource_workers[kind]
  hud_counters.population.value.text="%d / %d"%[production.population_used(),production.population_cap()]
- hud_counters.population.value.add_theme_color_override("font_color",RED if production.population_used()>=production.population_cap() else PALE)
+ RTSHud.set_label_color(hud_counters.population.value,RED if production.population_used()>=production.population_cap() else PALE)
  hud_counters.population.root.tooltip_text="居住枠。住居1棟で上限+5。予約中の部隊は完成時に人口を使用。"
  hud_counters.age.value.text=["I","II","III"][clampi(settlement_age-1,0,2)]
  hud_counters.age.root.tooltip_text="復興本部を選択して次の段階へ発展"
@@ -3182,41 +3207,50 @@ func update_ui():
  RTSHud.set_growth_pending(hud_counters.experience,pending_upgrade_levels.size())
  hud_counters.experience.root.tooltip_text="共有XP %d / %d。強化 %d件。クリック / Tabで選択、Escで保留。"%[int(xp),int(xp_needed()),pending_upgrade_levels.size()]
  hud_counters.ammo.value.text="%d"%int(ammo)
- hud_counters.ammo.value.add_theme_color_override("font_color",RED if ammo<40 else PALE)
+ RTSHud.set_label_color(hud_counters.ammo.value,RED if ammo<40 else PALE)
  hud_counters.ammo.root.tooltip_text="弾薬 %d / 400。弾薬工房で補給。枯渇時は予備弾で威力40%%。"%int(ammo)
  hud_counters.power.value.text=str(snappedf(power_used,.1))+" / "+str(snappedf(power_capacity,.1))
  hud_counters.power.root.tooltip_text="使用電力 / 発電容量。施設は送電範囲と空き電力が必要。"
  var idle_count=units.filter(func(unit):return worker_needs_attention(unit)).size()
  idle_worker_button.text="待機 %d"%idle_count;idle_worker_button.disabled=idle_count==0
  var gen=get_site("generator");var pump=get_site("pump")
- objective.text="発電所  "+("稼働" if generator_on else "復旧済" if gen.reclaimed else "段階IIで復旧")
- objective.text+="\n"+mission.facility+"  "+("復旧済" if pump.reclaimed else "段階IIIで復旧")
+ var progress_lines:Array[String]=[]
+ if gen.reclaimed:progress_lines.append("発電中" if generator_on else "発電停止")
+ elif gen.progress>0:progress_lines.append("発電所 復旧 %d%%"%int(gen.progress*100))
+ if not pump.reclaimed and pump.progress>0:progress_lines.append(mission.facility+" 復旧 %d%%"%int(pump.progress*100))
  if mission.mode=="convoy":
-  objective.text+="\n輸送 "+("%d%%"%int(convoy_progress()*100) if convoy_started else "段階III・復旧後に出発")
+  if convoy_started:progress_lines.append("輸送 %d%%"%int(convoy_progress()*100))
   mission_action_button.text="輸送隊へ" if convoy_started else "輸送路を選ぶ"
   convoy_pause_button.visible=convoy_started and not ended
   convoy_pause_button.text="車列を再発進" if convoy_halted else "車列を停車"
-  if not convoy_pending.is_empty():objective.text+="\n追走群 %s / %.1f秒"%[ConvoyPlan.encounter(convoy_pending.stage,convoy_route_choice).direction,maxf(0,convoy_pending.clock)]
+  if not convoy_pending.is_empty():progress_lines.append("追走群 %s / %.1f秒"%[ConvoyPlan.encounter(convoy_pending.stage,convoy_route_choice).direction,maxf(0,convoy_pending.clock)])
  elif mission.mode=="finale":
   var sub=get_site("substation")
-  objective.text+="\n変電所 "+("復旧済" if sub.reclaimed else "未復旧")
-  objective.text+="\n初期送電 %d/%d秒 / 破砕体%s"%[int(hold_time),int(mission.hold),"撃破" if boss_defeated else "接近" if boss_spawned else "未到達"]
+  if not sub.reclaimed and sub.progress>0:progress_lines.append("変電所 復旧 %d%%"%int(sub.progress*100))
+  if hold_time>0 or (settlement_age>=3 and pump.reclaimed and sub.reclaimed):progress_lines.append("初期送電 %d/%d秒"%[int(hold_time),int(mission.hold)])
+  if boss_spawned:progress_lines.append("破砕体 "+("撃破" if boss_defeated else "接近"))
   mission_action_button.text="変電所へ"
- else:objective.text+="\n揚水 %d/%d秒"%[int(hold_time),int(mission.hold)]
+ elif hold_time>0 or (settlement_age>=3 and pump.reclaimed):progress_lines.append("揚水 %d/%d秒"%[int(hold_time),int(mission.hold)])
+ objective.text="\n".join(progress_lines);objective.visible=not progress_lines.is_empty()
  pause_button.text="再開" if paused else "一時停止"
  core_bar.value=buildings[0].hp if not buildings.is_empty() else 0
+ core_bar.tooltip_text="復興本部 耐久 %d/%d"%[int(core_bar.value),int(core_bar.max_value)]
  guide.text=tutorial_instruction();guide.visible=not guide.text.is_empty()
  generator_button.text="発電停止" if generator_on else "発電起動"
  generator_button.disabled=not gen.reclaimed
- status.text="次の襲撃 %d秒  /  騒音 %d"%[int(maxf(0,wave_clock)),int(noise)]
- if buildings.any(func(building):return building.kind=="relay" and building.powered):status.text+=" / 次は"+wave_direction_text(wave+1)
+ var warning_text="次の襲撃 %d秒  /  騒音 %d"%[int(maxf(0,wave_clock)),int(noise)]
+ if buildings.any(func(building):return building.kind=="relay" and building.powered):warning_text+=" / 次は"+wave_direction_text(wave+1)
+ status.text=warning_text
+ RTSHud.set_label_color(status,AMBER if wave_clock<=20 else Color("aca994"))
  context_button.visible=false
  dismantle_button.visible=can_dismantle(inspected)
  if dismantle_button.visible:dismantle_button.text="解体"
  xp_bar.visible=false;supply_status.visible=true
- supply_status.text="左クリックで選択\n右クリックで命令"
+ var supply_text=""
+ var supply_tooltip=""
+ var selection_tooltip=""
  var portrait_kind="hq";var hp_sum:float=0;var max_sum:float=0
- selection_info.text="未選択"
+ var selection_text="未選択"
  if not selected.is_empty():
   portrait_kind=selected[0].kind
   var names=[]
@@ -3224,30 +3258,40 @@ func update_ui():
    hp_sum+=unit.hp;max_sum+=unit.maxhp
    var title=GameRules.unit(unit.kind).get("title",unit.kind)
    if not title in names:names.append(title)
-  selection_info.text="%s ×%d\n%s"%["・".join(names),selected.size(),selected_order_text()]
-  supply_status.text="耐久 %d / %d"%[int(hp_sum),int(max_sum)]
+  var selection_title=names[0] if names.size()==1 else "混成部隊"
+  selection_text=selection_title+(" ×%d"%selected.size() if selected.size()>1 else "")+"\n"+selected_order_text()
+  selection_tooltip="・".join(names)
+  supply_text="耐久 %d / %d"%[int(hp_sum),int(max_sum)]
   if selected.size()==1 and selected[0].kind=="worker":
    var destination=worker_destination_text(selected[0])
-   if not destination.is_empty():supply_status.text+="\n"+destination
+   if not destination.is_empty():supply_tooltip=destination
   if selected.size()==1 and selected[0].kind=="worker" and selected[0].get("cargo",0)>0:
-   selection_info.text+="\n運搬: %s %d"%[GameRules.RESOURCE_TITLES.get(selected[0].cargo_kind,""),int(selected[0].cargo)]
+   var cargo_amount=str(int(selected[0].cargo)) if selected[0].cargo>=1 else "1未満"
+   supply_text+="\n運搬: %s %s"%[GameRules.RESOURCE_TITLES.get(selected[0].cargo_kind,""),cargo_amount]
  elif not inspected.is_empty() and is_instance_valid(inspected.get("node")):
   var rule=GameRules.building(inspected.kind)
   portrait_kind=inspected.kind;hp_sum=inspected.hp;max_sum=inspected.maxhp
-  selection_info.text="%s\n耐久 %d/%d"%[rule.title,int(hp_sum),int(max_sum)]
-  if rule.power>0:selection_info.text+=" / "+("給電中" if inspected.powered else "未給電")
-  supply_status.text={"hq":"作業員の生産・段階の発展","barracks":"生存者・爆薬手を訓練","vehicle_workshop":"補給車・移動迫撃車を生産","house":"人口上限 +5","depot":"3資源の搬入先","garden":"作業員が食料を耕作","factory":"電力で弾薬を補給","relay":"送電範囲を延長","yard":"近くの採取・修理を支援","tower":"自動迎撃","mortar":"範囲砲撃","wall":"感染者の進行を遮る"}.get(inspected.kind,"")
+  selection_text=rule.title
+  if inspected.kind=="factory":selection_text+="\n"+factory_status(inspected)
+  elif rule.power>0:selection_text+="\n"+("給電中" if inspected.powered else "未給電")
+  supply_text="耐久 %d / %d"%[int(hp_sum),int(max_sum)]
+  selection_tooltip={"hq":"作業員の生産・段階の発展","barracks":"生存者・爆薬手を訓練","vehicle_workshop":"補給車・移動迫撃車を生産","house":"人口上限 +5","depot":"3資源の搬入先","garden":"作業員が食料を耕作","factory":"電力で弾薬を補給","relay":"送電範囲を延長","yard":"近くの採取・修理を支援","tower":"自動迎撃","mortar":"範囲砲撃","wall":"感染者の進行を遮る"}.get(inspected.kind,"")
+  if inspected.kind in ["house","depot","garden","relay","yard","tower","mortar","wall"]:supply_text+="\n"+selection_tooltip
  elif not inspected_resource.is_empty():
   portrait_kind=inspected_resource.resource
-  supply_status.text="作業員を選択して右クリックで採取"
-  selection_info.text=GameRules.RESOURCE_TITLES[inspected_resource.resource]+"\n"+("菜園 / 継続生産" if inspected_resource.renewable else "残量 %d"%int(inspected_resource.stock))
+  supply_text="作業員を選択して右クリックで採取"
+  selection_text=GameRules.RESOURCE_TITLES[inspected_resource.resource]+"\n"+("菜園 / 継続生産" if inspected_resource.renewable else "残量 %d"%int(inspected_resource.stock))
  elif not inspected_site.is_empty():
   portrait_kind="pump" if inspected_site.kind=="pump" and mission.mode=="restore" else "depot" if inspected_site.kind=="pump" and mission.mode=="convoy" else "electric"
-  supply_status.text="作業員を選択して右クリックで復旧"
+  supply_text="作業員を選択して右クリックで復旧"
   if not inspected_site.reclaimed:
    var restoration=site_rule(inspected_site.kind)
-   supply_status.text="段階%d / %s\n%s"%[int(restoration.age),"支払済み" if inspected_site.paid else GameRules.cost_text(restoration.cost),"作業員を選択して右クリックで復旧"]
-  selection_info.text=site_title(inspected_site.kind)+"\n"+("復旧済" if inspected_site.reclaimed else "復旧 %d%%"%int(inspected_site.progress*100))
+   supply_text="段階%d / %s\n%s"%[int(restoration.age),"支払済み" if inspected_site.paid else GameRules.cost_text(restoration.cost),"作業員を選択して右クリックで復旧"]
+  selection_text=site_title(inspected_site.kind)+"\n"+("復旧済" if inspected_site.reclaimed else "復旧 %d%%"%int(inspected_site.progress*100))
+ selection_info.text=selection_text
+ selection_info.tooltip_text=selection_tooltip
+ supply_status.text=supply_text
+ supply_status.tooltip_text=supply_tooltip
  if portrait_kind!=last_portrait_kind:selection_portrait.texture=portrait_for(portrait_kind);last_portrait_kind=portrait_kind
  selected_hp.max_value=maxf(1,max_sum);selected_hp.value=hp_sum;selected_hp.visible=max_sum>0
  minimap.queue_redraw()
@@ -3268,16 +3312,22 @@ func update_ui():
    if child is Label3D and child.has_meta("tactical_label"):child.visible=not ended and (hover or inspected==building)
 
 func tutorial_instruction()->String:
+ if mission.mode=="convoy" and convoy_started:return "輸送隊を護衛"
  if settlement_age==1:
-  if gathered<20:return "次: 作業員で資源を採取\n資源を右クリック / 本部で増員"
-  if production.population_cap()-production.population_used()<2:return "人口枠が少ない。作業員を選び、住居を建設。"
-  return "住居2・集積所・訓練所を整え、本部で段階IIへ発展。"
+  if gathered<20:return "作業員で資源を採取"
+  if production.population_cap()-production.population_used()<2:return "住居を建て、人口枠を増やす"
+  return "住居2・集積所・訓練所を整え\n本部で段階IIへ"
  if settlement_age==2:
-  if not get_site("generator").reclaimed:return "経済と軍を増強。作業員を護衛し、発電所を復旧。"
-  if not generator_on:return "防衛と弾薬工房を準備して発電を開始。騒音で群れが集まる。"
-  return "車両工房を建て、食料・廃材・部品を蓄え、本部で段階IIIへ。"
- if hold_time>15 or convoy_started:return ""
- return "部隊を編成し、残る設備を復旧。"+ ("輸送路を選んで出発。" if mission.mode=="convoy" else "稼働を守れ。")
+  if not get_site("generator").reclaimed:return "作業員で発電所を復旧"
+  if not generator_on:return "防衛を整え、発電所を起動"
+  return "車両工房・弾薬工房を整え\n本部で段階IIIへ"
+ if not get_site("generator").reclaimed:return "作業員で発電所を復旧"
+ if not get_site("pump").reclaimed:return "作業員で"+mission.facility+"を復旧"
+ if mission.mode=="finale" and not get_site("substation").reclaimed:return "作業員で変電所を復旧"
+ if not generator_on:return "発電所を起動"
+ if mission.mode=="convoy":return "輸送隊を護衛" if convoy_started else "輸送路を選んで出発"
+ if mission.mode=="finale":return "破砕体を撃破し、送電を守る" if boss_spawned and not boss_defeated else "送電設備を守る"
+ return "揚水場を守る"
 
 func site_rule(kind:String)->Dictionary:
  if kind=="generator":return {"age":2,"cost":{"salvage":120,"parts":30},"time":60.0}

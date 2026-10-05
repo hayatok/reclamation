@@ -142,14 +142,20 @@ func run():
  g.buildings.erase(producer);producer.node.queue_free()
  select_units([g.units[0]]);press(KEY_3)
  check(g.selected==[g.units[0]] and g.inspected.is_empty() and not g.control_groups.slots.has(3),"destroyed production building cannot be recalled")
- # Actual visible help reuses the existing command panel and has font coverage.
- check(not g.hint.visible and g.command_detail.visible and g.command_detail.text.contains("Ctrl+1") and g.command_detail.text.contains("C 全戦闘員") and g.command_detail.text.contains("V 全作業員"),"existing detail line explains group and global keys without another help bar")
+ # Global shortcuts remain discoverable in the existing menu, without a
+ # permanent battlefield footer competing with current orders and costs.
+ check(not g.hint.visible and g.command_detail.text.is_empty(),"idle command detail does not repeat the global shortcut guide")
+ g.show_options();await process_frame;await process_frame
+ var controls:Label=g.options_panel.find_child("ControlsHelp",true,false)
+ check(is_instance_valid(controls) and controls.visible and controls.text.contains("Ctrl+1") and controls.text.contains("C 全戦闘員") and controls.text.contains("V 全作業員") and controls.text.contains("Shift+右クリック"),"existing menu explains groups, global selection and worker queue controls")
+ check(is_instance_valid(controls) and g.root_ui.get_global_rect().encloses(controls.get_global_rect()),"menu control guide fits the viewport")
+ g.close_options();await process_frame
  select_units([g.units.filter(func(unit):return unit.kind=="worker")[0]])
  g.worker_build_page="military";g.refresh_context_commands(true)
  await process_frame;await process_frame;await process_frame
  var panel:Control=g.command_detail.get_parent().get_parent()
- check(g.root_ui.get_global_rect().encloses(panel.get_global_rect()) and panel.get_global_rect().encloses(g.command_detail.get_global_rect()),"existing command panel and shortcut help fit viewport in largest build context")
- check(g.command_detail.get_theme_font("font").get_string_size(g.command_detail.text,HORIZONTAL_ALIGNMENT_LEFT,-1,g.command_detail.get_theme_font_size("font_size")).x<=g.command_detail.size.x,"complete shortcut help fits its existing row without clipping")
+ check(g.root_ui.get_global_rect().encloses(panel.get_global_rect()) and panel.get_global_rect().encloses(g.command_detail.get_global_rect()),"command panel and hover detail fit viewport in largest build context")
+ check(g.queue_caption.text.is_empty() and not g.queue_caption.visible,"worker with no pending work has no repeated instruction row")
  select_units([])
  var edit=LineEdit.new();g.root_ui.add_child(edit);edit.grab_focus();press(KEY_1)
  check(g.selected.is_empty(),"focused text input blocks game shortcuts")
