@@ -215,6 +215,9 @@ var options_previous_pause:bool=false
 var render_frames:int=0
 var command_font:Font
 var minimap:Control
+var minimap_order_point=Vector2.ZERO
+var minimap_order_time:float=0.0
+var minimap_order_color:Color=Color.WHITE
 var hud_counters:Dictionary={}
 var queue_icons:HBoxContainer
 var queue_signature:String=""
@@ -565,11 +568,8 @@ func make_ui():
  minimap.size_flags_vertical=Control.SIZE_EXPAND_FILL
  map_col.add_child(minimap)
  minimap.mouse_filter=Control.MOUSE_FILTER_STOP
- minimap.gui_input.connect(func(event):
-  if event is InputEventMouseButton and event.pressed and event.button_index==MOUSE_BUTTON_LEFT:
-   var map_pos=event.position/minimap.size*64-Vector2(32,32)
-   camera_focus=Vector3(clampf(map_pos.x,-18,18),0,clampf(map_pos.y,-18,18))
- )
+ minimap.tooltip_text="左クリック: 視点移動 / 右クリック: 命令"
+ minimap.gui_input.connect(handle_minimap_input)
  minimap.draw.connect(draw_minimap)
  building_attack_button=button("",focus_building_attack,300)
  root_ui.add_child(building_attack_button)
@@ -708,6 +708,28 @@ func field_panel(preset:int,offsets:Vector4,color:Color)->PanelContainer:
  hud_parts.append(p)
  return p
 
+func handle_minimap_input(event:InputEvent)->void:
+ if not event is InputEventMouseButton or not event.pressed or event.button_index not in [MOUSE_BUTTON_LEFT,MOUSE_BUTTON_RIGHT]:return
+ minimap.accept_event()
+ if title_open or ended or active_card:return
+ for overlay in [options_panel,route_panel,dismantle_panel,choice_panel]:
+  if is_instance_valid(overlay):return
+ if minimap.size.x<=0 or minimap.size.y<=0 or not Rect2(Vector2.ZERO,minimap.size).has_point(event.position):return
+ var map_pos=event.position/minimap.size*64-Vector2(32,32)
+ if event.button_index==MOUSE_BUTTON_LEFT:
+  camera_focus=Vector3(clampf(map_pos.x,-18,18),0,clampf(map_pos.y,-18,18))
+  return
+ if not build_mode.is_empty():
+  build_mode="";ghost.visible=false
+  return
+ var destination=Vector3(clampf(map_pos.x,-28,28),0,clampf(map_pos.y,-28,28))
+ var attack_order=attack_move
+ if command_at(destination,Vector2.INF,event.shift_pressed):
+  minimap_order_point=Vector2(destination.x,destination.z)
+  minimap_order_time=.65
+  minimap_order_color=RED if attack_order or selected.any(func(unit):return unit.task=="focus_fire") else CYAN
+  minimap.queue_redraw()
+
 func draw_minimap():
  var size=minimap.size
  minimap.draw_rect(Rect2(Vector2.ZERO,size),Color("111811"))
@@ -762,6 +784,9 @@ func draw_minimap():
   if int(alert.severity)==3:
    minimap.draw_line(point-Vector2(3,3),point+Vector2(3,3),color,2,true)
    minimap.draw_line(point-Vector2(3,-3),point+Vector2(3,-3),color,2,true)
+ if minimap_order_time>0:
+  var order_point=(minimap_order_point+Vector2(32,32))/64*size
+  minimap.draw_arc(order_point,3.0+minimap_order_time*6.0,0,TAU,20,minimap_order_color,1.5,true)
  var view=(Vector2(camera_focus.x,camera_focus.z)+Vector2(32,32))/64*size
  minimap.draw_rect(Rect2(view-Vector2(36,26),Vector2(72,52)),Color("c6b991"),false,1)
 
@@ -990,10 +1015,12 @@ func select_rect(a:Vector2,b:Vector2,append:bool=false):
    if rect.has_point(camera.unproject_position(unit.node.position+Vector3(0,.8,0))) and not unit in selected:selected.append(unit)
  update_selection()
 
-func command_at(p:Vector3,screen:Vector2=Vector2.INF,append_orders:bool=false):
+func command_at(p:Vector3,screen:Vector2=Vector2.INF,append_orders:bool=false)->bool:
  if selected.is_empty():
-  if not inspected.is_empty():set_rally(inspected,p)
-  return
+  if not inspected.is_empty() and not GameRules.unit_kinds_for(inspected.kind).is_empty():
+   set_rally(inspected,p)
+   return true
+  return false
  p.x=clampf(p.x,-28,28)
  p.z=clampf(p.z,-28,28)
  var enemy_target:Variant=null
@@ -1004,7 +1031,7 @@ func command_at(p:Vector3,screen:Vector2=Vector2.INF,append_orders:bool=false):
   if separation<nearest:nearest=separation;enemy_target=enemy
  # Enemy hits consume only ordinary combat orders; workers still resolve their
  # destination or work target, and Shift remains a worker queue command.
- if enemy_target!=null and not append_orders:
+ if enemy_target!=null and not append_orders and not attack_move:
   var fighters=0
   for u in selected:
    if u.kind not in ["guard","grenade","siegecart"]:continue
@@ -1016,7 +1043,7 @@ func command_at(p:Vector3,screen:Vector2=Vector2.INF,append_orders:bool=false):
    pulse(enemy_target.node.position,RED,2.2,.5)
    notify("集中攻撃："+("破砕体" if enemy_target.get("boss",false) else "重装感染者" if enemy_target.get("armored",false) else "感染者"),3)
    tone("order")
-   return
+   return true
  var friendly_target:Variant=null
  var friendly_distance:float=25.0 if screen!=Vector2.INF else 1.65
  if not attack_move:
@@ -1033,21 +1060,22 @@ func command_at(p:Vector3,screen:Vector2=Vector2.INF,append_orders:bool=false):
  var resource_target=resource_at(p)
  if append_orders:
   var workers=selected.filter(func(unit):return unit.kind=="worker" and unit.hp>0)
-  if workers.is_empty():return
+  if workers.is_empty():return false
   var task="move"
   var target:Variant=null
   if not resource_target.is_empty() and b_target==null:task="gather";target=resource_target
   elif b_target!=null:task="build" if b_target.built<1 else "repair";target=b_target
   elif s_target!=null or friendly_target!=null:
-   notify("予約は移動・建設・修理・採取に対応しています。",3);return
+   notify("予約は移動・建設・修理・採取に対応しています。",3);return false
   for worker in workers:
    var issue=WorkerOrders.append_issue(worker)
-   if not issue.is_empty():notify(issue,3);return
+   if not issue.is_empty():notify(issue,3);return false
   for i in workers.size():
    WorkerOrders.submit(self,workers[i],{"task":task,"target":target,"goal":p+Vector3((i%4-1.5)*1.1,0,floori(i/4.0)*1.1)},true)
   context_signature="";pulse(p,CYAN,1.5,.55);tone("order")
-  return
+  return true
  var escort_count:int=0
+ var issued_orders:int=0
  for i in selected.size():
   var u=selected[i]
   if u.kind=="convoy":continue
@@ -1057,13 +1085,16 @@ func command_at(p:Vector3,screen:Vector2=Vector2.INF,append_orders:bool=false):
   if u.kind=="worker":WorkerOrders.clear(u)
   if u.kind=="worker" and not resource_target.is_empty() and b_target==null:
    economy.assign_resource(u,resource_target)
+   issued_orders+=1
    continue
   if u.kind=="worker":
    if b_target!=null:economy.suspend_for_construction(u)
    else:economy.cancel_assignment(u)
   if friendly_target!=null and not (u.kind=="worker" and (s_target!=null or b_target!=null)):
-   if EscortOrders.assign(u,friendly_target,escort_count):escort_count+=1
+   if EscortOrders.assign(u,friendly_target,escort_count):
+    escort_count+=1;issued_orders+=1
    continue
+  issued_orders+=1
   u.goal=p+Vector3((i%4-1.5)*1.1,0,floori(i/4.0)*1.1)
   u.task="attack_move" if attack_move and u.kind in ["guard","grenade","siegecart"] else "move"
   u.target=null
@@ -1082,6 +1113,7 @@ func command_at(p:Vector3,screen:Vector2=Vector2.INF,append_orders:bool=false):
   notify("護衛："+{"convoy":"物資輸送隊","truck":"補給車","worker":"作業員","guard":"生存者","grenade":"爆薬手"}.get(friendly_target.kind,"仲間"),3)
  else:pulse(p,CYAN,1.5,.55)
  tone("order")
+ return issued_orders>0
 
 func building_nav_rect(kind:String,p:Vector3)->Rect2i:
  var radius=float(GameRules.building(kind).radius)+.3
@@ -1175,6 +1207,7 @@ func _process(delta):
  var dt=clampf(delta,0,.4)
  shot_tick-=delta
  notice_timer-=delta
+ minimap_order_time=maxf(0.0,minimap_order_time-delta)
  if notice_timer<=0:center_notice.text=""
  drag_overlay.queue_redraw()
  if ghost.visible:

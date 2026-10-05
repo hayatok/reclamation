@@ -1,0 +1,15 @@
+{
+  "scenario": "same earned save; native mouse/keyboard comparison",
+  "elapsed": 677.2999999999317,
+  "selected_units": 5,
+  "camera_unchanged": true,
+  "selection_unchanged": true,
+  "costs_and_progress_unchanged": true,
+  "before_queued_workers": 0,
+  "after_shift_queued_workers": 5,
+  "ordinary_replacement_queued_workers": 0,
+  "food_workers_before": 3,
+  "food_workers_after_replacement": 8,
+  "shift_target": "food",
+  "limits": "No human novice or actual Web/Mac play claim"
+}
