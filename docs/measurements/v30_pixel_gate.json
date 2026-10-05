@@ -1,0 +1,116 @@
+{
+  "all_exact": true,
+  "cases": [
+    {
+      "case": "earned",
+      "control_exact": true,
+      "image_size": "(1180, 737)",
+      "mask_exact": true,
+      "mask_rebuilds": 1,
+      "mask_visible": true,
+      "masked_panels": 5,
+      "state_equal": true,
+      "viewport": "(1440.0, 900.0)"
+    },
+    {
+      "case": "zoom26",
+      "control_exact": true,
+      "image_size": "(1180, 737)",
+      "mask_exact": true,
+      "mask_rebuilds": 2,
+      "mask_visible": true,
+      "masked_panels": 5,
+      "state_equal": true,
+      "viewport": "(1440.0, 900.0)"
+    },
+    {
+      "case": "zoom85",
+      "control_exact": true,
+      "image_size": "(1180, 737)",
+      "mask_exact": true,
+      "mask_rebuilds": 3,
+      "mask_visible": true,
+      "masked_panels": 5,
+      "state_equal": true,
+      "viewport": "(1440.0, 900.0)"
+    },
+    {
+      "case": "pan_ne",
+      "control_exact": true,
+      "image_size": "(1180, 737)",
+      "mask_exact": true,
+      "mask_rebuilds": 4,
+      "mask_visible": true,
+      "masked_panels": 5,
+      "state_equal": true,
+      "viewport": "(1440.0, 900.0)"
+    },
+    {
+      "case": "pan_sw",
+      "control_exact": true,
+      "image_size": "(1180, 737)",
+      "mask_exact": true,
+      "mask_rebuilds": 4,
+      "mask_visible": true,
+      "masked_panels": 5,
+      "state_equal": true,
+      "viewport": "(1440.0, 900.0)"
+    },
+    {
+      "case": "viewport_resize",
+      "control_exact": true,
+      "image_size": "(1116, 812)",
+      "mask_exact": true,
+      "mask_rebuilds": 5,
+      "mask_visible": true,
+      "masked_panels": 5,
+      "state_equal": true,
+      "viewport": "(1100.0, 800.0)"
+    },
+    {
+      "case": "hud_hidden",
+      "control_exact": true,
+      "image_size": "(1180, 737)",
+      "mask_exact": true,
+      "mask_rebuilds": 5,
+      "mask_visible": false,
+      "masked_panels": 0,
+      "state_equal": true,
+      "viewport": "(1440.0, 900.0)"
+    },
+    {
+      "case": "hud_translucent",
+      "control_exact": true,
+      "image_size": "(1180, 737)",
+      "mask_exact": true,
+      "mask_rebuilds": 5,
+      "mask_visible": false,
+      "masked_panels": 0,
+      "state_equal": true,
+      "viewport": "(1440.0, 900.0)"
+    },
+    {
+      "case": "menu",
+      "control_exact": true,
+      "image_size": "(1180, 737)",
+      "mask_exact": true,
+      "mask_rebuilds": 5,
+      "mask_visible": false,
+      "masked_panels": 0,
+      "state_equal": true,
+      "viewport": "(1440.0, 900.0)"
+    },
+    {
+      "case": "title",
+      "control_exact": true,
+      "image_size": "(1180, 737)",
+      "mask_exact": true,
+      "mask_rebuilds": 5,
+      "mask_visible": false,
+      "masked_panels": 0,
+      "state_equal": true,
+      "viewport": "(1440.0, 900.0)"
+    }
+  ],
+  "renderer": "llvmpipe (LLVM 19.1.7, 256 bits)"
+}

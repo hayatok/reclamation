@@ -1,5 +1,7 @@
 extends Node3D
 
+const HudDepthMask=preload("res://hud_depth_mask.gd")
+var hud_depth_mask
 const SimulationClock=preload("res://simulation_clock.gd")
 var simulation_clock=SimulationClock.new()
 const RenderInterpolation=preload("res://render_interpolation.gd")
@@ -318,6 +320,9 @@ func _ready():
  if not title_open and elapsed<1 and not resumed_checkpoint:
   select_headquarters()
   notify(ConvoyPlan.opening(campaign_state.current),8)
+
+ hud_depth_mask=HudDepthMask.new()
+ hud_depth_mask.setup(self)
 
 func seed_run_streams():
  # Domain-separated streams: art, voices and corpses cannot reroll mechanics.
