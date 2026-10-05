@@ -114,11 +114,8 @@ static func next_label(worker:Dictionary)->String:
 
 static func summary(workers:Array)->String:
  var entries:Array=[]
- var first_queue:Variant=null
  for worker in workers:
   if worker.kind!="worker":continue
-  if first_queue==null:first_queue=pending(worker)
-  elif pending(worker)!=first_queue:return "予約は作業員ごと"
   var count:int=pending(worker).size()
   var text:String="予約%d: 次は%s"%[count,next_label(worker)] if count>0 else ""
   if count>0 and worker.task=="gather":text+=" / 搬入後に次の命令"

@@ -1,9 +1,3 @@
-# Working checkpoint: worker order queues
-
-This is an unfinished source checkpoint for the next development cycle, built on the recovered v0.25 runtime below. It adds worker-only Shift orders and targeted save handling. The engine project version remains the v0.25 development base until the next release is validated. It is not a v0.26 release. Native mouse/keyboard validation is still pending.
-
-The remainder records the recovered baseline, not the hashes of newly changed working files. Use the current SOURCE_MANIFEST.sha256 for this checkout.
-
 # v0.25 runtime source recovery checkpoint
 
 The 668 recovered original files, including every game runtime source, asset and project/export setting, match their recorded pre-loss SHA-256 values. `main.gd` matches `83b16b8a1225f03789384ff190cbce0f23633c4dbd868ee91535c418603bb69e`. The original README, design notes and ending video are preserved unchanged.
