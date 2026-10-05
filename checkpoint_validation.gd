@@ -4,6 +4,7 @@ extends RefCounted
 const Rules=preload("res://settlement_rules.gd")
 const Catalog=preload("res://upgrade_catalog.gd")
 const Atomic=preload("res://atomic_save.gd")
+const WorkerOrders=preload("res://worker_orders.gd")
 const MAX_ITEMS:=10000
 const TASKS:=["idle","move","attack_move","site","build","repair","focus_fire","escort","gather","convoy"]
 const PHASES:=["","idle","suspended","to_resource","gathering","waiting_resource","to_dropoff","waiting_dropoff"]
@@ -232,6 +233,9 @@ static func _unit(u:Variant,d:Dictionary,own_index:int)->bool:
  if not index(u.get("target_index"),sizes[u.target_type],u.target_type==""):return false
  if u.task in ["site","build","repair","focus_fire","escort"] and u.target_type!=expected:return false
  if u.task in ["site","build","repair","gather"] and u.kind!="worker":return false
+ if not u.get("gather_requires_work",false) is bool:return false
+ if u.get("gather_requires_work",false) and (u.kind!="worker" or u.task!="gather"):return false
+ if not _worker_orders(u,d):return false
  if u.task=="convoy" and u.kind!="convoy":return false
  if u.task=="escort" and (int(u.target_index)==own_index or u.kind=="convoy"):return false
  for key in ["resource_target_index","dropoff_index"]:
@@ -257,4 +261,17 @@ static func _unit(u:Variant,d:Dictionary,own_index:int)->bool:
   if u.target_type=="resource" and (u.target_index!=u.resource_target_index or d.resource_nodes[int(u.target_index)].resource!=resource_kind):return false
   if phase in ["to_resource","gathering"] and u.resource_target_index<0:return false
   if phase=="to_dropoff" and u.dropoff_index<0:return false
+ return true
+
+static func _worker_orders(u:Dictionary,d:Dictionary)->bool:
+ var orders:Variant=u.get("pending_orders",[])
+ if not array(orders,WorkerOrders.MAX_PENDING):return false
+ if u.kind!="worker" and not orders.is_empty():return false
+ for order in orders:
+  if not order is Dictionary or order.size()!=4:return false
+  if not order.get("task") in WorkerOrders.TASKS or not vector(order.get("goal")):return false
+  var expected="" if order.task=="move" else "resource" if order.task=="gather" else "build"
+  if order.get("target_type")!=expected:return false
+  var size=0 if expected=="" else d.resource_nodes.size() if expected=="resource" else d.buildings.size()
+  if not index(order.get("target_index"),size,expected==""):return false
  return true

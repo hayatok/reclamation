@@ -27,6 +27,7 @@ func assign_resource(worker: Dictionary, resource: Variant) -> bool:
 		return false
 	_ensure_worker(worker)
 	worker.erase("return_assignment")
+	worker["gather_requires_work"] = false
 	worker["resource_kind"] = str(assignment.resource)
 	worker["resource_target"] = assignment
 	worker["target"] = assignment
@@ -90,6 +91,7 @@ func update_worker(worker: Dictionary, dt: float) -> void:
 		return
 	if float(worker.cargo) == 0.0:
 		worker["cargo_kind"] = kind
+	worker["gather_requires_work"] = false
 	worker["cargo"] = float(worker.cargo) + amount
 	if not bool(resource.get("renewable", false)):
 		resource["stock"] = maxf(0.0, float(resource.stock) - amount)
@@ -106,6 +108,7 @@ func update_worker(worker: Dictionary, dt: float) -> void:
 ## Calling twice during construction preserves the original economic assignment.
 func suspend_for_construction(worker: Dictionary) -> void:
 	_ensure_worker(worker)
+	worker["gather_requires_work"] = false
 	if worker.get("task", "idle") == "gather":
 		worker["return_assignment"] = {
 			"resource": _assignment_kind(worker),
@@ -135,6 +138,7 @@ func resume_after_construction(worker: Dictionary) -> void:
 ## The host still owns setting task, target and the movement goal for that order.
 func cancel_assignment(worker: Dictionary) -> void:
 	_ensure_worker(worker)
+	worker["gather_requires_work"] = false
 	worker.erase("return_assignment")
 	worker["resource_kind"] = ""
 	worker["resource_target"] = null
@@ -206,6 +210,8 @@ func _update_delivery(worker: Dictionary) -> void:
 	worker["economy_phase"] = ""
 	if _host.has_method("resource_deposited"):
 		_host.call("resource_deposited", kind, amount)
+	if _host.has_method("worker_deposited"):
+		_host.call("worker_deposited", worker)
 	# A callback may issue a new order; only resume the unchanged gather order.
 	if worker.get("task", "idle") == "gather" and str(worker.economy_phase).is_empty():
 		_start_assignment(worker)
@@ -341,6 +347,8 @@ func _ensure_worker(worker: Dictionary) -> void:
 	for key: String in ["cargo_kind", "resource_kind", "economy_phase"]:
 		if not worker.has(key):
 			worker[key] = ""
+	if not worker.has("gather_requires_work"):
+		worker["gather_requires_work"] = false
 	if not worker.has("cargo"):
 		worker["cargo"] = 0.0
 	for key: String in ["resource_target", "dropoff_target"]:

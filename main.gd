@@ -6,6 +6,7 @@ const RenderInterpolation=preload("res://render_interpolation.gd")
 var render_interpolation=RenderInterpolation.new()
 const CheckpointValidation=preload("res://checkpoint_validation.gd")
 const AtomicSave=preload("res://atomic_save.gd")
+const WorkerOrders=preload("res://worker_orders.gd")
 const ControlGroups=preload("res://control_groups.gd")
 const CONTROL_GROUP_DOUBLE_TAP_MS:int=350
 var control_groups=ControlGroups.new()
@@ -906,7 +907,11 @@ func _unhandled_input(event):
    else:recall_control_group(slot)
    get_viewport().set_input_as_handled();return
   reset_control_group_tap()
-  if not build_mode.is_empty():return
+  if not build_mode.is_empty():
+   for action in context_actions:
+    if action.key==event.keycode and GameRules.BUILDINGS.has(action.kind):
+     activate_context_key(event.keycode);return
+   return
   if activate_context_key(event.keycode):return
   match event.keycode:
    KEY_DELETE:
@@ -924,10 +929,10 @@ func _unhandled_input(event):
    if not build_mode.is_empty():
     build_mode=""
     ghost.visible=false
-   else: command_at(ground_at(event.position),event.position)
+   else: command_at(ground_at(event.position),event.position,event.shift_pressed)
   if event.button_index==MOUSE_BUTTON_LEFT:
    if event.pressed:
-    if not build_mode.is_empty():place_building(ground_at(event.position));return
+    if not build_mode.is_empty():place_building(ground_at(event.position),event.shift_pressed);return
     dragging=true
     drag_start=event.position
    elif dragging:
@@ -965,7 +970,7 @@ func select_rect(a:Vector2,b:Vector2,append:bool=false):
    if rect.has_point(camera.unproject_position(unit.node.position+Vector3(0,.8,0))) and not unit in selected:selected.append(unit)
  update_selection()
 
-func command_at(p:Vector3,screen:Vector2=Vector2.INF):
+func command_at(p:Vector3,screen:Vector2=Vector2.INF,append_orders:bool=false):
  if selected.is_empty():
   if not inspected.is_empty():set_rally(inspected,p)
   return
@@ -978,6 +983,7 @@ func command_at(p:Vector3,screen:Vector2=Vector2.INF):
   var separation=camera.unproject_position(enemy.node.position+Vector3(0,.9*enemy.node.scale.y,0)).distance_to(screen) if screen!=Vector2.INF else enemy.node.position.distance_to(p)
   if separation<nearest:nearest=separation;enemy_target=enemy
  if enemy_target!=null:
+  if append_orders:return
   var fighters=0
   for u in selected:
    if u.kind not in ["guard","grenade","siegecart"]:continue
@@ -1004,11 +1010,30 @@ func command_at(p:Vector3,screen:Vector2=Vector2.INF):
  for s in sites:
   if s.node.position.distance_to(p)<3:s_target=s
  var resource_target=resource_at(p)
+ if append_orders:
+  var workers=selected.filter(func(unit):return unit.kind=="worker" and unit.hp>0)
+  if workers.is_empty():return
+  var task="move"
+  var target:Variant=null
+  if not resource_target.is_empty() and b_target==null:task="gather";target=resource_target
+  elif b_target!=null:task="build" if b_target.built<1 else "repair";target=b_target
+  elif s_target!=null or friendly_target!=null:
+   notify("予約は移動・建設・修理・採取に対応しています。",3);return
+  for worker in workers:
+   var issue=WorkerOrders.append_issue(worker)
+   if not issue.is_empty():notify(issue,3);return
+  for i in workers.size():
+   WorkerOrders.submit(self,workers[i],{"task":task,"target":target,"goal":p+Vector3((i%4-1.5)*1.1,0,floori(i/4.0)*1.1)},true)
+  context_signature="";pulse(p,CYAN,1.5,.55);tone("order")
+  return
  var escort_count:int=0
  for i in selected.size():
   var u=selected[i]
   if u.kind=="convoy":continue
+  # A rejected escort cycle is not an accepted replacement order.
+  if u.kind=="worker" and friendly_target!=null and resource_target.is_empty() and s_target==null and b_target==null and not EscortOrders.can_follow(u,friendly_target):continue
   friendly_navigation.invalidate_order(u)
+  if u.kind=="worker":WorkerOrders.clear(u)
   if u.kind=="worker" and not resource_target.is_empty() and b_target==null:
    economy.assign_resource(u,resource_target)
    continue
@@ -1100,10 +1125,14 @@ func construction_reachable(kind:String,p:Vector3,workers:Array)->bool:
     visited[next]=true;queue.append(next)
  return false
 
-func place_building(p:Vector3)->bool:
+func place_building(p:Vector3,append_orders:bool=false)->bool:
  if build_mode.is_empty():return false
  var workers=selected.filter(func(unit):return unit.kind=="worker" and unit.hp>0)
  if workers.is_empty():return false
+ if append_orders:
+  for worker in workers:
+   var queue_issue=WorkerOrders.append_issue(worker)
+   if not queue_issue.is_empty():notify(queue_issue,3);return false
  var issue=placement_issue(build_mode,p)
  if not issue.is_empty():notify(issue,2);return false
  if not construction_reachable(build_mode,p,workers):notify("作業員が建設場所に到達できません。通路を確保してください。",3);return false
@@ -1112,11 +1141,10 @@ func place_building(p:Vector3)->bool:
  var building=make_building(build_mode,p)
  building.paid_resources=rule.cost.duplicate(true);building.paid_cost=rule.cost.get("salvage",0)
  for worker in workers:
-  friendly_navigation.invalidate_order(worker)
-  economy.suspend_for_construction(worker)
-  worker.task="build";worker.target=building;worker.goal=p+Vector3(0,0,float(rule.radius)+1)
-  worker.route.clear();worker.planned=Vector3.INF
- tone("build");build_mode="";ghost.visible=false;context_signature=""
+  WorkerOrders.submit(self,worker,{"task":"build","target":building,"goal":p},append_orders)
+ tone("build")
+ if not append_orders:build_mode="";ghost.visible=false
+ context_signature=""
  return true
 
 func _process(delta):
@@ -1235,6 +1263,7 @@ func simulate(dt:float):
    continue
   u.cd-=dt
   if u.kind=="worker":
+   WorkerOrders.tick(self,u)
    if u.task in ["build","repair"]:
     var work_target:Variant=u.target
     if work_target==null or not is_instance_valid(work_target.get("node")) or work_target.node.is_queued_for_deletion() or work_target.get("hp",0)<=0 or (u.task=="build" and work_target.built>=1) or (u.task=="repair" and work_target.hp>=work_target.maxhp):
@@ -1269,7 +1298,8 @@ func simulate(dt:float):
   friendly_navigation.advance(u,nav,dt,unit_speed,stop_to_fire or settled)
   if not friendly_navigation.is_arrived(u):pass
   elif u.task in ["move","attack_move"]:
-   u.task="idle";u.target=null
+   if u.kind=="worker":WorkerOrders.finish(self,u)
+   else:u.task="idle";u.target=null
   elif u.task=="site" and u.target!=null:
    work_site(u,dt)
   elif u.task=="build" and u.target!=null:
@@ -2201,12 +2231,18 @@ func checkpoint_data()->Dictionary:
   data.units.append({"kind":u.kind,"pos":vec_data(u.node.position),"hp":u.hp,"maxhp":u.maxhp,"goal":vec_data(u.goal),"task":u.task,"target_type":target_type,"target_index":target_index,"escort_slot":u.get("escort_slot",0),"escort_repath":u.get("escort_repath",0),"yaw":u.node.rotation.y,"cd":u.cd,"work":u.work,"shots":u.shots})
   var saved=data.units.back()
   if target_type=="" and u.task in ["site","build","repair","focus_fire","escort"]:saved.task="idle"
-  for field in ["cargo_kind","cargo","resource_kind","economy_phase"]:
+  for field in ["cargo_kind","cargo","resource_kind","economy_phase","gather_requires_work"]:
    if u.has(field):saved[field]=u[field]
   saved["resource_target_index"]=resource_nodes.find(u.get("resource_target"))
   saved["dropoff_index"]=buildings.find(u.get("dropoff_target"))
+  # Paused removal may precede the next economy tick. Persist its recoverable
+  # phase without mutating the live worker or abandoning paid pending work.
+  if saved.task=="gather":
+   if saved.resource_target_index<0 and saved.get("economy_phase","") in ["to_resource","gathering"]:saved.economy_phase=""
+   if saved.dropoff_index<0 and saved.get("economy_phase","")=="to_dropoff":saved.economy_phase="waiting_dropoff"
   var assignment=u.get("return_assignment",{})
   saved["return_assignment"]={"resource":assignment.get("resource",""),"target_index":resource_nodes.find(assignment.get("target"))}
+  saved["pending_orders"]=WorkerOrders.snapshot(self,u)
   if u in selected:data.selected.append(units.find(u))
  for e in living_enemies:
   if not e.dead:data.enemies.append({"pos":vec_data(e.node.position),"hp":e.hp,"speed":e.speed,"cd":e.cd,"armored":e.get("armored",false),"charged_until":e.get("charged_until",0),"convoy_hunter":e.get("convoy_hunter",false),"boss":e.get("boss",false),"windup":e.get("windup",0),"attack_pos":vec_data(e.get("attack_pos",e.node.position))})
@@ -2272,7 +2308,7 @@ func load_checkpoint()->bool:
   u["escort_slot"]=int(raw.get("escort_slot",0))
   u["escort_repath"]=float(raw.get("escort_repath",0))
   u.node.rotation.y=float(raw.get("yaw",0))
-  for field in ["cargo_kind","cargo","resource_kind","economy_phase"]:
+  for field in ["cargo_kind","cargo","resource_kind","economy_phase","gather_requires_work"]:
    if raw.has(field):u[field]=raw[field]
   var resource_index=int(raw.get("resource_target_index",-1))
   var dropoff_index=int(raw.get("dropoff_index",-1))
@@ -2281,6 +2317,7 @@ func load_checkpoint()->bool:
   var assignment=raw.get("return_assignment",{})
   var return_index=int(assignment.get("target_index",-1))
   if not assignment.get("resource","").is_empty():u["return_assignment"]={"resource":assignment.resource,"target":resource_nodes[return_index] if return_index>=0 and return_index<resource_nodes.size() else null}
+  WorkerOrders.restore(self,u,raw.get("pending_orders",[]))
   if raw.target_index>=0:
    if raw.target_type=="site" and raw.target_index<sites.size():u.target=sites[raw.target_index]
    if raw.target_type=="build" and raw.target_index<buildings.size():u.target=buildings[raw.target_index]
@@ -2865,11 +2902,10 @@ func building_completed(building:Dictionary):
  context_signature=""
 
 func finish_construction_order(worker:Dictionary):
- friendly_navigation.invalidate_order(worker)
- worker.task="idle";worker.target=null;worker.goal=worker.node.position
- economy.resume_after_construction(worker)
+ WorkerOrders.finish(self,worker,true)
 
 func remove_garden_resource(building:Dictionary):
+ building["being_removed"]=true
  for resource in resource_nodes.duplicate():
   if resource.get("source_building",{})==building:
    resource_nodes.erase(resource)
@@ -2896,6 +2932,8 @@ func economy_notice(text:String):
  if is_instance_valid(center_notice):notify(text,3)
 
 func resource_deposited(_kind:String,amount:float):gathered+=amount
+
+func worker_deposited(worker:Dictionary):WorkerOrders.after_deposit(self,worker)
 
 func worker_work_rate(worker:Dictionary,kind:String)->float:
  return float(GameRules.RESOURCE_RULES[kind].rate)*(1+bonus("salvage","salvage_speed_add"))*(1.2 if near_yard(worker.node.position) else 1.0)
@@ -2965,7 +3003,7 @@ func stop_selected():
  for unit in selected:
   if unit.kind=="convoy":continue
   friendly_navigation.invalidate_order(unit)
-  if unit.kind=="worker":economy.cancel_assignment(unit)
+  if unit.kind=="worker":WorkerOrders.clear(unit);economy.cancel_assignment(unit)
   unit.task="idle";unit.target=null;unit.goal=unit.node.position;unit.route.clear();unit.planned=Vector3.INF
  context_signature=""
 
@@ -3118,7 +3156,9 @@ func update_queue_display():
   elif building.kind=="garden":queue_caption.text="作業員で右クリックして食料を生産"
   else:queue_caption.text=""
  elif not selected.is_empty():
-  queue_caption.text="右クリック: 採取・工事・修理・護衛" if selected[0].kind=="worker" else "地面: 移動 / 敵: 集中攻撃 / 仲間: 護衛"
+  var queue_summary=WorkerOrders.summary(selected)
+  if not queue_summary.is_empty():queue_caption.text=queue_summary
+  else:queue_caption.text="Shift+クリック: 作業予約 / 右クリック: 変更" if selected.any(func(unit):return unit.kind=="worker") else "地面: 移動 / 敵: 集中攻撃 / 仲間: 護衛"
  else:queue_caption.text=""
 
 func set_command_tab(_tab:String):refresh_context_commands(true)
@@ -3238,11 +3278,11 @@ func site_rule(kind:String)->Dictionary:
 
 func work_site(unit:Dictionary,dt:float):
  var site=unit.target
- if site==null or not is_instance_valid(site.get("node")):unit.task="idle";unit.target=null;return
- if site.reclaimed:unit.task="idle";return
+ if site==null or not is_instance_valid(site.get("node")):WorkerOrders.finish(self,unit);return
+ if site.reclaimed:WorkerOrders.finish(self,unit);return
  var rule=site_rule(site.kind)
  if settlement_age<int(rule.age):
-  unit.task="idle";notify("この設備の復旧は段階%dから"%rule.age,3);return
+  WorkerOrders.finish(self,unit);notify("この設備の復旧は段階%dから"%rule.age,3);return
  if not site.paid:
   if not spend_cost(rule.cost):
    unit.work-=dt
@@ -3256,7 +3296,7 @@ func work_site(unit:Dictionary,dt:float):
   if site.kind=="pump":rerolls+=1
   pulse(site.node.position,CYAN,5,1);tone("power")
   notify(site_title(site.kind)+"を復旧",5)
-  unit.task="idle";context_signature=""
+  WorkerOrders.finish(self,unit);context_signature=""
 
 func worker_retarget_radius(_worker:Dictionary,_kind:String)->float:return 14.0
 
