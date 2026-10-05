@@ -28,6 +28,9 @@ const ConvoyPlan=preload("res://convoy_plan.gd")
 const GameRules=preload("res://settlement_rules.gd")
 const StructureVisuals=preload("res://structure_visuals.gd")
 const AudioSystem=preload("res://reclamation_audio.gd")
+const CompletionPanel=preload("res://completion_panel.gd")
+const AftermathScene=preload("res://aftermath_scene.gd")
+var aftermath_scene:Node3D
 const BuildingAttackAlerts=preload("res://building_attack_alerts.gd")
 var building_attack_alerts=BuildingAttackAlerts.new()
 var building_attack_button:Button
@@ -136,7 +139,7 @@ var center_notice:Label
 var xp_bar:ProgressBar
 var core_bar:ProgressBar
 var choice_panel:PanelContainer
-var modal:PanelContainer
+var modal:Control
 var drag_overlay:Control
 var drag_start=Vector2.ZERO
 var dragging:bool=false
@@ -421,8 +424,8 @@ func make_site(kind:String,p:Vector3):
   StructureVisuals.add_site(n,art_kind)
   label=world_label(n,site_title(kind)+" [未復旧]",Vector3(0,4.3,0),AMBER if kind=="generator" else CYAN)
 
- ring(Vector3(0,.1,0),2.4,AMBER if kind=="generator" or kind=="scrap" else CYAN,n)
- sites.append({"node":n,"kind":kind,"progress":0.0,"reclaimed":false,"stock":650.0,"label":label,"paid":false})
+ var marker=ring(Vector3(0,.1,0),2.4,AMBER if kind=="generator" or kind=="scrap" else CYAN,n)
+ sites.append({"marker":marker,"node":n,"kind":kind,"progress":0.0,"reclaimed":false,"stock":650.0,"label":label,"paid":false})
 
 func spawn_enemy(p:Vector3,fast:bool=false,armored:bool=false,boss:bool=false):
  var n=Node3D.new()
@@ -491,7 +494,7 @@ func make_ui():
  var stretch=Control.new();stretch.size_flags_horizontal=Control.SIZE_EXPAND_FILL;row.add_child(stretch)
  stats=label("");stats.visible=false;root_ui.add_child(stats)
  idle_worker_button=button("待機 0",select_idle_worker,86)
- idle_worker_button.tooltip_text="次の待機作業員を選択  [ . ]"
+ idle_worker_button.tooltip_text="待機・採取停止・経路なしの作業員を選択  [ . ]"
  row.add_child(idle_worker_button)
  pause_button=button("一時停止",toggle_pause,86)
  pause_button.tooltip_text="戦術ポーズ / Space"
@@ -1130,9 +1133,10 @@ func _process(delta):
  if Input.is_physical_key_pressed(KEY_RIGHT):pan+=Vector3(1,0,-1)
  if Input.is_physical_key_pressed(KEY_UP):pan+=Vector3(-1,0,-1)
  if Input.is_physical_key_pressed(KEY_DOWN):pan+=Vector3(1,0,1)
- camera_focus+=pan*dt*16
- camera_focus.x=clampf(camera_focus.x,-18,18)
- camera_focus.z=clampf(camera_focus.z,-18,18)
+ if not ended:
+  camera_focus+=pan*dt*16
+  camera_focus.x=clampf(camera_focus.x,-18,18)
+  camera_focus.z=clampf(camera_focus.z,-18,18)
  camera.position=camera_focus+Vector3(37,48,43)
  camera.look_at(camera_focus)
  update_effects(dt)
@@ -1711,6 +1715,25 @@ func finish(won:bool):
  if result_progress_error==OK:clear_finished_checkpoint()
  active_card=false
  if is_instance_valid(choice_panel):choice_panel.queue_free()
+ if won:
+  selected.clear();inspected={};inspected_site={};inspected_resource={}
+  attack_move=false;build_mode="";ghost.visible=false;update_selection()
+  for site in sites:site.marker.hide()
+  for caption in find_children("*","Label3D",true,false):
+   if caption.has_meta("tactical_label"):caption.hide()
+  for child in root_ui.get_children():
+   if child is CanvasItem:child.hide()
+  aftermath_scene=AftermathScene.new();add_child(aftermath_scene)
+  var anchors={"pump":get_site("pump").node.global_position,"hq":buildings[0].node.global_position,"occupied_positions":units.map(func(u):return u.node.global_position),"building_positions":buildings.map(func(b):return b.node.global_position)}
+  var delivered=convoy_unit()
+  if not delivered.is_empty():anchors["convoy_node"]=delivered.node;anchors["convoy"]=delivered.node.global_position
+  aftermath_scene.setup(campaign_state.current,anchors)
+  camera_focus=aftermath_scene.camera_focus;camera.size=aftermath_scene.camera_size
+  camera.position=camera_focus+Vector3(37,48,43);camera.look_at(camera_focus)
+  modal=CompletionPanel.new();root_ui.add_child(modal);modal.setup(self)
+  audio_system.set_threat(0)
+  audio_system.play_event("victory")
+  return
  modal=PanelContainer.new()
  root_ui.add_child(modal)
  modal.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -2889,10 +2912,14 @@ func select_headquarters():
    selected.clear();inspected=building;inspected_site={};inspected_resource={}
    camera_focus=building.node.position;update_selection();return
 
+func worker_needs_attention(unit:Dictionary)->bool:
+ if unit.kind!="worker":return false
+ return unit.task=="idle" or unit.get("economy_phase","") in ["waiting_resource","waiting_dropoff"] or friendly_navigation.current_status(unit)==FriendlyNavigation.BLOCKED
+
 func select_idle_worker():
  var idle=[]
  for unit in units:
-  if unit.kind=="worker" and (unit.task=="idle" or unit.get("economy_phase","") in ["waiting_resource","waiting_dropoff"]):idle.append(unit)
+  if worker_needs_attention(unit):idle.append(unit)
  if idle.is_empty():return
  last_idle_worker=(last_idle_worker+1)%idle.size()
  selected=[idle[last_idle_worker]];inspected={};inspected_site={};inspected_resource={}
@@ -3073,7 +3100,7 @@ func update_ui():
  hud_counters.ammo.root.tooltip_text="弾薬 %d / 400。弾薬工房で補給。枯渇時は予備弾で威力40%%。"%int(ammo)
  hud_counters.power.value.text=str(snappedf(power_used,.1))+" / "+str(snappedf(power_capacity,.1))
  hud_counters.power.root.tooltip_text="使用電力 / 発電容量。施設は送電範囲と空き電力が必要。"
- var idle_count=units.filter(func(unit):return unit.kind=="worker" and (unit.task=="idle" or unit.get("economy_phase","") in ["waiting_resource","waiting_dropoff"])).size()
+ var idle_count=units.filter(func(unit):return worker_needs_attention(unit)).size()
  idle_worker_button.text="待機 %d"%idle_count;idle_worker_button.disabled=idle_count==0
  var gen=get_site("generator");var pump=get_site("pump")
  objective.text="発電所  "+("稼働" if generator_on else "復旧済" if gen.reclaimed else "段階IIで復旧")
@@ -3143,16 +3170,16 @@ func update_ui():
  var cursor=get_viewport().get_mouse_position()
  for site in sites:
   var hover=camera.unproject_position(site.node.position+Vector3(0,1,0)).distance_to(cursor)<34
-  site.label.visible=hover or inspected_site==site or selected.any(func(unit):return unit.target==site and unit.task=="site")
+  site.label.visible=not ended and (hover or inspected_site==site or selected.any(func(unit):return unit.target==site and unit.task=="site"))
  for resource in resource_nodes:
   if not is_instance_valid(resource.node):continue
   resource.label.text=GameRules.RESOURCE_TITLES[resource.resource]+(" / 菜園" if resource.renewable else " %d"%int(resource.stock))
-  resource.label.visible=inspected_resource==resource or camera.unproject_position(resource.node.position+Vector3(0,1,0)).distance_to(cursor)<30
+  resource.label.visible=not ended and (inspected_resource==resource or camera.unproject_position(resource.node.position+Vector3(0,1,0)).distance_to(cursor)<30)
   if resource.source_building.is_empty():resource.node.visible=resource.stock>0
  for building in buildings:
   var hover=camera.unproject_position(building.node.position+Vector3(0,1.2,0)).distance_to(cursor)<30
   for child in building.node.get_children():
-   if child is Label3D and child.has_meta("tactical_label"):child.visible=hover or inspected==building
+   if child is Label3D and child.has_meta("tactical_label"):child.visible=not ended and (hover or inspected==building)
 
 func tutorial_instruction()->String:
  if settlement_age==1:
@@ -3212,6 +3239,7 @@ func clear_finished_checkpoint():
 func retry_completion_save():
  if not ended or not result_won:return
  result_progress_error=campaign_state.complete(elapsed,kills)
+ if is_instance_valid(modal) and modal.has_method("set_save_result"):modal.set_save_result(result_progress_error)
  if result_progress_error==OK:
   clear_finished_checkpoint()
   notify("達成記録を保存しました。",4)
