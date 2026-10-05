@@ -1,0 +1,50 @@
+{
+  "central_station": {
+    "triangles": 3888,
+    "components": 94,
+    "surface_count": 1,
+    "material_count": 1,
+    "ground_radius": 2.5978644759119134,
+    "godot_aabb_min": [
+      -2.0999999046325684,
+      0.0,
+      -1.75
+    ],
+    "godot_aabb_max": [
+      2.0999999046325684,
+      3.7609143257141113,
+      1.75
+    ],
+    "runtime_bytes": 203272,
+    "texture_uris": {
+      "albedo": "ammo_workshop_salvage_albedo.png",
+      "orm": "ammo_workshop_salvage_orm.png",
+      "normal": "ammo_workshop_salvage_normal.png"
+    },
+    "embedded_image_bytes": 0
+  },
+  "substation": {
+    "triangles": 3744,
+    "components": 86,
+    "surface_count": 1,
+    "material_count": 1,
+    "ground_radius": 2.5978644759119134,
+    "godot_aabb_min": [
+      -2.0999999046325684,
+      0.0,
+      -1.75
+    ],
+    "godot_aabb_max": [
+      2.0999999046325684,
+      3.00388503074646,
+      1.75
+    ],
+    "runtime_bytes": 218156,
+    "texture_uris": {
+      "albedo": "ammo_workshop_salvage_albedo.png",
+      "orm": "ammo_workshop_salvage_orm.png",
+      "normal": "ammo_workshop_salvage_normal.png"
+    },
+    "embedded_image_bytes": 0
+  }
+}

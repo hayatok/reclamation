@@ -1,0 +1,74 @@
+{
+  "all_state_equal": true,
+  "elapsed": 286.950000000031,
+  "renderer": "llvmpipe (LLVM 19.1.7, 256 bits)",
+  "scope": "native art comparison, unadvanced earned checkpoint, not FPS test",
+  "views": [
+    {
+      "camera_size": 54.0,
+      "focus": "(0.0, 0.0, 8.0)",
+      "state_equal": true,
+      "variants": [
+        {
+          "draw_calls": 251.0,
+          "image": "overview_before.png",
+          "primitives": 173572.0,
+          "texture_bytes": 132196850.0,
+          "variant": "before"
+        },
+        {
+          "draw_calls": 251.0,
+          "image": "overview_after.png",
+          "primitives": 178572.0,
+          "texture_bytes": 132196850.0,
+          "variant": "after"
+        }
+      ],
+      "view": "overview"
+    },
+    {
+      "camera_size": 54.0,
+      "focus": "(-16.0, 0.0, -14.0)",
+      "state_equal": true,
+      "variants": [
+        {
+          "draw_calls": 238.0,
+          "image": "central_before.png",
+          "primitives": 171898.0,
+          "texture_bytes": 132284234.0,
+          "variant": "before"
+        },
+        {
+          "draw_calls": 238.0,
+          "image": "central_after.png",
+          "primitives": 176898.0,
+          "texture_bytes": 126342305.0,
+          "variant": "after"
+        }
+      ],
+      "view": "central"
+    },
+    {
+      "camera_size": 54.0,
+      "focus": "(17.0, 0.0, 14.0)",
+      "state_equal": true,
+      "variants": [
+        {
+          "draw_calls": 233.0,
+          "image": "refuge_before.png",
+          "primitives": 170192.0,
+          "texture_bytes": 132284234.0,
+          "variant": "before"
+        },
+        {
+          "draw_calls": 233.0,
+          "image": "refuge_after.png",
+          "primitives": 175192.0,
+          "texture_bytes": 126342305.0,
+          "variant": "after"
+        }
+      ],
+      "view": "refuge"
+    }
+  ]
+}

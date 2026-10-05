@@ -3,6 +3,7 @@ extends RefCounted
 ## Forward is -Z. Geometry only: never mutates gameplay state or collision.
 const Shapes = preload("res://actor_visuals.gd")
 const WaterStationVisuals = preload("res://water_station_visuals.gd")
+const PowerFacilityVisuals = preload("res://power_facility_visuals.gd")
 static var cache: Dictionary = {}
 static var material: StandardMaterial3D
 const STEEL = Color("505e60")
@@ -250,6 +251,8 @@ static func add_vehicle(parent: Node3D, kind: String = "truck") -> void:
 	parent.add_child(scene.instantiate())
 
 static func add_site(parent: Node3D, kind: String) -> bool:
+	if kind in ["central_station", "substation"]:
+		return PowerFacilityVisuals.add_to(parent, kind) != null
 	if kind == "pump": return WaterStationVisuals.add_to(parent) != null
 	if kind not in ["generator","pump","rail_depot","substation"]: return false
 	_add(parent, "site_"+kind)

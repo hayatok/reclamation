@@ -436,7 +436,7 @@ func make_site(kind:String,p:Vector3):
    b.rotation.y=visual_rng.randf()*3
   label=world_label(n,"廃材の山",Vector3(0,2.6,0),AMBER)
  else:
-  var art_kind="rail_depot" if kind=="pump" and mission.mode=="convoy" else "substation" if kind=="substation" or (kind=="pump" and mission.mode=="finale") else "generator" if kind=="generator" else "pump"
+  var art_kind="rail_depot" if kind=="pump" and mission.mode=="convoy" else "central_station" if kind=="pump" and mission.mode=="finale" else "substation" if kind=="substation" else "generator" if kind=="generator" else "pump"
   StructureVisuals.add_site(n,art_kind)
   label=world_label(n,site_title(kind)+" [未復旧]",Vector3(0,4.3,0),AMBER if kind=="generator" else CYAN)
 
@@ -3323,7 +3323,7 @@ func update_ui():
   supply_text="作業員を選択して右クリックで採取"
   selection_text=GameRules.RESOURCE_TITLES[inspected_resource.resource]+"\n"+("菜園 / 継続生産" if inspected_resource.renewable else "残量 %d"%int(inspected_resource.stock))
  elif not inspected_site.is_empty():
-  portrait_kind="pump" if inspected_site.kind=="pump" and mission.mode=="restore" else "depot" if inspected_site.kind=="pump" and mission.mode=="convoy" else "electric"
+  portrait_kind="pump" if inspected_site.kind=="pump" and mission.mode=="restore" else "depot" if inspected_site.kind=="pump" and mission.mode=="convoy" else "central_station" if inspected_site.kind=="pump" and mission.mode=="finale" else "substation" if inspected_site.kind=="substation" else "electric"
   supply_text="作業員を選択して右クリックで復旧"
   if not inspected_site.reclaimed:
    var restoration=site_rule(inspected_site.kind)

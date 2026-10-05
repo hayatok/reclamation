@@ -1,0 +1,38 @@
+[
+  {
+    "asset": "central_station",
+    "triangles": 3888,
+    "vertices": 5556,
+    "surface_count": 1,
+    "materials": 1,
+    "uvs": "all present and in range",
+    "normals": "all unit length",
+    "degenerate_triangles": 0,
+    "ground_radius": 2.5979,
+    "external_images": [
+      "ammo_workshop_salvage_normal.png",
+      "ammo_workshop_salvage_albedo.png",
+      "ammo_workshop_salvage_orm.png"
+    ],
+    "file_bytes": 203272,
+    "sha256": "c1af5348a13f49a08da281ec8352ce5376d85976ae8a46dd75d4d297f865cad7"
+  },
+  {
+    "asset": "substation",
+    "triangles": 3744,
+    "vertices": 6038,
+    "surface_count": 1,
+    "materials": 1,
+    "uvs": "all present and in range",
+    "normals": "all unit length",
+    "degenerate_triangles": 0,
+    "ground_radius": 2.5979,
+    "external_images": [
+      "ammo_workshop_salvage_normal.png",
+      "ammo_workshop_salvage_albedo.png",
+      "ammo_workshop_salvage_orm.png"
+    ],
+    "file_bytes": 218156,
+    "sha256": "b944e1def240762ef665a6117ff437d8e888cb0e65a668114341d40e194a866c"
+  }
+]

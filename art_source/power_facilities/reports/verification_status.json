@@ -1,0 +1,25 @@
+{
+  "date": "2026-10-05",
+  "geometry_validation": "passed: one surface/material per model, triangles below4000, all UVs and unit normals, no degenerate triangles, 4.2x3.5m footprint within radius3, no embedded image bytes",
+  "godot_import": "passed in Godot4.6.3 headless editor",
+  "godot_contract": "passed: both model instances keep parent transform; one mesh/surface each; no collision/navigation/light nodes; opaque imported material with normal map; existing generator unchanged; set_site_reclaimed(false/true) remains safe",
+  "native_visual_review": "passed: actual Godot close/camera54 comparison inspected; broad clipped cream transformer lid corrected to existing slate steel tile; final integrated M3 overview, central and refuge captures reviewed at camera54.",
+  "real_mission_validation": "Art placement passed on the same earned 286.95-second M3 save: distinct silhouettes, worn industrial palette, corrected steel lid, visible porcelain accents, intact labels/rings and clear front access. Integrator owns gameplay, worker interaction, portraits and restoration-state testing.",
+  "shared_texture_identity": {
+    "ammo_workshop_salvage_albedo.png": {
+      "byte_identical_to_existing_project": true,
+      "sha256": "c2e25c973962202ead306cc785a4c6b19e59436db38a3cb7a21caef97bd4a818"
+    },
+    "ammo_workshop_salvage_orm.png": {
+      "byte_identical_to_existing_project": true,
+      "sha256": "8a9a863466c294200d77b788f90d375e1c533e3d8ab211175ddde807dee3140a"
+    },
+    "ammo_workshop_salvage_normal.png": {
+      "byte_identical_to_existing_project": true,
+      "sha256": "618337b01a402221420b7e1eee4396f218f8ced4949a273a2b64c5eb08a06fcd"
+    }
+  },
+  "final_runtime_substation_sha256": "b944e1def240762ef665a6117ff437d8e888cb0e65a668114341d40e194a866c",
+  "headless_recheck_after_lid_correction": "passed: GLB numeric validation, Godot4.6.3 import, visual contract tests",
+  "remaining_art_changes": "none"
+}
