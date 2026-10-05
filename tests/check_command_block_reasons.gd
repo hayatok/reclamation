@@ -31,5 +31,23 @@ func run():
  game.refresh_context_commands(true)
  b=game.context_actions.filter(func(a):return a.kind=="factory")[0].button
  check(not b.disabled and b.get_meta("command_cost_row").visible,"available command restores normal cost presentation")
+ game.make_building("vehicle_workshop",Vector3(-14,0,10),true)
+ game.select_headquarters();game.refresh_context_commands(true)
+ b=game.context_actions.filter(func(a):return a.kind=="research")[0].button
+ check(b.disabled and b.get_meta("command_detail").text=="弾薬工房を建設","absent workshop asks for construction, not electricity")
+ var cash=game.stockpile.duplicate(true)
+ game.activate_context_key(KEY_W)
+ check(game.stockpile==cash and game.inspected.queue.is_empty(),"missing facility never charges or starts age research")
+ var factory=game.make_building("factory",Vector3(8,0,-4),false)
+ factory.built=.5;factory.powered=false
+ game.refresh_context_commands()
+ b=game.context_actions.filter(func(a):return a.kind=="research")[0].button
+ check(b.disabled and b.get_meta("command_detail").text=="弾薬工房を完成","paid foundation asks to finish the existing workshop")
+ factory.built=1;game.refresh_context_commands()
+ check(b.disabled and b.get_meta("command_detail").text=="弾薬工房に給電","completed unpowered workshop asks for electricity")
+ factory.powered=true;game.refresh_context_commands()
+ check(not b.disabled and b.get_meta("command_cost_row").visible,"powered completed workshop restores exact age cost row")
+ factory.hp=0;game.refresh_context_commands()
+ check(b.disabled and b.get_meta("command_detail").text=="弾薬工房を建設","destroyed workshop again asks for rebuilding")
  print("COMMAND_REASON_PASS checks=",checks)
  game.queue_free();await process_frame;quit()

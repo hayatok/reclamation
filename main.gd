@@ -3135,11 +3135,14 @@ func refresh_context_commands(force:bool=false):
   if not inspected.is_empty() and not GameRules.unit_kinds_for(inspected.kind).is_empty():command_heading.tooltip_text="右クリックで集合地点を設定。"+("資源を指定すると作業員が採取へ向かいます。" if inspected.kind=="hq" else "")
  for action in context_actions:
   var blocked=""
+  var short_blocked=""
   if action.check.is_valid():
    var check=action.check.call()
-   if not check.ok:blocked=check.get("reason","")
+   if not check.ok:
+    blocked=check.get("reason","")
+    short_blocked=check.get("short_reason","")
   action.button.tooltip_text=action.get("detail","")
-  CommandDeck.set_command_state(action.button,blocked,build_mode==action.kind or (attack_move and action.kind=="attack"))
+  CommandDeck.set_command_state(action.button,blocked,build_mode==action.kind or (attack_move and action.kind=="attack"),short_blocked)
   CommandDeck.set_command_affordability(action.button,stockpile,action.cost)
   if not blocked.is_empty():action.button.tooltip_text=blocked+"  /  "+action.get("detail","")
  update_queue_display()

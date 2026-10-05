@@ -171,7 +171,7 @@ static func command_button(kind:String,title:String,cost:String,callback:Callabl
 ## shortages preserve costs so the player can see exactly what is missing.
 ## Callers may keep assigning tooltip_text for richer hover details. The most
 ## recent enabled tooltip is restored when a block clears.
-static func set_command_state(button:Button,blocked_reason:String,highlighted:bool=false)->void:
+static func set_command_state(button:Button,blocked_reason:String,highlighted:bool=false,short_reason:String="")->void:
  if not is_instance_valid(button):return
  var previous:String=str(button.get_meta("command_blocked_reason",""))
  if previous.is_empty():button.set_meta("command_ready_tooltip",button.tooltip_text)
@@ -192,7 +192,7 @@ static func set_command_state(button:Button,blocked_reason:String,highlighted:bo
  var show_costs:bool=has_costs and (blocked_reason.is_empty() or _command_resource_block(blocked_reason))
  cost_row.visible=show_costs
  detail.visible=not show_costs
- detail.text=_command_short_reason(blocked_reason) if not blocked_reason.is_empty() else str(button.get_meta("command_description",""))
+ detail.text=(short_reason if not short_reason.is_empty() else _command_short_reason(blocked_reason)) if not blocked_reason.is_empty() else str(button.get_meta("command_description",""))
  detail.add_theme_color_override("font_color",Color("edb296") if button.disabled else Color("c5c9b8"))
  var icon:TextureRect=button.get_meta("command_icon")
  icon.modulate=Color("b6b8a7") if button.disabled else Color.WHITE

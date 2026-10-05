@@ -78,7 +78,9 @@ func can_queue_age(building: Dictionary) -> Dictionary:
   return _blocked("時代の発展はすでに予約されています")
  var missing: Array[String] = Rules.missing_requirements(rule.prerequisites, host.buildings)
  if not missing.is_empty():
-  return _blocked("必要施設: " + "、".join(missing))
+  var result:Dictionary=_blocked("必要施設: " + "、".join(missing))
+  result.short_reason=Rules.requirement_action(rule.prerequisites,host.buildings)
+  return result
  if not Rules.can_afford(host.stockpile, rule.cost):
   return _blocked("資材が不足しています: " + Rules.cost_text(rule.cost))
  return {"ok": true, "reason": ""}

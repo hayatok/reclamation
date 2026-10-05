@@ -98,6 +98,25 @@ static func missing_requirements(requirements: Array, buildings: Array) -> Array
    missing.append("%s%s %d/%d" % ["給電中の" if powered else "", building(kind).get("title", kind), current, needed])
  return missing
 
+static func requirement_action(requirements:Array,buildings:Array)->String:
+ for requirement in requirements:
+  var kind:String=str(requirement.get("kind",""))
+  var needed:int=int(requirement.get("count",1))
+  var powered:bool=bool(requirement.get("powered",false))
+  if completed_count(kind,buildings,powered)>=needed:continue
+  var title:String=str(building(kind).get("title",kind))
+  var ready:int=completed_count(kind,buildings)
+  if powered and ready>=needed:return title+"に給電"
+  var underway:int=0
+  for value in buildings:
+   if not value is Dictionary:continue
+   if value.get("kind","")!=kind or float(value.get("hp",0.0))<=0 or value.get("production_destroyed",false):continue
+   if value.has("node") and not is_instance_valid(value.node):continue
+   if float(value.get("built",0.0))<1.0:underway+=1
+  if ready+underway>=needed:return title+"を完成"
+  return title+"を建設"
+ return ""
+
 static func can_build(kind: String, settlement_age: int, buildings: Array) -> Dictionary:
  var rule: Dictionary = building(kind)
  if rule.is_empty() or not rule.get("buildable", false):
