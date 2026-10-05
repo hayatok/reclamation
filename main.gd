@@ -1235,7 +1235,7 @@ func _process(delta):
  render_actors()
  update_worker_route_preview()
  battle_visibility.update_visibility(camera,units,[] if aftermath_settled else enemies,[] if aftermath_settled else shells,delta)
- battle_fx.update(dt,camera)
+ battle_fx.update(dt,camera,buildings)
  if pending_card_delay>0:
   pending_card_delay-=dt
   if pending_card_delay<=0 and active_card and not ended:display_cards()

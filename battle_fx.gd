@@ -1,6 +1,29 @@
 extends Node3D
 ## Original layered battlefield effects. Fixed shared batches, no gameplay RNG/state.
 const LIMIT=256
+# Persistent critical-state cues share the existing two textured batches. Combat
+# bursts cannot consume these slots, including when reduced effects is enabled.
+const CRITICAL_BUILDING_LIMIT=16
+const CRITICAL_HEALTH_RATIO=.30
+const CRITICAL_FLAME_SLOTS=CRITICAL_BUILDING_LIMIT
+const CRITICAL_SMOKE_SLOTS=CRITICAL_BUILDING_LIMIT*2
+# Local surface anchors, not model maxima (which can be chimney/radio tips).
+# Imported GLB triangles were checked against the authored roof coordinates.
+const CRITICAL_ANCHORS={
+ "hq":Vector3(1.10,2.53,.75),
+ "factory":Vector3(.65,2.82,.35),
+ "house":Vector3(-.55,2.49,.30),
+ "depot":Vector3(.55,2.44,.35),
+ "barracks":Vector3(.55,2.70,.65),
+ "vehicle_workshop":Vector3(.85,3.33,.55),
+ "tower":Vector3(.50,3.48,.40),
+ "garden":Vector3(1.20,.85,.45),
+ "relay":Vector3(.35,1.22,.35),
+ "wall":Vector3(.65,1.56,0),
+ "mortar":Vector3(.40,1.46,.35),
+ "artillery":Vector3(.40,1.46,.35),
+ "yard":Vector3(.55,3.18,.35)
+}
 var rng=RandomNumberGenerator.new()
 var particles:Dictionary={}
 var batches:Dictionary={}
@@ -8,6 +31,7 @@ var lights:Array=[]
 var blast_budget=0
 var visual_clock=0.0
 var last_blast:Dictionary={}
+var critical_cue_count:int=0
 func _ready():
  rng.seed=719034
  for kind in ["flash","flame","smoke","shock","scorch","streak","debris"]:
@@ -35,7 +59,7 @@ func _ready():
   add_child(light);lights.append({"node":light,"life":0.0})
 
 func spawn(kind:String,p:Vector3,duration:float,size:float,color:Color,velocity:Vector3=Vector3.ZERO,growth:float=0):
- var cap=32 if kind=="scorch" else 96 if kind=="smoke" else LIMIT
+ var cap=32 if kind=="scorch" else mini(96,LIMIT-CRITICAL_SMOKE_SLOTS) if kind=="smoke" else LIMIT-CRITICAL_FLAME_SLOTS if kind=="flame" else LIMIT
  if particles[kind].size()>=cap:return
  particles[kind].append({"pos":p,"life":duration,"total":duration,"size":size,"color":color,"velocity":velocity,"growth":growth,"angle":rng.randf_range(-PI,PI)})
 
@@ -93,9 +117,53 @@ func blast(p:Vector3,radius:float,heavy:bool,reduced:bool=false):
 func trail(a:Vector3,b:Vector3,heavy:bool):
  streak(a,b,Color(1,.74,.35,.75),.16,.09 if heavy else .045)
 
-func update(delta:float,camera:Camera3D):
+func _critical_sources(buildings:Array,camera:Camera3D)->Array:
+ var sources:Array=[]
+ if not is_visible_in_tree():return sources
+ for building:Dictionary in buildings:
+  var hp:float=float(building.get("hp",0))
+  var maximum:float=float(building.get("maxhp",0))
+  if hp<=0 or maximum<=0 or hp>maximum*CRITICAL_HEALTH_RATIO:continue
+  if float(building.get("built",0))<1.0 or building.get("being_removed",false):continue
+  var node=building.get("node")
+  if not is_instance_valid(node) or not node is Node3D:continue
+  if node.is_queued_for_deletion() or not node.is_visible_in_tree():continue
+  var kind:String=str(building.get("kind",""))
+  if not CRITICAL_ANCHORS.has(kind):continue
+  var anchor:Vector3=node.to_global(CRITICAL_ANCHORS[kind])
+  if not camera.is_position_in_frustum(anchor+Vector3(0,.8,0)):continue
+  var distance:float=camera.global_position.distance_squared_to(anchor)
+  # Bounded insertion keeps the nearest 16 visible structures. Offscreen damage
+  # cannot exhaust the quota, and ties retain the incoming building order.
+  var index:int=sources.size()
+  while index>0 and distance<float(sources[index-1].distance):index-=1
+  if index>=CRITICAL_BUILDING_LIMIT:continue
+  sources.insert(index,{"pos":anchor,"distance":distance})
+  if sources.size()>CRITICAL_BUILDING_LIMIT:sources.pop_back()
+ return sources
+
+func _critical_particles(buildings:Array,camera:Camera3D)->Dictionary:
+ var cues:Dictionary={"flame":[],"smoke":[]}
+ var sources:Array=_critical_sources(buildings,camera)
+ critical_cue_count=sources.size()
+ for source:Dictionary in sources:
+  var anchor:Vector3=source.pos
+  # Position-derived phase uses no RNG and remains stable when a building is
+  # added/removed or the visible quota changes. No record is written to saves.
+  var phase:float=fposmod(anchor.x*.73+anchor.z*1.17,TAU)
+  var pulse:float=sin(visual_clock*7.0+phase)
+  cues.flame.append({"pos":anchor+Vector3(0,.70,0),"life":1.0,"total":1.0,"size":1.0,"growth":0.0,"angle":.06*pulse,"color":Color(1,.78,.46,.92),"shape":Vector3(1.32+.09*pulse,1.94+.13*pulse,1)})
+  for wisp:int in 2:
+   var age:float=fposmod(visual_clock*.64+phase/TAU+float(wisp)*.5,1.0)
+   var fade:float=sin(age*PI)
+   var size:float=.92+age*.42
+   cues.smoke.append({"pos":anchor+Vector3(.08+age*.24,.94+age*1.22,.04+age*.12),"life":1.0,"total":1.0,"size":1.0,"growth":0.0,"angle":phase+age*.35,"color":Color(.32,.28,.24,.76*fade),"shape":Vector3(size,size*1.10,1)})
+ return cues
+
+func update(delta:float,camera:Camera3D,buildings:Array=[]):
  visual_clock+=delta;blast_budget=0
  if last_blast.size()>256:last_blast.clear()
+ var critical:Dictionary=_critical_particles(buildings,camera)
  for light in lights:
   light.life=maxf(0,light.life-delta);light.node.light_energy=3*light.life/.12
  for kind in particles:
@@ -105,10 +173,16 @@ func update(delta:float,camera:Camera3D):
    if item.life<=0:list.remove_at(i);continue
    if kind=="debris":item.velocity.y-=9*delta
    item.pos+=item.velocity*delta
-  if kind=="smoke":list.sort_custom(func(a,b):return camera.global_position.distance_squared_to(a.pos)>camera.global_position.distance_squared_to(b.pos))
+  # Do not put persistent cues in the expiring combat particle lists. Repair,
+  # destruction, load and removal therefore clear them on this render update.
+  var rendered:Array=list
+  if kind in ["flame","smoke"] and not critical[kind].is_empty():
+   rendered=list.duplicate()
+   rendered.append_array(critical[kind])
+  if kind=="smoke":rendered.sort_custom(func(a,b):return camera.global_position.distance_squared_to(a.pos)>camera.global_position.distance_squared_to(b.pos))
   var mm:MultiMesh=batches[kind]
-  for i in list.size():
-   var item:Dictionary=list[i]
+  for i in rendered.size():
+   var item:Dictionary=rendered[i]
    var age=item.total-item.life
    var fade=clampf(item.life/minf(.4,item.total),0,1)
    var color:Color=item.color;color.a*=fade
@@ -117,7 +191,12 @@ func update(delta:float,camera:Camera3D):
    if kind=="streak":basis=item.basis
    elif kind in ["shock","scorch"]:basis=Basis(Vector3.RIGHT,-PI*.5).scaled(Vector3.ONE*size)
    elif kind=="debris":basis=Basis.from_euler(Vector3(age*6,item.angle+age*5,age*2)).scaled(Vector3(size,size*.65,size*2))
-   else:basis=(camera.global_basis*Basis(Vector3.BACK,item.angle)).scaled(Vector3.ONE*size)
+   else:
+    var billboard:Basis=camera.global_basis*Basis(Vector3.BACK,item.angle)
+    var shape:Vector3=item.get("shape",Vector3.ONE)*size
+    # Scale billboard axes locally; world-axis nonuniform scale would tilt the
+    # flame into the roof when the camera is pitched.
+    basis=Basis(billboard.x*shape.x,billboard.y*shape.y,billboard.z*shape.z)
    mm.set_instance_transform(i,Transform3D(basis,item.pos))
    mm.set_instance_color(i,color)
-  mm.visible_instance_count=list.size()
+  mm.visible_instance_count=rendered.size()
