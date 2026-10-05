@@ -17,6 +17,24 @@ var _host: Node
 func setup(host: Node) -> void:
 	_host = host
 
+## Read-only HUD observer: current assignments, not cargo, queues or income.
+## Blocked travel/delivery still belongs to its assignment; exhausted local
+## resource waits no longer have a live job until the economy retargets them.
+func resource_worker_counts(workers: Array) -> Dictionary:
+	var counts := {"food": 0, "salvage": 0, "parts": 0}
+	for worker: Dictionary in workers:
+		if worker.get("kind", "") != "worker" or not _worker_valid(worker) or worker.get("task", "") != "gather":
+			continue
+		var kind := _assignment_kind(worker)
+		if not counts.has(kind):
+			continue
+		if worker.get("economy_phase", "") == "waiting_resource":
+			var resource := _resource_or_empty(worker.get("resource_target"))
+			if not _resource_available(resource) or str(resource.get("resource", "")) != kind:
+				continue
+		counts[kind] += 1
+	return counts
+
 ## Accept either an entry in host.resource_nodes or that entry's Node3D.
 ## An empty but valid node still assigns the resource type, allowing later recovery.
 func assign_resource(worker: Dictionary, resource: Variant) -> bool:

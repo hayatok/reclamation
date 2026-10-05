@@ -7,5 +7,6 @@
 - [They Are Billions 公式紹介](https://www.numantiangames.com/TheyAreBillions/): 停止中の指揮と、騒音による群れへの影響。本作では初回起動の増援を起動前に明示します。
 - [Against the Storm Modifiers Update](https://eremitegames.com/modifiers-update/): 選択による効果を事前に理解できるUI。本作では装備仕様票に現在値と採用後の値を表示します。
 - [Against the Storm Tutorials and Tips Update](https://eremitegames.com/tutorials-and-tips-update/): 複雑な仕組みを行動と結び付けて学ぶ導入。本作では初回作戦だけ、行動完了で進む短い案内を既存の目標欄に置きます。
+- [Age of Empires II: DE 公式UIガイド](https://www.ageofempires.com/learn-to-play/controlling-your-empire-gathering-resources-xbox/)、[Age of Empires IV Update 9.1.109](https://www.ageofempires.com/news/age-of-empires-iv-update-9-1-109/): 資源備蓄と資源ごとの作業人数を一緒に読み取れるUI。本作では既存の食料・廃材・部品欄に「担当」を追加し、移動・搬入を含む現在の採取命令の人数を示します。収入量とは分け、建設・修理・次の予約・枯渇後の待機は除きます。経路や搬入先を待つ担当者は既存の「待機」にも含まれます。
 
 機能を増やすより、回収・復旧・補給・戦闘の因果が読めることを優先しています。面白さと初見理解は、自動テストや他作品の資料だけでは保証できません。

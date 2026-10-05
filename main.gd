@@ -3169,7 +3169,10 @@ func set_command_tab(_tab:String):refresh_context_commands(true)
 
 func update_ui():
  if not is_instance_valid(stats):return
- for kind in ["food","salvage","parts"]:hud_counters[kind].value.text=str(int(stockpile[kind]))
+ var resource_workers:Dictionary=economy.resource_worker_counts(units)
+ for kind in ["food","salvage","parts"]:
+  hud_counters[kind].value.text=str(int(stockpile[kind]))
+  hud_counters[kind].assigned.text="担当 %d"%resource_workers[kind]
  hud_counters.population.value.text="%d / %d"%[production.population_used(),production.population_cap()]
  hud_counters.population.value.add_theme_color_override("font_color",RED if production.population_used()>=production.population_cap() else PALE)
  hud_counters.population.root.tooltip_text="居住枠。住居1棟で上限+5。予約中の部隊は完成時に人口を使用。"

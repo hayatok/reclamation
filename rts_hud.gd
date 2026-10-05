@@ -16,13 +16,20 @@ static func counter(kind:String,title:String,width:float,font:Font)->Dictionary:
  icon.mouse_filter=Control.MOUSE_FILTER_IGNORE
  box.add_child(icon)
  var words=VBoxContainer.new();words.mouse_filter=Control.MOUSE_FILTER_IGNORE;words.add_theme_constant_override("separation",0);box.add_child(words)
+ var heading=HBoxContainer.new();heading.mouse_filter=Control.MOUSE_FILTER_IGNORE;heading.add_theme_constant_override("separation",5);words.add_child(heading)
  var caption=Label.new();caption.mouse_filter=Control.MOUSE_FILTER_IGNORE;caption.text=title
  caption.add_theme_font_override("font",font);caption.add_theme_font_size_override("font_size",14)
- caption.add_theme_color_override("font_color",Color("b6b5a7"));words.add_child(caption)
+ caption.add_theme_color_override("font_color",Color("b6b5a7"));heading.add_child(caption)
+ var assigned:Label
+ if kind in ["food","salvage","parts"]:
+  assigned=Label.new();assigned.mouse_filter=Control.MOUSE_FILTER_IGNORE;assigned.text="担当 0"
+  assigned.add_theme_font_override("font",font);assigned.add_theme_font_size_override("font_size",13)
+  assigned.add_theme_color_override("font_color",Color("d1c8ac"));heading.add_child(assigned)
+  box.tooltip_text="担当はこの資源の採取を指示した人数。移動・搬入も含み、収入量ではありません。\n建設・修理・次の予約・枯渇待機は除外。経路・搬入待ちは「待機」にも含みます。"
  var value=Label.new();value.mouse_filter=Control.MOUSE_FILTER_IGNORE;value.text="0"
  value.add_theme_font_override("font",font);value.add_theme_font_size_override("font_size",23)
  value.add_theme_color_override("font_color",Color("f2ead7"));words.add_child(value)
- return {"root":box,"value":value,"caption":caption}
+ return {"root":box,"value":value,"caption":caption,"assigned":assigned}
 
 static func queue_slot(kind:String,title:String,active:bool,number:int,font:Font)->Control:
  var box=PanelContainer.new();box.custom_minimum_size=Vector2(42,36)
