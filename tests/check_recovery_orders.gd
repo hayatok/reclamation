@@ -101,6 +101,7 @@ func run():
 	actor = g.make_unit("worker", Vector3(-10, 0, -15))
 	var site: Dictionary = g.get_site("generator")
 	site.node.position = Vector3(10, 0, -15)
+	g.rebuild_navigation()
 	site.progress = 0.0
 	site.reclaimed = false
 	site.paid = false

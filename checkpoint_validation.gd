@@ -5,6 +5,7 @@ const Rules=preload("res://settlement_rules.gd")
 const Catalog=preload("res://upgrade_catalog.gd")
 const Atomic=preload("res://atomic_save.gd")
 const WorkerOrders=preload("res://worker_orders.gd")
+const Navigation=preload("res://friendly_navigation.gd")
 const MAX_ITEMS:=10000
 const TASKS:=["idle","move","attack_move","site","build","repair","focus_fire","escort","gather","convoy"]
 const PHASES:=["","idle","suspended","to_resource","gathering","waiting_resource","to_dropoff","waiting_dropoff"]
@@ -89,11 +90,15 @@ static func validate(value:Variant)->bool:
    if order.type=="age":age_orders+=1
  if hqs!=1 or d.buildings[0].kind!="hq" or age_orders>1:return false
  var sites_seen={}
+ var site_footprints:Array[Rect2i]=[]
+ var mission_mode:String=["restore","convoy","finale"][int(d.mission)]
  for s in d.sites:
   if not s is Dictionary or not s.get("kind") in ["generator","pump","substation","scrap"] or not vector(s.get("pos")):return false
   if not fields(s,["progress","stock"],["reclaimed","paid"]):return false
   if not number(s.progress,0,1) or s.stock<0:return false
   if s.reclaimed and s.progress!=1:return false
+  var half=Navigation.site_half_extents(s.kind,mission_mode)
+  if half!=Vector2.ZERO:site_footprints.append(Navigation.footprint_rect(Vector3(s.pos[0],s.pos[1],s.pos[2]),half))
   if s.kind!="scrap":
    if sites_seen.has(s.kind):return false
    sites_seen[s.kind]=true
@@ -115,6 +120,12 @@ static func validate(value:Variant)->bool:
   if e.hp<=0 or e.speed<=0:return false
  for i in d.units.size():
   if not _unit(d.units[i],d,i):return false
+  # Reject an incompatible position before the loader touches the live scene.
+  # Do not teleport old units, rewrite the save, or invent migration behavior.
+  var position:Array=d.units[i].pos
+  var cell=Navigation.cell_of(Vector3(position[0],position[1],position[2]))
+  for footprint in site_footprints:
+   if footprint.has_point(cell):return false
  # A chain may merge with another chain, but must never revisit its own node.
  for origin in d.units.size():
   var visited={}

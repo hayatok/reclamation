@@ -1,0 +1,143 @@
+[
+  {
+    "test": "check_recovery_navigation",
+    "exit_code": 0,
+    "elapsed_seconds": 0.32,
+    "errors": [],
+    "summary": [
+      "RECOVERY_NAVIGATION_SUMMARY checks=33 failures=0"
+    ],
+    "log": "check_recovery_navigation_01.log"
+  },
+  {
+    "test": "check_work_approaches",
+    "exit_code": 0,
+    "elapsed_seconds": 0.32,
+    "errors": [],
+    "summary": [
+      "WORK_APPROACH_SUMMARY checks=9 failures=0"
+    ],
+    "log": "check_work_approaches_01.log"
+  },
+  {
+    "test": "check_work_positions",
+    "exit_code": 0,
+    "elapsed_seconds": 0.42,
+    "errors": [],
+    "summary": [
+      "WORK_POSITIONS_SUMMARY checks=21 failures=0"
+    ],
+    "log": "check_work_positions_01.log"
+  },
+  {
+    "test": "check_work_positions_integration",
+    "exit_code": 0,
+    "elapsed_seconds": 3.1,
+    "errors": [],
+    "summary": [
+      "WORK_POSITIONS_INTEGRATION_SUMMARY checks=24 failures=0"
+    ],
+    "log": "check_work_positions_integration_01.log"
+  },
+  {
+    "test": "check_recovery_orders",
+    "exit_code": 0,
+    "elapsed_seconds": 2.63,
+    "errors": [],
+    "summary": [
+      "RECOVERY_ORDERS_SUMMARY checks=12 failures=0"
+    ],
+    "log": "check_recovery_orders_01.log"
+  },
+  {
+    "test": "check_minimap_commands",
+    "exit_code": 0,
+    "elapsed_seconds": 3.53,
+    "errors": [],
+    "summary": [
+      "MINIMAP_COMMANDS_SUMMARY checks=41 failures=0 labels=[]"
+    ],
+    "log": "check_minimap_commands_01.log"
+  },
+  {
+    "test": "check_camera_resume",
+    "exit_code": 0,
+    "elapsed_seconds": 3.64,
+    "errors": [],
+    "summary": [
+      "CAMERA_RESUME_SUMMARY passed=15 failed=0"
+    ],
+    "log": "check_camera_resume_01.log"
+  },
+  {
+    "test": "check_water_station_integration",
+    "exit_code": 0,
+    "elapsed_seconds": 3.97,
+    "errors": [],
+    "summary": [
+      "WATER_STATION_REAL_RESTORATION_SAVE_VISUAL_NO_NAV_CHANGE_PASS",
+      "MISSION_APPROPRIATE_WATER_FREIGHT_POWER_ART_PASS"
+    ],
+    "log": "check_water_station_integration_01.log"
+  },
+  {
+    "test": "check_enemy_navigation",
+    "exit_code": 0,
+    "elapsed_seconds": 5.23,
+    "errors": [],
+    "summary": [
+      "ENEMY_NAVIGATION_PASS sealed_300_500=true fifo=true invalidation=true wall_attacks=true rng_unchanged=true"
+    ],
+    "log": "check_enemy_navigation_01.log"
+  },
+  {
+    "test": "check_combat_spacing",
+    "exit_code": 0,
+    "elapsed_seconds": 2.82,
+    "errors": [],
+    "summary": [
+      "COMBAT_SPACING_SUMMARY candidate=false checks=10 failures=0"
+    ],
+    "log": "check_combat_spacing_01.log"
+  },
+  {
+    "test": "check_combat_spacing_safety",
+    "exit_code": 0,
+    "elapsed_seconds": 0.32,
+    "errors": [],
+    "summary": [
+      "COMBAT_SPACING_SAFETY_SUMMARY checks=14 failures=0"
+    ],
+    "log": "check_combat_spacing_safety_01.log"
+  },
+  {
+    "test": "check_checkpoint_integrity",
+    "exit_code": 0,
+    "elapsed_seconds": 3.59,
+    "errors": [],
+    "summary": [
+      "CHECKPOINT_INTEGRITY_SUMMARY passed=53 failed=0"
+    ],
+    "log": "check_checkpoint_integrity_01.log"
+  },
+  {
+    "test": "check_checkpoint_production_waiting",
+    "exit_code": 0,
+    "elapsed_seconds": 2.64,
+    "errors": [],
+    "summary": [
+      "CHECKPOINT_PRODUCTION_WAITING_SUMMARY passed=49 failed=0"
+    ],
+    "log": "check_checkpoint_production_waiting_01.log"
+  },
+  {
+    "test": "check_worker_queue_removal_saves",
+    "exit_code": 0,
+    "elapsed_seconds": 2.67,
+    "errors": [],
+    "summary": [
+      "WORKER_QUEUE_REMOVAL_SAVES_SUMMARY passed=12 failed=0"
+    ],
+    "log": "check_worker_queue_removal_saves_01.log"
+  }
+]

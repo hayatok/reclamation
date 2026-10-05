@@ -52,6 +52,19 @@ func current_status(unit: Dictionary) -> String:
 func is_arrived(unit: Dictionary) -> bool:
 	return current_status(unit) == ARRIVED and unit.node.position.distance_to(unit.get("nav_endpoint", Vector3.INF)) <= EPSILON
 
+## Work requires this worker's reachable, reserved cell on the target's exact
+## perimeter. Generic arrival at a projected move goal is not work access.
+func is_work_arrived(unit: Dictionary, grid: AStarGrid2D) -> bool:
+	var target := _work_target(unit)
+	if target.is_empty() or not is_arrived(unit): return false
+	var cell := cell_of(unit.node.position)
+	if not cell_open(grid, cell) or not work_reservations.has(cell): return false
+	if work_reservations[cell].get("node") != unit.node: return false
+	var footprint := work_footprint(target)
+	var vertical_edge := (cell.x == footprint.position.x - 1 or cell.x == footprint.end.x) and cell.y >= footprint.position.y and cell.y < footprint.end.y
+	var horizontal_edge := (cell.y == footprint.position.y - 1 or cell.y == footprint.end.y) and cell.x >= footprint.position.x and cell.x < footprint.end.x
+	return vertical_edge or horizontal_edge
+
 func status_text(unit: Dictionary) -> String:
 	if current_status(unit) == WORK_WAITING:
 		return "作業場所の空き待ち"
@@ -64,7 +77,7 @@ func advance(unit: Dictionary, grid: AStarGrid2D, dt: float, speed: float, hold:
 		_reset(unit, unit.get("goal", Vector3.INF))
 	elif int(unit.get("nav_revision", -1)) != revision:
 		_reset(unit, unit.get("nav_requested", unit.goal))
-	if unit.get("task", "") in ["build", "repair"] and unit.get("target") is Dictionary and float(unit.target.get("radius", 0.0)) > 0.0 and _work_target(unit).is_empty():
+	if unit.get("task", "") in ["build", "repair", "site"] and unit.get("target") is Dictionary and (float(unit.target.get("radius", 0.0)) > 0.0 or unit.target.get("nav_half_extents", Vector2.ZERO) != Vector2.ZERO) and _work_target(unit).is_empty():
 		release_unit(unit)
 		_block(unit, "target_removed")
 		return
@@ -245,24 +258,43 @@ func _plan(unit: Dictionary, grid: AStarGrid2D) -> void:
 		_block(unit, "no_path")
 
 func _work_target(unit: Dictionary) -> Dictionary:
-	if unit.get("task", "") not in ["build", "repair"]:
+	if unit.get("task", "") not in ["build", "repair", "site"]:
 		return {}
 	var target: Variant = unit.get("target")
 	if target is not Dictionary or not _live(target):
 		return {}
+	if unit.get("task") == "site":
+		var half: Vector2 = target.get("nav_half_extents", Vector2.ZERO)
+		return target if half.is_finite() and half.x > 0.0 and half.y > 0.0 and not target.get("reclaimed", false) else {}
 	var radius := float(target.get("radius", 0.0))
 	return target if is_finite(radius) and radius > 0.0 else {}
 
-## Orthogonally adjacent cells around the exact padded building footprint
+## Mission facilities retain the same physical pad before/after restoration.
+## Art and physics do not participate in the authoritative navigation grid.
+static func site_half_extents(kind: String, mission_mode: String) -> Vector2:
+	if kind == "pump" and mission_mode == "restore": return Vector2(2.12, 2.12)
+	if kind in ["generator", "pump", "substation"]: return Vector2(2.1, 1.75)
+	return Vector2.ZERO
+
+static func footprint_rect(position: Vector3, half_extents: Vector2) -> Rect2i:
+	var half := half_extents + Vector2(0.3, 0.3)
+	var low := Vector2i(floori(position.x - half.x), floori(position.z - half.y))
+	var high := Vector2i(ceili(position.x + half.x), ceili(position.z + half.y))
+	return Rect2i(low, high - low + Vector2i.ONE)
+
+static func work_footprint(target: Dictionary) -> Rect2i:
+	var half: Vector2 = target.get("nav_half_extents", Vector2.ONE * float(target.get("radius", 0.0)))
+	return footprint_rect(target.node.position, half)
+
+## Orthogonally adjacent cells around the exact padded building/site footprint
 ## used by main.rebuild_navigation(). Never expand beyond this perimeter:
-## a truly enclosed building cannot be worked from the outside of its cage.
+## a truly enclosed target cannot be worked from the outside of its cage.
 func _work_perimeter(grid: AStarGrid2D, target: Dictionary, start: Vector3) -> Array:
-	var position: Vector3 = target.node.position
-	var radius := float(target.radius) + 0.3
-	var left := floori(position.x - radius)
-	var right := ceili(position.x + radius)
-	var top := floori(position.z - radius)
-	var bottom := ceili(position.z + radius)
+	var footprint := work_footprint(target)
+	var left := footprint.position.x
+	var right := footprint.end.x - 1
+	var top := footprint.position.y
+	var bottom := footprint.end.y - 1
 	var candidates: Array = []
 	for x in range(left, right + 1):
 		for z in [top - 1, bottom + 1]:

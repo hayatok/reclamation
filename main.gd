@@ -442,6 +442,11 @@ func make_site(kind:String,p:Vector3):
 
  var marker=ring(Vector3(0,.1,0),2.4,AMBER if kind=="generator" or kind=="scrap" else CYAN,n)
  sites.append({"marker":marker,"node":n,"kind":kind,"progress":0.0,"reclaimed":false,"stock":650.0,"label":label,"paid":false})
+ var half=FriendlyNavigation.site_half_extents(kind,mission.mode)
+ if half!=Vector2.ZERO:sites.back()["nav_half_extents"]=half
+ # HQ construction precedes the sites on a fresh launch. Rebuild here too so
+ # startup, normal site creation, and checkpoint reconstruction all agree.
+ rebuild_navigation()
 
 func spawn_enemy(p:Vector3,fast:bool=false,armored:bool=false,boss:bool=false):
  var n=Node3D.new()
@@ -1101,7 +1106,7 @@ func command_at(p:Vector3,screen:Vector2=Vector2.INF,append_orders:bool=false)->
   if u.kind=="worker" and s_target!=null:
    u.task="site"
    u.target=s_target
-   u.goal=s_target.node.position+Vector3((i%3-1)*.9,0,2.2)
+   u.goal=s_target.node.position if s_target.has("nav_half_extents") else s_target.node.position+Vector3((i%3-1)*.9,0,2.2)
   elif u.kind=="worker" and b_target!=null:
    economy.suspend_for_construction(u)
    u.task="build" if b_target.built<1 else "repair"
@@ -1322,6 +1327,8 @@ func simulate(dt:float):
     var work_target:Variant=u.target
     if work_target==null or not is_instance_valid(work_target.get("node")) or work_target.node.is_queued_for_deletion() or work_target.get("hp",0)<=0 or (u.task=="build" and work_target.built>=1) or (u.task=="repair" and work_target.hp>=work_target.maxhp):
      finish_construction_order(u)
+   elif u.task=="site" and (not WorkerOrders.alive(u.target) or u.target not in sites or u.target.get("reclaimed",false)):
+    WorkerOrders.finish(self,u)
    economy.update_worker(u,dt)
   if u.task=="escort":EscortOrders.update(u,units,dt)
   if u.task=="focus_fire":
@@ -1443,7 +1450,7 @@ func simulate(dt:float):
     var movement:Vector3=crowd_steering.steer(e.node,direction,dt,e.speed,nav)
     e.node.position+=movement
     if movement.length_squared()>.000001:e.node.rotation.y=atan2(-movement.x,-movement.z)
-   elif best<2.5:can_attack=true
+   elif best<EnemyNavigation.EMPTY_ROUTE_ATTACK_REACH:can_attack=true
   if can_attack:
    e.cd-=dt
    if e.cd<=0:
@@ -2104,6 +2111,10 @@ func rebuild_navigation():
    for z in range(floori(p.z-radius),ceili(p.z+radius)+1):
     var cell=Vector2i(x,z)
     if nav.is_in_boundsv(cell):nav.set_point_solid(cell,true)
+ for site in sites:
+  if not site.has("nav_half_extents"):continue
+  var footprint=FriendlyNavigation.work_footprint(site)
+  nav.fill_solid_region(footprint.intersection(nav.region),true)
  friendly_navigation.navigation_changed()
  enemy_navigation.navigation_changed()
  for e in enemies:e.path_cd=0;e.route.clear()
@@ -3378,6 +3389,7 @@ func work_site(unit:Dictionary,dt:float):
  var site=unit.target
  if site==null or not is_instance_valid(site.get("node")):WorkerOrders.finish(self,unit);return
  if site.reclaimed:WorkerOrders.finish(self,unit);return
+ if site.has("nav_half_extents") and not friendly_navigation.is_work_arrived(unit,nav):return
  var rule=site_rule(site.kind)
  if settlement_age<int(rule.age):
   WorkerOrders.finish(self,unit);notify("この設備の復旧は段階%dから"%rule.age,3);return

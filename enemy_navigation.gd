@@ -4,6 +4,10 @@ extends RefCounted
 const MAX_QUERIES_PER_STEP: int = 32
 const MAX_NEGATIVE_RESULTS: int = 4096
 const REPATH_SECONDS: float = 1.2
+# Main permits an attack after a consumed building approach within this gap.
+# Candidate cells must satisfy the same unchanged distance, not a distant
+# square-footprint corner that would be chosen again on every repath.
+const EMPTY_ROUTE_ATTACK_REACH: float = 2.5
 
 var revision: int = 0
 var queries_this_step: int = 0
@@ -102,11 +106,13 @@ func _job(grid: AStarGrid2D, start: Vector3, target: Dictionary) -> Dictionary:
 	var candidates: Array[Vector2i] = []
 	var goal: Vector3 = target.node.position
 	var center := cell_of(goal)
+	var solid_building := not _open(grid, center) and float(target.get("radius", 0.0)) > 0.0
+	var maximum_reach := float(target.get("radius", 0.0)) + EMPTY_ROUTE_ATTACK_REACH if solid_building else INF
 	var direct := _open_cell(grid, goal, start)
-	if _open(grid, direct):
+	if _open(grid, direct) and _within_reach(direct, goal, maximum_reach):
 		candidates.append(direct)
 	var cached: Variant = approach_cells.get(key)
-	if cached is Vector2i and _open(grid, cached) and cached not in candidates:
+	if cached is Vector2i and _open(grid, cached) and cached not in candidates and _within_reach(cached, goal, maximum_reach):
 		candidates.append(cached)
 	# An open unit destination must really be reached. The alternate-perimeter
 	# recovery is for a solid building's nearest free tile trapped in a pocket.
@@ -116,11 +122,14 @@ func _job(grid: AStarGrid2D, start: Vector3, target: Dictionary) -> Dictionary:
 		for x in range(-radius, radius + 1):
 			for z in range(-radius, radius + 1):
 				var cell := center + Vector2i(x, z)
-				if _open(grid, cell) and cell not in candidates:
+				if _open(grid, cell) and cell not in candidates and _within_reach(cell, goal, maximum_reach):
 					alternatives.append(cell)
 		alternatives.sort_custom(func(a, b): return a.distance_to(center) * 5 + a.distance_to(source) < b.distance_to(center) * 5 + b.distance_to(source))
 		candidates.append_array(alternatives)
 	return {"ticket": _ticket, "key": key, "revision": revision, "target_id": target.node.get_instance_id(), "source": source, "candidates": candidates, "index": 0, "route": []}
+
+func _within_reach(cell: Vector2i, goal: Vector3, maximum_reach: float) -> bool:
+	return Vector3(cell.x, goal.y, cell.y).distance_to(goal) < maximum_reach
 
 func _probe(grid: AStarGrid2D, job: Dictionary) -> bool:
 	var negative_key := str(job.source) + ":" + str(job.key)
