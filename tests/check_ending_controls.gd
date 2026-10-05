@@ -60,6 +60,7 @@ func finish_and_check(index: int):
  g.finish(true)
  check(g.ended and g.result_won and g.result_progress_error == OK, "mission %d victory records immediately" % index)
  check(is_instance_valid(g.aftermath_scene) and not g.aftermath_scene.complete and g.aftermath_scene.elapsed == 0.0, "mission %d controls exist before any aftermath time passes" % index)
+ check(is_instance_valid(g.aftermath_transition) and not g.aftermath_transition.settled and g.aftermath_transition.mouse_filter == Control.MOUSE_FILTER_IGNORE and g.modal.get_child(0) == g.aftermath_transition, "mission %d fade starts behind enabled controls without capturing input" % index)
  check(g.visible and g.units[0].node.is_visible_in_tree(), "mission %d gameplay world remains visible" % index)
  var old_hidden := true
  for child in old_ui:
@@ -136,7 +137,7 @@ func run():
  await reload_and_check(named_button("この作戦をもう一度"), 0, false, "mission 0 Retry")
  # Preserve the existing loss presentation and its live navigation.
  g.finish(false)
- check(g.ended and not g.result_won and not is_instance_valid(g.aftermath_scene) and g.modal is PanelContainer, "loss keeps existing panel and does not start aftermath")
+ check(g.ended and not g.result_won and not is_instance_valid(g.aftermath_scene) and not is_instance_valid(g.aftermath_transition) and g.modal is PanelContainer, "loss keeps existing panel and does not start aftermath")
  await reload_and_check(named_button("作戦選択へ"), 0, true, "loss Menu")
  print("ENDING_CONTROLS_SUMMARY passed=%d failed=%d" % [passed, failed])
  g.queue_free()

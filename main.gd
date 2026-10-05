@@ -27,10 +27,14 @@ const BattleVisibility=preload("res://battle_visibility.gd")
 const ConvoyPlan=preload("res://convoy_plan.gd")
 const GameRules=preload("res://settlement_rules.gd")
 const StructureVisuals=preload("res://structure_visuals.gd")
+const ConstructionVisuals=preload("res://construction_visuals.gd")
 const AudioSystem=preload("res://reclamation_audio.gd")
 const CompletionPanel=preload("res://completion_panel.gd")
 const AftermathScene=preload("res://aftermath_scene.gd")
+const AftermathTransition=preload("res://aftermath_transition.gd")
 var aftermath_scene:Node3D
+var aftermath_transition:Control
+var aftermath_settled:bool=false
 const BuildingAttackAlerts=preload("res://building_attack_alerts.gd")
 var building_attack_alerts=BuildingAttackAlerts.new()
 var building_attack_button:Button
@@ -39,6 +43,8 @@ const EscortOrders=preload("res://escort_orders.gd")
 # Newly implemented recovery navigation; not a restored late-version helper.
 const FriendlyNavigation=preload("res://friendly_navigation.gd")
 var friendly_navigation=FriendlyNavigation.new()
+const CombatSpacing=preload("res://combat_spacing.gd")
+var combat_spacing=CombatSpacing.new()
 const WorkerRoutePreview=preload("res://worker_route_preview.gd")
 var worker_route_preview:Node3D
 const CrowdSteering=preload("res://crowd_steering.gd")
@@ -404,7 +410,7 @@ func make_building(kind:String,p:Vector3,ready_build:bool=false)->Dictionary:
  var rad=float(GameRules.building(kind).radius)
  decorate_building(kind,n,rad)
  var b={"node":n,"kind":kind,"hp":float(hp)*(1+bonus("armor","max_hp_add")),"maxhp":float(hp)*(1+bonus("armor","max_hp_add")),"basehp":float(hp),"paid_cost":0,"paid_resources":{},"queue":[],"rally":p+Vector3(0,0,rad+3),"rally_target":null,"powered":false,"enabled":true,"shots":0,"built":1.0 if ready_build else 0.0,"radius":rad,"cd":0.0}
- if not ready_build: n.scale=Vector3(1,.2,1)
+ ConstructionVisuals.setup(n,kind,rad,n.get_node("FinishedVisual")).set_progress(b.built)
  buildings.append(b)
  rebuild_navigation()
  return b
@@ -1146,7 +1152,7 @@ func _process(delta):
  update_building_attack_alert()
  render_actors()
  update_worker_route_preview()
- battle_visibility.update_visibility(camera,units,enemies,shells,delta)
+ battle_visibility.update_visibility(camera,units,[] if aftermath_settled else enemies,[] if aftermath_settled else shells,delta)
  battle_fx.update(dt,camera)
  if pending_card_delay>0:
   pending_card_delay-=dt
@@ -1188,7 +1194,7 @@ func render_actors()->void:
  var alpha=clampf(simulation_clock.remainder/SimulationClock.STEP,0,1) if running else 1.0
  var rendered=render_interpolation.frame(alpha)
  var rendered_time=maxf(0.0,elapsed-SimulationClock.STEP*(1.0-alpha)) if running else elapsed
- horde_renderer.update_horde(enemies+corpses,rendered_time,rendered)
+ horde_renderer.update_horde([] if aftermath_settled else enemies+corpses,rendered_time,rendered)
  horde_renderer.update_friends(units,rendered)
 
 func simulate(dt:float):
@@ -1212,6 +1218,9 @@ func simulate(dt:float):
   wave_clock=(95.0 if settlement_age==1 else maxf(40,64-noise*.23) if settlement_age==2 else maxf(25,43-noise*.16))
  update_shells(dt)
  update_corpses(dt)
+ # Production/economy may have spawned a worker this tick. Include it before
+ # protecting current and assigned cells during combat settling.
+ combat_spacing.prepare(units,friendly_navigation.work_reservations)
  for u in units.duplicate():
   if u.hp<=0:
    friendly_navigation.release_unit(u)
@@ -1242,7 +1251,22 @@ func simulate(dt:float):
   var previous_position=u.node.position
   var stop_to_fire=u.task=="attack_move" and nearest_enemy(u.node.position,float(GameRules.unit(u.kind).range)*(1+bonus("range","range_add")))!=null
   if u.task=="focus_fire" and u.target!=null:stop_to_fire=u.node.position.distance_to(u.target.node.position)<=float(GameRules.unit(u.kind).range)*(1+bonus("range","range_add"))*.97
-  friendly_navigation.advance(u,nav,dt,float(GameRules.unit(u.kind).speed)*(1+bonus("move","move_speed_add")),stop_to_fire)
+  var unit_speed=float(GameRules.unit(u.kind).speed)*(1+bonus("move","move_speed_add"))
+  var settled=false
+  # Choose settling OR path travel for this tick, never both. A source-center
+  # detour can travel and return to the old coordinate, so comparing positions
+  # after navigation alone would not prove that its movement budget is unused.
+  if u.kind in ["guard","grenade","siegecart"] and (u.task=="idle" or stop_to_fire):
+   var firing_center=Vector3.INF
+   var firing_radius=float(GameRules.unit(u.kind).range)*(1+bonus("range","range_add"))
+   # Idle defenders also auto-fire. Do not cost them an existing shot merely
+   # to separate their feet; this constraint does not assign/change a target.
+   var held_target=u.target if u.task=="focus_fire" else nearest_enemy(u.node.position,firing_radius)
+   if held_target!=null:firing_center=held_target.node.position
+   if u.task=="focus_fire":firing_radius*=.97
+   settled=combat_spacing.settle(u,nav,dt,unit_speed,firing_center,firing_radius)
+   if settled and u.task=="idle":u.goal=u.node.position
+  friendly_navigation.advance(u,nav,dt,unit_speed,stop_to_fire or settled)
   if not friendly_navigation.is_arrived(u):pass
   elif u.task in ["move","attack_move"]:
    u.task="idle";u.target=null
@@ -1252,7 +1276,7 @@ func simulate(dt:float):
    var b=u.target
    if is_instance_valid(b.node):
     b.built=minf(1,b.built+dt/maxf(1,float(GameRules.building(b.kind).build_time))*construction_multiplier())
-    b.node.scale.y=.2+.8*b.built
+    b.node.get_meta(ConstructionVisuals.META).set_progress(b.built)
     if b.built>=1:
      building_completed(b)
      finish_construction_order(u);tone("build")
@@ -1708,10 +1732,6 @@ func finish(won:bool):
  ended=true
  result_won=won
  result_progress_error=campaign_state.complete(elapsed,kills) if won else OK
- if won:
-  for child in get_children():
-   if child.has_method("restore_district_lights"):child.restore_district_lights()
-  if mission.mode=="convoy":camera_focus=Vector3(18,0,18)
  if result_progress_error==OK:clear_finished_checkpoint()
  active_card=false
  if is_instance_valid(choice_panel):choice_panel.queue_free()
@@ -1728,9 +1748,11 @@ func finish(won:bool):
   var delivered=convoy_unit()
   if not delivered.is_empty():anchors["convoy_node"]=delivered.node;anchors["convoy"]=delivered.node.global_position
   aftermath_scene.setup(campaign_state.current,anchors)
-  camera_focus=aftermath_scene.camera_focus;camera.size=aftermath_scene.camera_size
-  camera.position=camera_focus+Vector3(37,48,43);camera.look_at(camera_focus)
+  aftermath_scene.hide();aftermath_scene.set_process(false)
   modal=CompletionPanel.new();root_ui.add_child(modal);modal.setup(self)
+  aftermath_transition=AftermathTransition.new();modal.add_child(aftermath_transition);modal.move_child(aftermath_transition,0)
+  aftermath_transition.midpoint.connect(settle_aftermath_presentation)
+  aftermath_transition.setup()
   audio_system.set_threat(0)
   audio_system.play_event("victory")
   return
@@ -1757,6 +1779,19 @@ func finish(won:bool):
  v.add_child(button("この作戦をもう一度",func():start_mission(campaign_state.current),440))
  v.add_child(button("作戦選択へ",return_title,440))
  audio_system.play_event("victory" if won else "defeat")
+
+func settle_aftermath_presentation()->void:
+ if not ended or not result_won or aftermath_settled:return
+ aftermath_settled=true
+ AftermathTransition.hide_combat_visuals([enemies,corpses,shells,effects],battle_fx)
+ # The renderer also owns survivor batches. Empty only its infected submission,
+ # immediately and on subsequent frames; never hide the shared renderer root.
+ horde_renderer.update_horde([],elapsed)
+ for child in get_children():
+  if child.has_method("restore_district_lights"):child.restore_district_lights()
+ camera_focus=aftermath_scene.camera_focus;camera.size=aftermath_scene.camera_size
+ camera.position=camera_focus+Vector3(37,48,43);camera.look_at(camera_focus)
+ aftermath_scene.show();aftermath_scene.set_process(true)
 
 
 func beam(a:Vector3,b:Vector3,c:Color,duration:float,width:float=.055):
@@ -2205,7 +2240,7 @@ func load_checkpoint()->bool:
  for raw in d.buildings:
   var b=make_building(raw.kind,from_data(raw.pos),true)
   for key in ["hp","maxhp","built","cd"]:b[key]=raw[key]
-  b.node.scale.y=.2+.8*b.built
+  b.node.get_meta(ConstructionVisuals.META).set_progress(b.built)
   b.shots=raw.get("shots",0)
   b.enabled=raw.get("enabled",true)
   b.paid_cost=raw.get("paid_cost",0)
@@ -2445,7 +2480,8 @@ func decorate_unit(kind:String,n:Node3D):
   for mesh in n.find_children("*","MeshInstance3D",true,false):mesh.visible=false
 
 func decorate_building(kind:String,n:Node3D,_rad:float,preview:bool=false):
- StructureVisuals.add_building(n,kind)
+ var finished=Node3D.new();finished.name="FinishedVisual";n.add_child(finished)
+ StructureVisuals.add_building(finished,kind)
  if not preview and kind in ["hq","factory","relay","yard","mortar"]:
   world_label(n,{"hq":"生存者の拠点","factory":"弾薬工房","relay":"電力中継","yard":"廃材回収所","mortar":"廃材臼砲"}[kind],Vector3(0,4.1 if kind=="hq" else 3.5,0),CYAN)
 
@@ -3040,6 +3076,9 @@ func activate_context_key(key:int)->bool:
  for action in context_actions:
   if action.key==key:
    if not action.button.disabled:action.call.call();context_signature=""
+   else:
+    var reason=str(action.button.get_meta("command_blocked_reason",""))
+    if not reason.is_empty():notify(reason,4)
    return true
  return false
 

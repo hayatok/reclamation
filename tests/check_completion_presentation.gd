@@ -12,6 +12,8 @@ func run():
   await process_frame
   assert(g.ended and g.result_won and is_instance_valid(g.aftermath_scene))
   assert(g.modal is Control and g.modal.visible and g.modal.panel.size.y<400)
+  g.aftermath_transition.sample_at(g.AftermathTransition.FADE_OUT)
+  assert(g.aftermath_settled and g.aftermath_scene.visible)
   assert([g.rng.state,g.card_rng.state,g.visual_rng.state]==seed_state)
   var after=g.checkpoint_data()
   for key in ["stockpile","elapsed","kills","upgrades","units","enemies","buildings","sites"]:assert(before[key]==after[key],"Presentation changed gameplay "+key)
@@ -24,6 +26,6 @@ func run():
  print("COMPLETION_PRESENTATION_THREE_MISSIONS_NO_GAMEPLAY_OR_RNG_MUTATION_PASS")
  c.current=0;c.launch=true;c.resume=false
  g=load("res://main.tscn").instantiate();root.add_child(g);current_scene=g;g.set_process(false)
- g.finish(false);assert(g.ended and not g.result_won and not is_instance_valid(g.aftermath_scene))
+ g.finish(false);assert(g.ended and not g.result_won and not is_instance_valid(g.aftermath_scene) and not is_instance_valid(g.aftermath_transition))
  g.free();await process_frame
  print("DEFEAT_REMAINS_SEPARATE_PASS");quit(0)
