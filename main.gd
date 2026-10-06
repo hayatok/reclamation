@@ -39,6 +39,8 @@ const AftermathTransition=preload("res://aftermath_transition.gd")
 var aftermath_scene:Node3D
 var aftermath_transition:Control
 var aftermath_settled:bool=false
+const HeavyTargeting=preload("res://heavy_targeting.gd")
+var heavy_targeting=HeavyTargeting.new()
 const BuildingAttackAlerts=preload("res://building_attack_alerts.gd")
 var building_attack_alerts=BuildingAttackAlerts.new()
 var building_attack_button:Button
@@ -1297,6 +1299,7 @@ func render_actors()->Dictionary:
  return rendered
 
 func simulate(dt:float):
+ heavy_targeting.begin_step()
  friendly_navigation.begin_frame(dt,units)
  enemy_navigation.begin_step(nav)
  elapsed+=dt
@@ -1399,7 +1402,7 @@ func simulate(dt:float):
    var target:Variant=null
    if u.task=="focus_fire":
     if u.target!=null and u.node.position.distance_to(u.target.node.position)<=range_value:target=u.target
-   else:target=nearest_enemy(u.node.position,range_value)
+   else:target=auto_fire_target(u.node.position,range_value,u.kind)
    if target!=null:
     fire(u.node.position+Vector3(0,1.6 if u.kind=="siegecart" else 1,0),target,float(weapon.damage),"mortar" if u.kind=="siegecart" else u.kind,u)
     u.cd=float(weapon.cooldown)/(1+bonus("rate","attack_speed_add"))
@@ -1424,7 +1427,7 @@ func simulate(dt:float):
    if b.kind=="mortar" and not b.powered:continue
    if b.cd<=0:
     var weapon_range=22.0 if b.kind=="mortar" else 15.5 if b.powered else 12.5
-    var e=nearest_enemy(b.node.position,weapon_range*(1+bonus("range","range_add")))
+    var e=auto_fire_target(b.node.position,weapon_range*(1+bonus("range","range_add")),b.kind)
     if e!=null:
      fire(b.node.position+Vector3(0,2.4 if b.kind=="mortar" else 3.3,0),e,85 if b.kind=="mortar" else 28 if b.powered else 19,b.kind,b)
      b.cd=(3.2 if b.kind=="mortar" else .48)/(1+bonus("rate","attack_speed_add"))
@@ -1490,6 +1493,12 @@ func simulate(dt:float):
  if ended:return
  bank_earned_upgrades()
 
+
+func auto_fire_target(p:Vector3,radius:float,kind:String)->Variant:
+ if kind in ["grenade","siegecart","mortar"]:
+  var blast_radius=(3.0 if kind=="grenade" else 4.1)*(1+bonus("blast_radius","blast_radius_add"))
+  return heavy_targeting.select_target(enemies,p,radius,blast_radius)
+ return nearest_enemy(p,radius)
 
 func nearest_enemy(p:Vector3,radius:float,excluded:Array=[])->Variant:
  var best=radius*radius
