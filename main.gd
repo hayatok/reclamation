@@ -830,9 +830,13 @@ func set_build(kind:String):
  ghost.scale=Vector3(radius/.9,1,radius/.9)
  notify("左クリックで建設 / Escで取消",3)
 
+func cancel_targeting_mode():
+ build_mode="";attack_move=false;ghost.visible=false;dragging=false
+
 func select_guards():select_kind("guard")
 func select_workers():select_kind("worker")
 func select_kind(kind:String):
+ cancel_targeting_mode()
  inspected={};inspected_resource={};inspected_site={}
  selected.clear()
  for u in units:
@@ -958,6 +962,15 @@ func _unhandled_input(event):
    else:recall_control_group(slot)
    get_viewport().set_input_as_handled();return
   reset_control_group_tap()
+  # Selection shortcuts are deliberate mode changes, like control-group recall.
+  # Resolve them before the build palette so urgent defense needs no extra Escape.
+  if event.keycode in [KEY_C,KEY_V,KEY_H,KEY_PERIOD]:
+   match event.keycode:
+    KEY_C:select_guards()
+    KEY_V:select_workers()
+    KEY_H:select_headquarters()
+    KEY_PERIOD:select_idle_worker()
+   get_viewport().set_input_as_handled();return
   if not build_mode.is_empty():
    for action in context_actions:
     if action.key==event.keycode and GameRules.BUILDINGS.has(action.kind):
@@ -968,10 +981,6 @@ func _unhandled_input(event):
    KEY_DELETE:
     if event.shift_pressed:request_dismantle()
    KEY_BACKSPACE:cancel_recruit()
-   KEY_C:select_guards()
-   KEY_V:select_workers()
-   KEY_H:select_headquarters()
-   KEY_PERIOD:select_idle_worker()
  if active_card or ended or title_open:return
  if event is InputEventMouseButton:
   if event.button_index==MOUSE_BUTTON_WHEEL_UP:camera.size=maxf(26,camera.size-3)
@@ -3077,6 +3086,7 @@ func set_rally(building:Dictionary,p:Vector3):
  context_signature=""
 
 func select_headquarters():
+ cancel_targeting_mode()
  for building in buildings:
   if building.kind=="hq":
    selected.clear();inspected=building;inspected_site={};inspected_resource={}
@@ -3087,6 +3097,7 @@ func worker_needs_attention(unit:Dictionary)->bool:
  return unit.task=="idle" or unit.get("economy_phase","") in ["waiting_resource","waiting_dropoff"] or friendly_navigation.current_status(unit)==FriendlyNavigation.BLOCKED
 
 func select_idle_worker():
+ cancel_targeting_mode()
  var idle=[]
  for unit in units:
   if worker_needs_attention(unit):idle.append(unit)
