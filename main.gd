@@ -1,5 +1,16 @@
 extends Node3D
 
+const MobileGUIGuard=preload("res://mobile_gui_guard.gd")
+var mobile_gui_guard=MobileGUIGuard.new()
+const MobileHUD=preload("res://mobile_hud.gd")
+const MobileGameInput=preload("res://mobile_game_input.gd")
+const MobileBrowserBridge=preload("res://mobile_browser_bridge.gd")
+var mobile_hud:Control
+var mobile_input
+var mobile_browser=MobileBrowserBridge.new()
+var mobile_enabled:bool=false
+var mobile_layout_clock:float=0.0
+var mobile_safe_insets=Vector4.ZERO
 const HudDepthMask=preload("res://hud_depth_mask.gd")
 var hud_depth_mask
 const SimulationClock=preload("res://simulation_clock.gd")
@@ -62,6 +73,7 @@ var enemy_approach_cells:Dictionary=enemy_navigation.approach_cells
 const HordeRenderer=preload("res://horde_renderer.gd")
 const TacticalMap=preload("res://tactical_map.gd")
 const ActorVisuals=preload("res://actor_visuals.gd")
+const SurvivorMotion=preload("res://survivor_motion.gd")
 const WeaponMuzzles=preload("res://weapon_muzzles.gd")
 const UpgradeCatalog=preload("res://upgrade_catalog.gd")
 const BUILD_COSTS={"tower":65,"wall":18,"factory":75,"relay":40,"mortar":120,"yard":80}
@@ -235,6 +247,8 @@ var last_portrait_kind:String=""
 var font:Font
 
 func _ready():
+ mobile_browser.setup(_mobile_reset)
+ _mobile_layout(true)
  for data in UpgradeCatalog.all():catalog_by_id[data.id]=data
  mission=campaign_state.config()
  stockpile=GameRules.STARTING_STOCKPILE.duplicate(true)
@@ -330,6 +344,10 @@ func _ready():
 
  hud_depth_mask=HudDepthMask.new()
  hud_depth_mask.setup(self)
+ if mobile_enabled:
+  mobile_hud=MobileHUD.new();root_ui.add_child(mobile_hud);mobile_hud.setup(self)
+  mobile_hud.set_safe_insets(mobile_safe_insets)
+  mobile_input=MobileGameInput.new();mobile_input.setup(self,mobile_hud)
 
 func seed_run_streams():
  # Domain-separated streams: art, voices and corpses cannot reroll mechanics.
@@ -676,7 +694,7 @@ func make_ui():
  drag_overlay.mouse_filter=Control.MOUSE_FILTER_IGNORE
  drag_overlay.draw.connect(func():
   if dragging:
-   var rect=Rect2(drag_start,get_viewport().get_mouse_position()-drag_start).abs()
+   var rect=Rect2(drag_start,(mobile_hud.get_meta("range_end",get_viewport().get_mouse_position()) if is_instance_valid(mobile_hud) else get_viewport().get_mouse_position())-drag_start).abs()
    drag_overlay.draw_rect(rect,Color(.7,.63,.35,.12),true)
    drag_overlay.draw_rect(rect,AMBER,false,1.5)
   var marked=[]
@@ -718,6 +736,7 @@ func field_panel(preset:int,offsets:Vector4,color:Color)->PanelContainer:
  return p
 
 func handle_minimap_input(event:InputEvent)->void:
+ if mobile_enabled:return
  if not event is InputEventMouseButton or not event.pressed or event.button_index not in [MOUSE_BUTTON_LEFT,MOUSE_BUTTON_RIGHT]:return
  minimap.accept_event()
  if title_open or ended or active_card:return
@@ -797,7 +816,9 @@ func draw_minimap():
   var order_point=(minimap_order_point+Vector2(32,32))/64*size
   minimap.draw_arc(order_point,3.0+minimap_order_time*6.0,0,TAU,20,minimap_order_color,1.5,true)
  var view=(Vector2(camera_focus.x,camera_focus.z)+Vector2(32,32))/64*size
- minimap.draw_rect(Rect2(view-Vector2(36,26),Vector2(72,52)),Color("c6b991"),false,1)
+ var view_span=Vector2(72,52)*size/180.0
+ var view_box=Rect2(view-view_span*.5,view_span).intersection(Rect2(Vector2.ONE,size-Vector2.ONE*2))
+ if view_box.has_area():minimap.draw_rect(view_box,Color("c6b991"),false,1)
 
 func update_building_attack_alert():
  var sound=building_attack_alerts.update(elapsed,buildings+units.filter(func(unit):return unit.kind=="worker"))
@@ -854,12 +875,12 @@ func assign_control_group(slot:int):
  if control_groups.assign(slot,selected,inspected,units,buildings):notify("グループ%d 登録"%slot,2)
  else:notify("部隊か建物を選択して Ctrl+%d で登録"%slot,2)
 
-func recall_control_group(slot:int,now_msec:int=-1):
+func recall_control_group(slot:int,now_msec:int=-1,center_immediately:bool=false):
  var group=control_groups.resolve(slot,units,buildings)
  if group.units.is_empty() and group.building.is_empty():
   reset_control_group_tap();notify("グループ%d は空です"%slot,2);return
  if now_msec<0:now_msec=Time.get_ticks_msec()
- var center=last_control_group==slot and now_msec>=last_control_group_msec and now_msec-last_control_group_msec<=CONTROL_GROUP_DOUBLE_TAP_MS
+ var center=center_immediately or (last_control_group==slot and now_msec>=last_control_group_msec and now_msec-last_control_group_msec<=CONTROL_GROUP_DOUBLE_TAP_MS)
  selected=group.units;inspected=group.building;inspected_resource={};inspected_site={}
  build_mode="";attack_move=false;ghost.visible=false;dragging=false
  update_selection()
@@ -920,6 +941,19 @@ func ground_at(screen:Vector2)->Vector3:
  return from+dir*t
 
 func _input(event):
+ if mobile_enabled and is_instance_valid(mobile_hud) and mobile_hud.has_open_popup() and event is InputEventKey:
+  if event.pressed and not event.echo:
+   if event.keycode==KEY_ESCAPE:mobile_hud._close_popup()
+   elif event.keycode==KEY_F12:capture_frame()
+  get_viewport().set_input_as_handled()
+  return
+ if mobile_enabled and mobile_gui_guard.before_input(event,get_viewport()):return
+ if mobile_enabled and mobile_input!=null and (event is InputEventScreenTouch or event is InputEventScreenDrag):
+  if event is InputEventScreenTouch and event.pressed and mobile_input.controller.gesture_active():
+   mobile_gui_guard.cancel_interaction()
+   mobile_hud.cancel_scroll_drag()
+  mobile_input.feed(event)
+  return
  # Any intervening key/click (including HUD actions) breaks a double tap.
  if event is InputEventMouseButton and event.pressed:reset_control_group_tap()
  if event is InputEventKey and event.pressed and not event.echo and (event.keycode<KEY_1 or event.keycode>KEY_9 or event.ctrl_pressed or event.alt_pressed or event.meta_pressed or event.shift_pressed):reset_control_group_tap()
@@ -929,6 +963,9 @@ func _input(event):
   if active_card or open_growth_choices():get_viewport().set_input_as_handled()
 
 func _unhandled_input(event):
+ if mobile_enabled and is_instance_valid(mobile_hud) and mobile_hud.has_open_popup() and event is InputEventKey:return
+ if mobile_enabled and Input.emulate_touch_from_mouse and event is InputEventMouse:return
+ if mobile_enabled and (event is InputEventScreenTouch or event is InputEventScreenDrag or MobileGameInput.Touch.is_emulated_mouse(event)):return
  if is_instance_valid(dismantle_panel):
   if event is InputEventKey and event.pressed and event.keycode==KEY_ESCAPE:close_dismantle()
   return
@@ -1219,6 +1256,10 @@ func place_building(p:Vector3,append_orders:bool=false)->bool:
  return true
 
 func _process(delta):
+ mobile_layout_clock-=delta
+ if mobile_enabled and mobile_layout_clock<=0:
+  mobile_layout_clock=.25;_mobile_layout()
+ if mobile_input!=null:mobile_input.sync()
  var script_start=Time.get_ticks_usec()
  var simulation_usec=0
  render_frames+=1
@@ -1228,6 +1269,7 @@ func _process(delta):
  minimap_order_time=maxf(0.0,minimap_order_time-delta)
  if notice_timer<=0:center_notice.text=""
  drag_overlay.queue_redraw()
+ if mobile_enabled:ghost.visible=false
  if ghost.visible:
   var build_point=ground_at(get_viewport().get_mouse_position())
   var footprint=building_nav_rect(build_mode,build_point)
@@ -1336,6 +1378,7 @@ func simulate(dt:float):
    pulse(u.node.position,RED,1,.3)
    u.node.queue_free()
    continue
+  var motion_work=SurvivorMotion.capture_work(u)
   u.cd-=dt
   if u.kind=="worker":
    WorkerOrders.tick(self,u)
@@ -1409,10 +1452,7 @@ func simulate(dt:float):
     u.cd=float(weapon.cooldown)/(1+bonus("rate","attack_speed_add"))
     u["shot_cycle"]=u.cd
   if u.kind not in ["truck","convoy","siegecart"]:
-   var attack_age=elapsed-float(u.get("attack_at",-100))
-   var cycle=float(u.get("shot_cycle",.72))
-   var reload_phase=clampf((attack_age-.2)/maxf(.2,cycle-.2),0,1) if attack_age>.2 and attack_age<cycle else -1.0
-   ActorVisuals.pose(u.node,elapsed*8+u.node.get_instance_id()%17,u.node.position.distance_to(previous_position)>.001,attack_age,reload_phase,u.kind=="worker" and u.task in ["site","build","repair","gather"] and friendly_navigation.is_arrived(u))
+   SurvivorMotion.update_pose(u,previous_position,dt,elapsed,SurvivorMotion.did_work(u,motion_work))
  for b in buildings.duplicate():
   if b.hp<=0:
    if b.kind=="hq":finish(false);return
@@ -1641,7 +1681,7 @@ func hit(e:Dictionary,damage:float,direct:bool,generation:int=0,electric:bool=fa
  if combo in [25,50,100,250]:audio_system.play_event("combo_%d"%combo,p)
  if combo>=50 and combo%25==0:audio_system.play_event("kill_sweep",p)
  enemies.erase(e)
- if not low_fx and corpses.size()<(32 if performance_mode else 96):
+ if not low_fx and make_corpse_room():
   var death_kind:StringName=visual_kind if visual_kind!=&"" else &"electric" if electric else &"explosive" if generation>0 else &"ballistic"
   var direction:Vector3=p-visual_origin if visual_origin.is_finite() else e.node.basis.z
   direction.y=0
@@ -1653,6 +1693,25 @@ func hit(e:Dictionary,damage:float,direct:bool,generation:int=0,electric:bool=fa
   var radius=2*(1+bonus("blast_radius","blast_radius_add"))
   var blast_damage=damage*(.2+.2*upgrades.blast) if direct else damage*.5
   blast_queue.append({"pos":p,"radius":radius,"damage":blast_damage,"generation":generation+1})
+
+func make_corpse_room()->bool:
+ var capacity=32 if performance_mode else 96
+ # A quality change must not keep recycling a formerly larger pool forever.
+ while corpses.size()>capacity:
+  var excess=corpses.pop_front()
+  if is_instance_valid(excess.node):excess.node.queue_free()
+ if corpses.size()<capacity:return true
+ # Fresh reactions get their first beat. Reuse an older display slot instead of
+ # dropping every later explosion while older bodies occupy the whole budget.
+ var oldest_index=-1
+ var oldest_life=3.5-.7
+ for index in corpses.size():
+  if float(corpses[index].life)<=oldest_life:
+   oldest_index=index;oldest_life=float(corpses[index].life)
+ if oldest_index<0:return false
+ var old=corpses.pop_at(oldest_index)
+ if is_instance_valid(old.node):old.node.queue_free()
+ return true
 
 func drain_blast_queue():
  var processed=0
@@ -2227,6 +2286,7 @@ func show_title():
  backdrop.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
  backdrop.mouse_filter=Control.MOUSE_FILTER_IGNORE
  backdrop.draw.connect(func():
+  if mobile_enabled:return
   var viewport=get_viewport().get_visible_rect().size
   backdrop.draw_line(Vector2(54,57),Vector2(626,57),AMBER,3)
   for i in 11:backdrop.draw_line(Vector2(54+i*18,viewport.y-47),Vector2(66+i*18,viewport.y-61),Color("74613b"),5)
@@ -3158,7 +3218,7 @@ func refresh_context_commands(force:bool=false):
     var types=["house","depot","garden","factory","yard"] if worker_build_page=="economy" else ["barracks","tower","wall","relay","vehicle_workshop","mortar"]
     for kind in types:
      var rule=GameRules.building(kind)
-     add_context_action(kind,rule.title,compact_cost(rule.cost),func():set_build(kind),func():return build_availability(kind))
+     add_context_action(kind,rule.title,compact_cost(rule.cost),func():set_build(kind),func():return build_availability(kind),0,rule.cost)
     add_context_action("worker","防衛施設 →" if worker_build_page=="economy" else "← 生活施設","建築ページ",func():worker_build_page="military" if worker_build_page=="economy" else "economy";refresh_context_commands(true))
     add_context_action("select","停止","命令を解除",stop_selected)
    elif worker_count>0:
@@ -3179,9 +3239,9 @@ func refresh_context_commands(force:bool=false):
    if building.built>=1:
     for kind in GameRules.unit_kinds_for(building.kind):
      var rule=GameRules.unit(kind)
-     add_context_action(kind,rule.title,compact_cost(rule.cost),func():production.queue_unit(building,kind),func():return production.can_queue_unit(building,kind))
+     add_context_action(kind,rule.title,compact_cost(rule.cost),func():production.queue_unit(building,kind),func():return production.can_queue_unit(building,kind),0,rule.cost)
     if building.kind=="hq" and settlement_age<3:
-     add_context_action("research","段階%sへ"%["II","III"][settlement_age-1],compact_cost(GameRules.age(settlement_age+1).cost),func():production.queue_age(building),func():return production.can_queue_age(building))
+     add_context_action("research","段階%sへ"%["II","III"][settlement_age-1],compact_cost(GameRules.age(settlement_age+1).cost),func():production.queue_age(building),func():return production.can_queue_age(building),0,GameRules.age(settlement_age+1).cost)
     if not GameRules.unit_kinds_for(building.kind).is_empty():add_context_action("select","予約を取消","最後の注文を返金",func():production.cancel_last(building),func():return {"ok":not building.queue.is_empty(),"reason":"予約なし"})
     if building.kind=="factory":add_context_action("factory","稼働切替","弾薬を生産",toggle_inspected)
     if building.kind=="garden":add_context_action("worker","作業員を選択","右クリックで耕作",select_idle_worker)
@@ -3224,21 +3284,17 @@ func build_availability(kind:String)->Dictionary:
  if not GameRules.can_afford(stockpile,GameRules.building(kind).cost):return {"ok":false,"reason":"必要: "+GameRules.cost_text(GameRules.building(kind).cost)}
  return {"ok":true,"reason":""}
 
-func add_context_action(kind:String,title:String,cost:String,callback:Callable,check:Callable=Callable(),key:int=0):
+func add_context_action(kind:String,title:String,cost:String,callback:Callable,check:Callable=Callable(),key:int=0,price:Dictionary={}):
  var keys=[KEY_Q,KEY_W,KEY_E,KEY_R,KEY_A,KEY_S,KEY_D,KEY_F,KEY_Z,KEY_X]
  if key==0:key=keys[mini(context_actions.size(),keys.size()-1)]
  var caption=OS.get_keycode_string(key)+" "+title
  var b=command_icon_button(kind,caption,cost,func():callback.call();context_signature="")
  var detail=cost
- if GameRules.BUILDINGS.has(kind):detail=GameRules.cost_text(GameRules.building(kind).cost)+" / 建築%d秒"%int(GameRules.building(kind).build_time)
- elif GameRules.UNITS.has(kind):detail=GameRules.cost_text(GameRules.unit(kind).cost)+" / %d秒 / 人口%d"%[int(GameRules.unit(kind).time),int(GameRules.unit(kind).population)]
- if GameRules.BUILDINGS.has(kind) and not selected.is_empty():detail+=" / Shift+配置で連続建設"
+ if not price.is_empty() and GameRules.BUILDINGS.has(kind):detail=GameRules.cost_text(GameRules.building(kind).cost)+" / 建築%d秒"%int(GameRules.building(kind).build_time)
+ elif not price.is_empty() and GameRules.UNITS.has(kind):detail=GameRules.cost_text(GameRules.unit(kind).cost)+" / %d秒 / 人口%d"%[int(GameRules.unit(kind).time),int(GameRules.unit(kind).population)]
+ if not price.is_empty() and GameRules.BUILDINGS.has(kind) and not selected.is_empty():detail+=" / Shift+配置で連続建設"
  b.tooltip_text=detail
  command_grid.add_child(b)
- var price:Dictionary={}
- if GameRules.BUILDINGS.has(kind):price=GameRules.building(kind).cost
- elif GameRules.UNITS.has(kind):price=GameRules.unit(kind).cost
- elif kind=="research" and settlement_age<3:price=GameRules.age(settlement_age+1).cost
  var action={"key":key,"call":callback,"check":check,"button":b,"detail":detail,"kind":kind,"cost":price}
  context_actions.append(action)
  b.mouse_entered.connect(func():hovered_command=action)
@@ -3504,3 +3560,31 @@ func worker_destination_text(worker:Dictionary)->String:
  elif worker.get("economy_phase","") in ["to_resource","gathering"]:
   return "採取先: "+str(GameRules.RESOURCE_TITLES.get(worker.get("resource_kind",""),""))
  return ""
+
+func _mobile_layout(initial:bool=false)->void:
+ var layout:Dictionary=mobile_browser.poll_layout()
+ if initial:
+  mobile_enabled=bool(layout.get("enabled",false))
+  if mobile_enabled and not OS.has_feature("web"):Input.emulate_touch_from_mouse=true
+ if not mobile_enabled:return
+ var css:Vector2=layout.get("css_size",Vector2.ZERO)
+ if layout.get("source","")=="native_test_size" and get_window().size!=Vector2i(roundi(css.x),roundi(css.y)):
+  get_window().mode=Window.MODE_WINDOWED
+  get_window().size=Vector2i(roundi(css.x),roundi(css.y))
+ if css.x>0 and css.y>0:
+  get_window().content_scale_size=Vector2i(roundi(css.x),roundi(css.y))
+  get_window().content_scale_factor=1.0
+ mobile_safe_insets=layout.get("safe_insets",Vector4.ZERO)
+ if is_instance_valid(mobile_hud):mobile_hud.set_safe_insets(mobile_safe_insets)
+func _mobile_reset(reason:String)->void:
+ mobile_gui_guard.cancel_interaction()
+ if is_instance_valid(mobile_hud):mobile_hud.cancel_scroll_drag()
+ if mobile_input!=null:mobile_input.cancel(reason,reason in ["blur","hidden","pagehide","focus_lost","visibilitychange"])
+func touch_set_mode(mode:int)->void:
+ if mobile_input!=null:mobile_input.set_mode(mode)
+func touch_set_append(append:bool)->void:
+ if mobile_input!=null:mobile_input.set_append(append)
+func touch_cancel()->void:
+ if mobile_input!=null:mobile_input.cancel_command()
+func _exit_tree()->void:
+ mobile_browser.teardown()

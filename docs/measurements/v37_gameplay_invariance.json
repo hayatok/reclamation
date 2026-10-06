@@ -1,0 +1,11 @@
+{
+  "samples": 81,
+  "authoritative_differences": [],
+  "game_rng_equal": true,
+  "card_rng_equal": true,
+  "excluded": [
+    "visual_rng",
+    "shells[].visual_from"
+  ],
+  "final_kills": 4480
+}

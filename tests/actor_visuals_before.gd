@@ -2,7 +2,7 @@ extends RefCounted
 ## Original low-poly actor silhouettes. Forward is -Z; actor roots are never moved.
 ## Each actor has six single-surface meshes, shared across instances of its kind.
 ## Matte rail-command palette: slate/bone friendlies, workwear amber, ash/rust infected.
-## phase is a gait/work angle in radians. Survivor gait advances with travel distance.
+## phase is a gait angle in radians (about elapsed * 8 for human walking).
 
 static var _meshes: Dictionary = {}
 static var _material: StandardMaterial3D
@@ -28,13 +28,13 @@ static func animate(parent: Node3D, phase: float, moving: bool) -> void:
 
 ## All times are seconds since event; -1 means inactive. Reload is normalized [0,1], -1 inactive.
 ## Calling each frame is required: pose fully resets transforms, so effects never accumulate.
-static func pose(parent: Node3D, phase: float, moving: bool, attack_age: float = -1.0, reload_progress: float = -1.0, working: bool = false, hit_age: float = -1.0, hit_strength: float = 1.0, locomotion_weight: float = 1.0) -> void:
+static func pose(parent: Node3D, phase: float, moving: bool, attack_age: float = -1.0, reload_progress: float = -1.0, working: bool = false, hit_age: float = -1.0, hit_strength: float = 1.0) -> void:
 	if not is_instance_valid(parent) or not parent.has_meta(&"actor_visuals"):
 		return
 	var visual: Node3D = parent.get_meta(&"actor_visuals")
 	if not is_instance_valid(visual): return
 	var kind: String = visual.get_meta(&"kind")
-	var frames := sample_pose(kind, phase, moving, attack_age, reload_progress, working, hit_age, hit_strength, locomotion_weight)
+	var frames := sample_pose(kind, phase, moving, attack_age, reload_progress, working, hit_age, hit_strength)
 	var body: Node3D = visual.get_meta(&"body")
 	body.transform = frames[0]
 	var leg_l: Node3D = visual.get_meta(&"leg_l")
@@ -51,13 +51,12 @@ static func pose(parent: Node3D, phase: float, moving: bool, attack_age: float =
 ## Allocation is one six-element array. All outputs are ACTOR-ROOT-LOCAL, in horde PARTS order:
 ## torso, head, legL, legR, armL, armR. Batched renderers can multiply each by actor.global_transform.
 ## No nodes, materials, meshes, simulation state or actor root transforms are changed here.
-static func sample_pose(kind: String, phase: float, moving: bool, attack_age: float = -1.0, reload_progress: float = -1.0, working: bool = false, hit_age: float = -1.0, hit_strength: float = 1.0, locomotion_weight: float = 1.0) -> Array[Transform3D]:
+static func sample_pose(kind: String, phase: float, moving: bool, attack_age: float = -1.0, reload_progress: float = -1.0, working: bool = false, hit_age: float = -1.0, hit_strength: float = 1.0) -> Array[Transform3D]:
 	phase = phase if is_finite(phase) else 0.0
 	attack_age = attack_age if is_finite(attack_age) else -1.0
 	reload_progress = reload_progress if is_finite(reload_progress) else -1.0
 	hit_age = hit_age if is_finite(hit_age) else -1.0
 	hit_strength = clampf(hit_strength, 0.0, 2.0) if is_finite(hit_strength) else 1.0
-	locomotion_weight = clampf(locomotion_weight, 0.0, 1.0) if is_finite(locomotion_weight) else 0.0
 	var runner: bool = kind == "runner"
 	var armored: bool = kind == "armored"
 	var worker: bool = kind == "worker"
@@ -68,38 +67,30 @@ static func sample_pose(kind: String, phase: float, moving: bool, attack_age: fl
 	var width: float = .39 if armored else (.25 if runner else .32)
 	var shoulder: float = .43 if armored else .4
 	var leg_width: float = .19 if armored else .15
-	var travel: float = (locomotion_weight if human else 1.0) if moving else 0.0
-	var gait: float = sin(phase) * travel
-	var stride: float = (.54 if worker else (.40 if grenade else .48)) if human else (.57 if runner else .37)
-	var bob: float = absf(cos(phase)) * (.040 if human else .025) * travel if moving else sin(phase * .30) * .006
-	var roll: float = gait * (.045 if human else .028)
-	var recoil_decay: float = (9.0 if grenade else 17.0) if human else 22.0
-	var recoil: float = exp(-attack_age * recoil_decay) if attack_age >= 0.0 and attack_age < .65 else 0.0
+	var gait: float = sin(phase) if moving else 0.0
+	var stride: float = .57 if runner else (.29 if grenade else .37)
+	var bob: float = absf(cos(phase)) * .025 if moving else sin(phase * .30) * .006
+	var roll: float = gait * .028
+	var recoil: float = exp(-attack_age * (10.0 if grenade else 22.0)) if attack_age >= 0.0 and attack_age < .65 else 0.0
 	var reload: float = sin(clampf(reload_progress, 0.0, 1.0) * PI) if reload_progress >= 0.0 else 0.0
 	var reaction: float = sin(clampf(hit_age / .30, 0.0, 1.0) * PI) * exp(-maxf(hit_age,0.0) * 4.0) * hit_strength if hit_age >= 0.0 and hit_age < .30 else 0.0
-	var swing: float = .48 if runner else (.38 if worker else (.06 if human else .07))
+	var swing: float = .48 if runner else (.22 if worker else .07)
 	var left_angles := Vector3(-gait * swing, 0, 0)
 	var right_angles := Vector3(gait * swing, 0, 0)
 	var body_angles := Vector3(lean, 0, roll)
 	var body_pos := Vector3(0, hip + bob, 0)
 	var left_offset := Vector3.ZERO
 	var right_offset := Vector3.ZERO
-	if human:
-		# Counter-turn and weight transfer stay small enough to keep the gun readable.
-		body_angles.y = -gait * (.075 if worker else .045)
-		body_angles.x -= travel * (.09 if worker else .055)
-		body_pos.x = gait * .024
 	if human and not worker:
-		# A brief shoulder/weapon impulse then a visible recovery. No cosmetic shot
-		# counter: the real attack timestamp is the sole trigger.
+		# Aimed weapon stays stable in gait; shot pushes gun, both hands and shoulder back.
 		var power: float = 1.8 if grenade else 1.0
-		body_angles.x += recoil * .12 * power
-		body_pos.z += recoil * .085 * power
-		body_pos.y -= recoil * .035 * power
-		right_angles += Vector3(recoil * .20 * power, recoil * -.04, 0)
-		left_angles += Vector3(recoil * .17 * power, 0, 0)
-		right_offset.z += recoil * .095 * power
-		left_offset.z += recoil * .080 * power
+		body_angles.x += recoil * .10 * power
+		body_pos.z += recoil * .055 * power
+		body_pos.y -= recoil * .025 * power
+		right_angles += Vector3(recoil * .24 * power, recoil * -.04, 0)
+		left_angles += Vector3(recoil * .15 * power, 0, 0)
+		right_offset.z += recoil * .085 * power
+		left_offset.z += recoil * .055 * power
 		# Reload: rifle/launcher lifted across chest; left hand reaches the magazine,
 		# dips to the belt around mid-cycle and returns before the gun settles.
 		body_angles.y += reload * -.12
@@ -109,16 +100,15 @@ static func sample_pose(kind: String, phase: float, moving: bool, attack_age: fl
 		left_offset += Vector3(magazine * .12, -magazine * .14, magazine * .03)
 		right_offset += Vector3(-reload * .04, reload * .06, reload * .025)
 	elif worker and working:
-		# Deliberate lift, quick strike, short impact hold. The torso follows the
-		# tool into the work so the action reads at normal RTS zoom.
+		# Tool arm winds up then snaps down; off-hand braces the work surface.
 		var cycle: float = fposmod(phase / TAU, 1.0)
-		var lift: float = smoothstep(.08,.54,cycle) if cycle < .54 else 1.0-smoothstep(.54,.69,cycle)
-		var impact: float = smoothstep(.54,.69,cycle) * (1.0-smoothstep(.82,1.0,cycle))
-		right_angles = Vector3(-.38 + lift * 1.60 - impact * .28, -.08, -lift * .18)
-		left_angles = Vector3(-.48 - impact * .13, -.12, .10)
-		body_angles = Vector3(-.15 + lift * .11 - impact * .17, lift * -.07, lift * -.075)
-		body_pos = Vector3(0, hip - impact * .060 + lift * .015, -impact * .055)
-		right_offset.z -= impact * .07
+		var lift: float = smoothstep(0.0,.65,cycle) if cycle < .65 else 1.0-smoothstep(.65,.86,cycle)
+		right_angles.x = -.32 + lift * 1.45
+		right_angles.z = lift * -.15
+		left_angles = Vector3(-.40,-.18,-.22)
+		body_angles.x = -.12 + lift * .14
+		body_pos.y -= (1.0-lift)*.05
+		body_angles.z = lift * -.06
 	elif not human and recoil > 0.0:
 		# Short whole-upper-body bite/lunge, readable without moving simulation roots.
 		body_angles.x -= recoil * .20
@@ -132,13 +122,6 @@ static func sample_pose(kind: String, phase: float, moving: bool, attack_age: fl
 	var body := Transform3D(Basis.from_euler(body_angles), body_pos)
 	var leg_l := Transform3D(Basis(Vector3.RIGHT, gait * stride), Vector3(-leg_width, hip, 0))
 	var leg_r := Transform3D(Basis(Vector3.RIGHT, -gait * stride), Vector3(leg_width, hip, 0))
-	if human:
-		# Each returning foot clears the ground once per cycle; stance remains quiet.
-		leg_l.origin.y += maxf(0.0, cos(phase)) * .060 * travel
-		leg_r.origin.y += maxf(0.0, -cos(phase)) * .060 * travel
-		if working:
-			leg_l.origin.z -= .09
-			leg_r.origin.z += .09
 	var arm_l := body * Transform3D(Basis.from_euler(left_angles), Vector3(-width, shoulder, 0)+left_offset)
 	var arm_r := body * Transform3D(Basis.from_euler(right_angles), Vector3(width, shoulder, 0)+right_offset)
 	return [body, body, leg_l, leg_r, arm_l, arm_r]

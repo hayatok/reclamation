@@ -1,0 +1,33 @@
+{
+  "samples": 81,
+  "gameplay_differences": [],
+  "gameplay_rng_equal": true,
+  "card_rng_equal": true,
+  "visual_rng_equal": false,
+  "final_kills": 4480,
+  "excluded_cosmetic_fields": [
+    "visual_rng",
+    "shells[].visual_from"
+  ],
+  "note": "Recycling more corpse reactions consumes the existing presentation RNG; it does not change game/card randomness or simulation shell trajectories.",
+  "replay_seconds": 20,
+  "deaths_by_cause": {
+    "ballistic": 79,
+    "electric": 28,
+    "explosive": 169
+  },
+  "previous_admitted": {
+    "ballistic": 65,
+    "electric": 21,
+    "explosive": 29
+  },
+  "candidate_admitted": {
+    "ballistic": 76,
+    "electric": 23,
+    "explosive": 137
+  },
+  "max_visual_bodies": 96,
+  "performance_mode_max": 32,
+  "admission_is_not_screen_visibility": true,
+  "real_web_mac_gpu_performance_verified": false
+}

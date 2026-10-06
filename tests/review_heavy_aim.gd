@@ -5,6 +5,8 @@ const RECORD=preload("res://tests/record_heavy_aim_game.gd")
 const DEFAULT_FIXTURE="res://tests/fixtures/earned_m2_prelaunch.json"
 func _initialize():call_deferred("run")
 func run():
+ if FileAccess.file_exists("user://settlement_v2/checkpoint.json"):
+  push_error("Use a fresh isolated XDG_DATA_HOME for this replay");quit(2);return
  var fixture=DEFAULT_FIXTURE
  for argument in OS.get_cmdline_user_args():
   if argument.begins_with("--fixture="):fixture=argument.trim_prefix("--fixture=")

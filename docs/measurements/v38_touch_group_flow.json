@@ -1,0 +1,82 @@
+{
+  "source_base": "v0.37.0 final local frozen candidate",
+  "public_version": "v0.35.0",
+  "native_viewport": [
+    844,
+    390
+  ],
+  "native_runtime": "Godot4.6.3 OpenGL Compatibility/Mesa llvmpipe",
+  "scenario": "Unedited earned_critical_factory checkpoint; observation-only tactical auto-pause at first natural worker hit",
+  "registered_groups": [
+    {
+      "kind": "units",
+      "members": [
+        0,
+        1,
+        11,
+        12
+      ],
+      "slot": 1
+    },
+    {
+      "kind": "units",
+      "members": [
+        3,
+        8
+      ],
+      "slot": 2
+    },
+    {
+      "kind": "units",
+      "members": [
+        0,
+        1,
+        11,
+        12
+      ],
+      "slot": 3
+    },
+    {
+      "kind": "units",
+      "members": [
+        13,
+        14,
+        15,
+        16
+      ],
+      "slot": 4
+    }
+  ],
+  "group_return_selected": [
+    13,
+    14,
+    15,
+    16
+  ],
+  "original_right_squad": [
+    13,
+    14,
+    15,
+    16
+  ],
+  "return_without_new_range_drag": true,
+  "return_taps_after_economy": 2,
+  "centers_camera_on_group": true,
+  "native_save_restart_recall": true,
+  "native_overwrite_cancel_preserved": true,
+  "prior_pause_preserved": true,
+  "same19units_as_v037_sequence": true,
+  "same_resources_as_v037_sequence": true,
+  "same_upgrade_as_v037_sequence": true,
+  "layout_adjustment": "Global HQ/fighter/worker shortcuts moved above saved groups so economy access stays immediately visible",
+  "regressions": {
+    "group_helper": "53 focused checks pass",
+    "mobile_modal_keyboard_and_save": "12 pass",
+    "pc_groups": "48 pass"
+  },
+  "remaining_limits": [
+    "Actual phone/Safari/Android/GPU performance and human first-play notverified",
+    "Publication/sourcepreservation requires pendingexistingapproval",
+    "Rejected mobile rendering trial notincluded"
+  ]
+}
