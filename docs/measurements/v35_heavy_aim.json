@@ -1,0 +1,47 @@
+{
+  "scenario": "Unedited earned_m2_prelaunch checkpoint, 30 simulated seconds, same source with legacy nearest-primary switch",
+  "ordinary_checkpoint_sha256": "d996e7952e4fdcfb59a38bd94c5abae48c238beca9cdf8e6cc7abc5a3d1feffd",
+  "baseline": {
+    "kills": 276,
+    "heavy_primary_shots": 10,
+    "heavy_ammo_spent": 30,
+    "mean_living_footprint_at_launch": 14.2,
+    "last_nonzero_enemy_sample_seconds": 13.55
+  },
+  "candidate": {
+    "kills": 276,
+    "heavy_primary_shots": 7,
+    "heavy_ammo_spent": 21,
+    "mean_living_footprint_at_launch": 49.42857142857143,
+    "last_nonzero_enemy_sample_seconds": 14.05
+  },
+  "timing_sample_interval_seconds": 0.25,
+  "query_cpu_us_in_earned_candidate_replay": {
+    "median_active_query": 10,
+    "max_active_query": 541
+  },
+  "debug_synthetic_benchmark_ms": {
+    "1000_enemies": {
+      "nearest_one": 0.281,
+      "heavy_first": 2.121,
+      "heavy_warm": 0.839,
+      "nearest_eight": 3.35,
+      "heavy_shared_eight": 6.813
+    },
+    "3000_enemies": {
+      "nearest_one": 0.935,
+      "heavy_first": 8.904,
+      "heavy_warm": 1.249,
+      "nearest_eight": 10.851,
+      "heavy_shared_eight": 21.719
+    }
+  },
+  "unchanged": "Damage, ammo cost per shot, range, cooldown, flight time, shell count and existing multi/salvo/sweep placement; explicit focus-fire has priority.",
+  "limits": [
+    "Count at launch is geometric coverage, not attributed kills.",
+    "Candidate did not clear this wave faster.",
+    "Synthetic query timing is not whole-game FPS.",
+    "Native clip is offline 30fps MovieWriter output, not runtime FPS.",
+    "Human-first-play, actual Web/macOS/GPU and perceptual audio quality remain unverified."
+  ]
+}

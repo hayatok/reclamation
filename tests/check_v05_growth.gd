@@ -7,7 +7,9 @@ func run():
  g.set_process(false);g.low_fx=true
  var mortar=g.make_building("mortar",Vector3(0,0,5),true)
  for x in [-1,0,1]:g.spawn_enemy(Vector3(x,0,-5))
- g.upgrades={"multi":2,"salvo":2,"sweep":1}
+ # Keep the synthetic growth fixture legal under the current checkpoint schema.
+ g.upgrades={"multi":2,"salvo":2,"sweep":1,"pierce":1}
+ g.level=7
  mortar.shots=3
  g.fire(Vector3(0,2.4,5),g.enemies[0],85,"mortar",mortar)
  assert(g.shells.size()==7)
