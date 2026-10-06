@@ -39,6 +39,7 @@ const AftermathTransition=preload("res://aftermath_transition.gd")
 var aftermath_scene:Node3D
 var aftermath_transition:Control
 var aftermath_settled:bool=false
+const CorpseMotion=preload("res://corpse_motion.gd")
 const HeavyTargeting=preload("res://heavy_targeting.gd")
 var heavy_targeting=HeavyTargeting.new()
 const BuildingAttackAlerts=preload("res://building_attack_alerts.gd")
@@ -1550,7 +1551,7 @@ func fire(origin:Vector3,target:Dictionary,base:float,kind:String,source:Diction
  battle_fx.muzzle(origin,false,socket)
  beam(origin,pos+Vector3(0,.7,0),Color("fff1bd") if critical else AMBER,.10,.055,socket)
  var hit_targets=[target]
- hit(target,damage,true,0,false,critical)
+ hit(target,damage,true,0,false,critical,origin)
  var direction=Vector3(pos.x-origin.x,0,pos.z-origin.z).normalized()
  if upgrades.get("pierce",0)>0:
   for other in enemies.duplicate():
@@ -1559,7 +1560,7 @@ func fire(origin:Vector3,target:Dictionary,base:float,kind:String,source:Diction
    if offset.dot(direction)>0 and offset.dot(direction)<7 and offset.cross(direction).length()<.9:
     hit_targets.append(other)
     beam(pos+Vector3(0,.7,0),other.node.position+Vector3(0,.7,0),AMBER,.10)
-    hit(other,damage,false)
+    hit(other,damage,false,0,false,false,origin)
     if hit_targets.size()>upgrades.pierce:break
  if shot_tick<=0:
   audio_system.play_event("rifle",origin)
@@ -1569,7 +1570,7 @@ func fire(origin:Vector3,target:Dictionary,base:float,kind:String,source:Diction
   if other==null:break
   hit_targets.append(other)
   beam(origin,other.node.position+Vector3(0,.7,0),AMBER,.12,.055,socket)
-  hit(other,damage*.65,false)
+  hit(other,damage*.65,false,0,false,false,origin)
  if upgrades.get("chain",0)>0:
   audio_system.play_event("chain",origin)
   var used=[target]
@@ -1579,9 +1580,10 @@ func fire(origin:Vector3,target:Dictionary,base:float,kind:String,source:Diction
    var other=nearest_enemy(last,4.5,used)
    if other==null:break
    beam(last+Vector3(0,.8,0),other.node.position+Vector3(0,.8,0),Color("91c3df"),.22)
+   var impact_from=last
    last=other.node.position
    used.append(other)
-   hit(other,damage*pow(.65,i+1),false,0,true)
+   hit(other,damage*pow(.65,i+1),false,0,true,false,impact_from)
  if kind=="tower" and not source.is_empty():
   source.shots+=1
   var interval=4 if upgrades.get("salvo",0)>1 else 6
@@ -1599,7 +1601,7 @@ func salvo(origin:Vector3,target_pos:Vector3,damage:float):
   if off.dot(direction)>0 and off.dot(direction)<22 and off.cross(direction).length()<width:targets.append(e)
  targets.sort_custom(func(a,b):return origin.distance_squared_to(a.node.position)<origin.distance_squared_to(b.node.position))
  var limit=6 if sweep else 3
- for i in mini(limit,targets.size()):hit(targets[i],damage,false)
+ for i in mini(limit,targets.size()):hit(targets[i],damage,false,0,false,false,origin)
  beam(flat_origin+Vector3(0,.7,0),flat_origin+Vector3(0,.7,0)+direction*22,Color("f4d9a0"),.25,.35 if sweep else .16)
  if sweep:
   var side=direction.cross(Vector3.UP).normalized()*2
@@ -1609,12 +1611,12 @@ func salvo(origin:Vector3,target_pos:Vector3,damage:float):
    if e in targets:continue
    var off=e.node.position-flat_origin-side
    if off.dot(direction)>0 and off.dot(direction)<22 and off.cross(direction).length()<1.4:
-    hit(e,damage,false)
+    hit(e,damage,false,0,false,false,flat_origin+side)
     second+=1
     if second>=6:break
  tone("blast")
 
-func hit(e:Dictionary,damage:float,direct:bool,generation:int=0,electric:bool=false,critical:bool=false):
+func hit(e:Dictionary,damage:float,direct:bool,generation:int=0,electric:bool=false,critical:bool=false,visual_origin:Vector3=Vector3.INF,visual_kind:StringName=&""):
  if e.dead:return
  var dealt=damage
  if e.get("armored",false):dealt*=minf(1,.65+.12*upgrades.get("pierce",0))
@@ -1640,8 +1642,12 @@ func hit(e:Dictionary,damage:float,direct:bool,generation:int=0,electric:bool=fa
  if combo>=50 and combo%25==0:audio_system.play_event("kill_sweep",p)
  enemies.erase(e)
  if not low_fx and corpses.size()<(32 if performance_mode else 96):
-  e.node.position.y=.12
-  corpses.append({"node":e.node,"dead":false,"armored":e.get("armored",false),"speed":e.speed,"moving":false,"life":3.5,"lean":visual_rng.randf_range(-1.5,1.5),"scale":e.node.scale,"start":e.node.transform})
+  var death_kind:StringName=visual_kind if visual_kind!=&"" else &"electric" if electric else &"explosive" if generation>0 else &"ballistic"
+  var direction:Vector3=p-visual_origin if visual_origin.is_finite() else e.node.basis.z
+  direction.y=0
+  if direction.length_squared()<.000001:direction=e.node.basis.z;direction.y=0
+  direction=direction.normalized() if direction.length_squared()>.000001 else Vector3.FORWARD
+  corpses.append({"node":e.node,"dead":false,"armored":e.get("armored",false),"speed":e.speed,"moving":false,"life":3.5,"lean":visual_rng.randf_range(-1.5,1.5),"scale":e.node.scale,"start":e.node.transform,"death_kind":death_kind,"death_direction":direction})
  else:e.node.queue_free()
  if upgrades.get("blast",0)>0 and (direct or (generation>0 and generation<2 and upgrades.get("cascade",0)>0)):
   var radius=2*(1+bonus("blast_radius","blast_radius_add"))
@@ -1655,7 +1661,7 @@ func drain_blast_queue():
   battle_fx.blast(event.pos,event.radius,false,low_fx)
   if processed==0:tone("blast")
   for other in enemies.duplicate():
-   if not other.dead and other.node.position.distance_to(event.pos)<event.radius:hit(other,event.damage,false,event.generation)
+   if not other.dead and other.node.position.distance_to(event.pos)<event.radius:hit(other,event.damage,false,event.generation,false,false,event.pos,&"explosive")
   processed+=1
 
 func wave_side(number:int)->int:
@@ -2762,7 +2768,7 @@ func detonate_shell(shell:Dictionary):
   var distance=e.node.position.distance_to(p)
   if distance<shell.radius:
    var multiplier=1.0 if e==primary else .65
-   hit(e,shell.damage*multiplier,e==primary,0,false,shell.critical)
+   hit(e,shell.damage*multiplier,e==primary,0,false,shell.critical,p,&"explosive")
  if upgrades.get("chain",0)>0 and primary!=null:
   var last=p
   var used=[primary]
@@ -2770,8 +2776,9 @@ func detonate_shell(shell:Dictionary):
    var e=nearest_enemy(last,4.5,used)
    if e==null:break
    beam(last+Vector3(0,.6,0),e.node.position+Vector3(0,.6,0),Color("91c3df"),.20)
+   var impact_from=last
    last=e.node.position;used.append(e)
-   hit(e,shell.damage*pow(.65,i+1),false,0,true)
+   hit(e,shell.damage*pow(.65,i+1),false,0,true,false,impact_from)
 
 func explosion_visual(p:Vector3,radius:float,heavy:bool):
  if is_instance_valid(battle_fx):battle_fx.blast(p,radius,heavy,low_fx)
@@ -2779,7 +2786,10 @@ func explosion_visual(p:Vector3,radius:float,heavy:bool):
 func update_corpses(dt:float):
  for corpse in corpses.duplicate():
   corpse.life-=dt
-  corpse.node.transform=corpse.start*ActorVisuals.sample_death(3.5-corpse.life,1 if corpse.lean>=0 else -1,1)
+  var motion=CorpseMotion.sample(corpse.get("death_kind",&"ballistic"),corpse.get("death_direction",Vector3.ZERO),3.5-corpse.life)
+  var parent_world:Transform3D=corpse.node.get_parent().global_transform if corpse.node.get_parent() is Node3D else Transform3D.IDENTITY
+  var root_world=CorpseMotion.apply_world(parent_world*corpse.start,motion)
+  corpse.node.transform=parent_world.affine_inverse()*root_world*ActorVisuals.sample_death(motion.fall_age,1 if corpse.lean>=0 else -1,1)
   if corpse.life<1:corpse.node.scale=corpse.scale*maxf(.03,corpse.life)
   if corpse.life<=0:
    corpse.node.queue_free()

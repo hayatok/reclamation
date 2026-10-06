@@ -2,6 +2,7 @@ extends RefCounted
 ## Render-only snapshots. Actor roots always retain authoritative simulation state.
 ## New actors, lifecycle changes and teleports snap; old actors never persist as ghosts.
 
+const CorpseMotion=preload("res://corpse_motion.gd")
 const MAX_STEP_DISTANCE: float = 1.0
 const VISUAL_ROOT: StringName = &"interpolated_visual_root"
 var _previous: Dictionary = {}
@@ -104,7 +105,8 @@ func _snapshot(record: Dictionary, stage: int) -> Dictionary:
 		state.life = float(record.life)
 		# Baked death meshes already contain the topple, unlike procedural corpses.
 		var parent_world: Transform3D = actor.get_parent().global_transform if actor.get_parent() is Node3D else Transform3D.IDENTITY
-		var baked_world: Transform3D = parent_world * record.start
+		var motion:Dictionary=CorpseMotion.sample(record.get("death_kind",&"ballistic"),record.get("death_direction",Vector3.ZERO),3.5-state.life)
+		var baked_world: Transform3D = CorpseMotion.apply_world(parent_world * record.start,motion)
 		if state.life < 1.0:
 			baked_world.basis = baked_world.basis.scaled(Vector3.ONE * maxf(0.03, state.life))
 		state.baked_world = baked_world

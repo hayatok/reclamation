@@ -1,4 +1,5 @@
 extends Node3D
+const CorpseMotion=preload("res://corpse_motion.gd")
 ## Original Blender rig baked into shared pose meshes. Simulation roots stay untouched.
 const Library = preload("res://infected_pose_library.gd")
 var batches: Dictionary = {}
@@ -61,7 +62,10 @@ func update_crowd(enemies:Array,elapsed:float,camera:Camera3D,rendered:Dictionar
   var age:float=elapsed
   var phase:float=float(id%127)/127.0
   var corpse:bool=e.has("life")
-  if corpse:clip="death";age=3.5-float(state.get("life",e.life));phase=0
+  if corpse:
+   clip="death"
+   age=CorpseMotion.sample(e.get("death_kind",&"ballistic"),e.get("death_direction",Vector3.ZERO),3.5-float(state.get("life",e.life))).clip_age
+   phase=0
   elif elapsed-float(e.get("attack_at",-100.0))<.8:clip="attack";age=elapsed-float(e.attack_at);phase=0
   var frame:int=Library.frame_index(clip,age,phase)
   var far_lod:bool=force_far or not near_lod
@@ -70,7 +74,8 @@ func update_crowd(enemies:Array,elapsed:float,camera:Camera3D,rendered:Dictionar
   if corpse:
    if state.has("baked_world"):world=state.baked_world
    else:
-    world=actor.get_parent().global_transform*e.start
+    var motion=CorpseMotion.sample(e.get("death_kind",&"ballistic"),e.get("death_direction",Vector3.ZERO),3.5-e.life)
+    world=CorpseMotion.apply_world(actor.get_parent().global_transform*e.start,motion)
     if e.life<1:world.basis=world.basis.scaled(Vector3.ONE*maxf(.03,e.life))
   var stature:float=.94+float(id%7)*.02
   world.basis=world.basis.scaled(Vector3(stature,stature,stature))
