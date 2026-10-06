@@ -9,7 +9,7 @@
 config_version=5
 
 [application]
-config/version="0.34.0"
+config/version="0.34.1"
 
 config/name="RECLAMATION — オルタ湾復旧作戦"
 config/icon="res://icon.svg"

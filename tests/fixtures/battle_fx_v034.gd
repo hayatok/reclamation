@@ -63,14 +63,13 @@ func spawn(kind:String,p:Vector3,duration:float,size:float,color:Color,velocity:
  var cap=32 if kind=="scorch" else mini(96,LIMIT-CRITICAL_SMOKE_SLOTS) if kind=="smoke" else LIMIT-CRITICAL_FLAME_SLOTS if kind=="flame" else LIMIT
  if particles[kind].size()>=cap:return {}
  var item={"pos":p,"life":duration,"total":duration,"size":size,"color":color,"velocity":velocity,"growth":growth,"angle":rng.randf_range(-PI,PI)}
- if kind=="flash":item.first_submission=true
  particles[kind].append(item)
  return item
 
 func streak(a:Vector3,b:Vector3,color:Color,duration:float,width:float,socket:Dictionary={}):
  if a.distance_squared_to(b)<.0001 or particles.streak.size()>=LIMIT:return
  var direction=b-a
- var item={"pos":(a+b)*.5,"life":duration,"total":duration,"size":1.0,"color":color,"velocity":Vector3.ZERO,"growth":0.0,"angle":0.0,"basis":_streak_basis(direction,width),"first_submission":true}
+ var item={"pos":(a+b)*.5,"life":duration,"total":duration,"size":1.0,"color":color,"velocity":Vector3.ZERO,"growth":0.0,"angle":0.0,"basis":_streak_basis(direction,width)}
  if not socket.is_empty():
   item.muzzle=socket;item.endpoint=b;item.width=width;item.muzzle_fallback=a
  particles.streak.append(item)
@@ -129,7 +128,7 @@ func blast(p:Vector3,radius:float,heavy:bool,reduced:bool=false):
   spawn("debris",p+Vector3(0,.5,0),rng.randf_range(.45,.8),rng.randf_range(.07,.15),Color("655344") if i%3 else Color("d19b51"),direction*rng.randf_range(2,4))
  if heavy:
   var light=lights[0] if lights[0].life<lights[1].life else lights[1]
-  light.node.position=p+Vector3(0,1.4,0);light.life=.12;light.first_submission=true
+  light.node.position=p+Vector3(0,1.4,0);light.life=.12
 
 func trail(a:Vector3,b:Vector3,heavy:bool):
  streak(a,b,Color(1,.74,.35,.75),.16,.09 if heavy else .045)
@@ -183,27 +182,12 @@ func update(delta:float,camera:Camera3D,buildings:Array=[],actor_frames:Dictiona
  var critical:Dictionary=_critical_particles(buildings,camera)
  var muzzle_positions:Dictionary={}
  for light in lights:
-  var fresh:bool=light.get("first_submission",false)
-  light.erase("first_submission")
-  light.life=maxf(0,light.life-delta)
-  var presented_life:float=.12-1.0/60.0 if fresh and light.life<=0 else light.life
-  light.node.light_energy=3*presented_life/.12
+  light.life=maxf(0,light.life-delta);light.node.light_energy=3*light.life/.12
  for kind in particles:
   var list:Array=particles[kind]
-  var first_samples:Array=[]
   for i in range(list.size()-1,-1,-1):
-   var item:Dictionary=list[i]
-   var fresh:bool=item.get("first_submission",false)
-   item.erase("first_submission")
-   item.life-=delta
-   if item.life<=0:
-    list.remove_at(i)
-    if not fresh:continue
-    # Retain real elapsed lifetime: the expired item leaves its pool now.
-    # Only its first submission gets a normal 60fps-age visual sample.
-    item=item.duplicate()
-    item.life=item.total-minf(1.0/60.0,item.total*.5)
-    first_samples.append(item)
+   var item:Dictionary=list[i];item.life-=delta
+   if item.life<=0:list.remove_at(i);continue
    if item.has("muzzle"):
     var socket:Dictionary=item.muzzle
     var actor:Variant=socket.get("node")
@@ -226,9 +210,6 @@ func update(delta:float,camera:Camera3D,buildings:Array=[],actor_frames:Dictiona
   # Do not put persistent cues in the expiring combat particle lists. Repair,
   # destruction, load and removal therefore clear them on this render update.
   var rendered:Array=list
-  if not first_samples.is_empty():
-   rendered=list.duplicate()
-   rendered.append_array(first_samples)
   if kind in ["flame","smoke"] and not critical[kind].is_empty():
    rendered=list.duplicate()
    rendered.append_array(critical[kind])
