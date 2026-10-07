@@ -202,7 +202,7 @@ func update_friends(units:Array,rendered:Dictionary={})->void:
 	if _friendly_batches.is_empty():
 		for kind in ["guard","worker","grenade"]:
 			var meshes=[]
-			for part in PARTS:
+			for part in ActorVisuals.parts_for(kind):
 				var mm=MultiMesh.new()
 				mm.transform_format=MultiMesh.TRANSFORM_3D
 				mm.mesh=ActorVisuals.mesh_for(kind,part)
@@ -224,14 +224,13 @@ func update_friends(units:Array,rendered:Dictionary={})->void:
 		if not is_instance_valid(skeleton):continue
 		var index:int=counts[u.kind]
 		if index>=64:continue
-		var body:Node3D=skeleton.get_meta(&"body")
-		var parts=[body,body,skeleton.get_meta(&"leg_l"),skeleton.get_meta(&"leg_r"),skeleton.get_meta(&"arm_l"),skeleton.get_meta(&"arm_r")]
+		var parts: Array = ActorVisuals.part_nodes(skeleton)
 		var state: Dictionary = rendered.get(u.node.get_instance_id(), {})
 		var actor_world: Transform3D = state.get("world", u.node.global_transform)
 		var actor_inverse: Transform3D = u.node.global_transform.affine_inverse()
 		var rendered_parts: Array = state.get("parts", [])
-		for i in 6:
-			var local_part: Transform3D = rendered_parts[i] if rendered_parts.size()==6 else actor_inverse * parts[i].global_transform
+		for i in parts.size():
+			var local_part: Transform3D = rendered_parts[i] if rendered_parts.size()==parts.size() else actor_inverse * parts[i].global_transform
 			_friendly_batches[u.kind][i].set_instance_transform(index,inverse * actor_world * local_part)
 		counts[u.kind]+=1
 	for kind in counts:

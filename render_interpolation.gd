@@ -2,6 +2,7 @@ extends RefCounted
 ## Render-only snapshots. Actor roots always retain authoritative simulation state.
 ## New actors, lifecycle changes and teleports snap; old actors never persist as ghosts.
 
+const ActorVisuals = preload("res://actor_visuals.gd")
 const CorpseMotion=preload("res://corpse_motion.gd")
 const MAX_STEP_DISTANCE: float = 1.0
 const VISUAL_ROOT: StringName = &"interpolated_visual_root"
@@ -94,8 +95,7 @@ func _snapshot(record: Dictionary, stage: int) -> Dictionary:
 	var state: Dictionary = {"node": actor, "stage": stage, "world": world}
 	var skeleton: Node3D = actor.get_meta(&"actor_visuals") if actor.has_meta(&"actor_visuals") else null
 	if stage == 0 and is_instance_valid(skeleton):
-		var body: Node3D = skeleton.get_meta(&"body")
-		var nodes: Array = [body, body, skeleton.get_meta(&"leg_l"), skeleton.get_meta(&"leg_r"), skeleton.get_meta(&"arm_l"), skeleton.get_meta(&"arm_r")]
+		var nodes: Array = ActorVisuals.part_nodes(skeleton)
 		var inverse: Transform3D = world.affine_inverse()
 		var parts: Array[Transform3D] = []
 		for part: Node3D in nodes:

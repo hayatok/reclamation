@@ -35,12 +35,15 @@ static func world_position(socket: Dictionary, rendered: Dictionary, fallback: V
 		return fallback
 	var local: Vector3 = ActorVisuals.muzzle_local(kind)
 	var parts: Array = state.get("parts", [])
-	if parts.size() == 6:
+	var part_index: int = ActorVisuals.muzzle_part_index(kind)
+	if parts.size() == ActorVisuals.parts_for(kind).size():
 		# Exactly the same root/part composition as HordeRenderer.update_friends.
-		return world * parts[5] * local
+		return world * parts[part_index] * local
 	var skeleton: Node3D = node.get_meta(&"actor_visuals", null)
 	if not is_instance_valid(skeleton):
 		return fallback
-	var arm: Node3D = skeleton.get_meta(&"arm_r")
+	var nodes: Array[Node3D] = ActorVisuals.part_nodes(skeleton)
+	if part_index >= nodes.size(): return fallback
+	var arm: Node3D = nodes[part_index]
 	var root_local: Transform3D = node.global_transform.affine_inverse() * arm.global_transform
 	return world * root_local * local

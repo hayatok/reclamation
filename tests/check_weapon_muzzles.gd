@@ -35,7 +35,7 @@ func run():
    units.append({"node":node,"kind":kind,"hp":100.0})
  for kind:String in ["guard","grenade"]:
   var tip:Vector3=ActorVisuals.muzzle_local(kind)
-  var bounds:AABB=ActorVisuals.mesh_for(kind,"armR").get_aabb()
+  var bounds:AABB=ActorVisuals.mesh_for(kind,ActorVisuals.parts_for(kind)[ActorVisuals.muzzle_part_index(kind)]).get_aabb()
   check(absf(bounds.position.z-tip.z)<.00001,kind+" socket is on barrel front face")
  interpolation.reset(units,[],[])
  for moving:bool in [false,true]:
@@ -57,10 +57,10 @@ func run():
      if unit.kind=="siegecart":
       near(actual,interpolation.visual_root(unit.node).global_transform*WeaponMuzzles.SIEGE_MUZZLE,"cart visual root socket")
      else:
-      var expected:Vector3=state.world*state.parts[5]*ActorVisuals.muzzle_local(unit.kind)
+      var expected:Vector3=state.world*state.parts[ActorVisuals.muzzle_part_index(unit.kind)]*ActorVisuals.muzzle_local(unit.kind)
       near(actual,expected,"human interpolated root/arm socket")
       if DisplayServer.get_name()!="headless":
-       var gpu:Transform3D=renderer._friendly_batches[unit.kind][5].get_instance_transform(index%8)
+       var gpu:Transform3D=renderer._friendly_batches[unit.kind][ActorVisuals.muzzle_part_index(unit.kind)].get_instance_transform(index%8)
        near(actual,renderer.global_transform*gpu*ActorVisuals.muzzle_local(unit.kind),"socket on submitted ArmR mesh")
      fx.muzzle(Vector3.ZERO,unit.kind=="siegecart",socket)
      if unit.kind=="guard":fx.beam(Vector3.ZERO,actual-state.world.basis.z*8+Vector3(0,.3,0),Color("d2a148"),.1,.055,socket)

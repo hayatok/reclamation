@@ -1,8 +1,25 @@
 extends RefCounted
 ## Original low-poly actor silhouettes. Forward is -Z; actor roots are never moved.
-## Each actor has six single-surface meshes, shared across instances of its kind.
+## Guard has fourteen articulated parts; other kinds retain six shared parts.
 ## Matte rail-command palette: slate/bone friendlies, workwear amber, ash/rust infected.
 ## phase is a gait/work angle in radians. Survivor gait advances with travel distance.
+
+const ArticulatedSurvivor = preload("res://articulated_survivor.gd")
+const LEGACY_PARTS: Array[String] = ["torso", "head", "legL", "legR", "armL", "armR"]
+
+static func parts_for(kind: String) -> Array[String]:
+	return ArticulatedSurvivor.PARTS if kind == "guard" else LEGACY_PARTS
+
+static func part_nodes(visual: Node3D) -> Array[Node3D]:
+	if visual.has_meta(&"part_nodes"):
+		var result: Array[Node3D] = []
+		result.assign(visual.get_meta(&"part_nodes"))
+		return result
+	var body: Node3D = visual.get_meta(&"body")
+	return [body, body, visual.get_meta(&"leg_l"), visual.get_meta(&"leg_r"), visual.get_meta(&"arm_l"), visual.get_meta(&"arm_r")]
+
+static func muzzle_part_index(kind: String) -> int:
+	return 13 if kind == "guard" else 5
 
 static var _meshes: Dictionary = {}
 static var _material: StandardMaterial3D
@@ -10,6 +27,7 @@ static var _material: StandardMaterial3D
 ## Front-face centres of the actual ArmR barrel geometry in _human_geometry.
 ## Rifle: -.745 - .28/2. Launcher: -1.055 - .03/2.
 static func muzzle_local(kind: String) -> Vector3:
+	if kind == "guard": return ArticulatedSurvivor.MUZZLE
 	return Vector3(-.035, -.18, -1.070) if kind in ["grenade", "grenadier"] else Vector3(-.035, -.175, -.885)
 
 static func add_human(parent: Node3D, kind: String) -> void:
@@ -20,7 +38,7 @@ static func add_enemy(parent: Node3D, fast: bool, armored: bool = false) -> void
 
 ## Shared source geometry for the horde MultiMesh renderer.
 static func mesh_for(kind: String, part: String) -> ArrayMesh:
-	return _mesh(kind, part)
+	return ArticulatedSurvivor.mesh_for(part) if kind == "guard" else _mesh(kind, part)
 
 ## Backward-compatible walk/idle entry point. Call pose instead when combat timing is available.
 static func animate(parent: Node3D, phase: float, moving: bool) -> void:
@@ -28,13 +46,17 @@ static func animate(parent: Node3D, phase: float, moving: bool) -> void:
 
 ## All times are seconds since event; -1 means inactive. Reload is normalized [0,1], -1 inactive.
 ## Calling each frame is required: pose fully resets transforms, so effects never accumulate.
-static func pose(parent: Node3D, phase: float, moving: bool, attack_age: float = -1.0, reload_progress: float = -1.0, working: bool = false, hit_age: float = -1.0, hit_strength: float = 1.0, locomotion_weight: float = 1.0) -> void:
+static func pose(parent: Node3D, phase: float, moving: bool, attack_age: float = -1.0, reload_progress: float = -1.0, working: bool = false, hit_age: float = -1.0, hit_strength: float = 1.0, locomotion_weight: float = 1.0, stride_distance: float = 2.2) -> void:
 	if not is_instance_valid(parent) or not parent.has_meta(&"actor_visuals"):
 		return
 	var visual: Node3D = parent.get_meta(&"actor_visuals")
 	if not is_instance_valid(visual): return
 	var kind: String = visual.get_meta(&"kind")
-	var frames := sample_pose(kind, phase, moving, attack_age, reload_progress, working, hit_age, hit_strength, locomotion_weight)
+	var frames := sample_pose(kind, phase, moving, attack_age, reload_progress, working, hit_age, hit_strength, locomotion_weight, stride_distance)
+	if kind == "guard" and visual.has_meta(&"part_nodes"):
+		var nodes: Array[Node3D] = part_nodes(visual)
+		for index: int in frames.size(): nodes[index].transform = frames[index]
+		return
 	var body: Node3D = visual.get_meta(&"body")
 	body.transform = frames[0]
 	var leg_l: Node3D = visual.get_meta(&"leg_l")
@@ -48,10 +70,12 @@ static func pose(parent: Node3D, phase: float, moving: bool, attack_age: float =
 	arm_l.transform = inverse * frames[4]
 	arm_r.transform = inverse * frames[5]
 
-## Allocation is one six-element array. All outputs are ACTOR-ROOT-LOCAL, in horde PARTS order:
-## torso, head, legL, legR, armL, armR. Batched renderers can multiply each by actor.global_transform.
+## One transform per parts_for(kind), all ACTOR-ROOT-LOCAL.
+## Legacy kinds use torso/head/legL/legR/armL/armR; guards use fourteen articulated parts.
 ## No nodes, materials, meshes, simulation state or actor root transforms are changed here.
-static func sample_pose(kind: String, phase: float, moving: bool, attack_age: float = -1.0, reload_progress: float = -1.0, working: bool = false, hit_age: float = -1.0, hit_strength: float = 1.0, locomotion_weight: float = 1.0) -> Array[Transform3D]:
+static func sample_pose(kind: String, phase: float, moving: bool, attack_age: float = -1.0, reload_progress: float = -1.0, working: bool = false, hit_age: float = -1.0, hit_strength: float = 1.0, locomotion_weight: float = 1.0, stride_distance: float = 2.2) -> Array[Transform3D]:
+	if kind == "guard":
+		return ArticulatedSurvivor.sample_pose(phase, moving, attack_age, reload_progress, hit_age, hit_strength, locomotion_weight, stride_distance)
 	phase = phase if is_finite(phase) else 0.0
 	attack_age = attack_age if is_finite(attack_age) else -1.0
 	reload_progress = reload_progress if is_finite(reload_progress) else -1.0
@@ -162,6 +186,9 @@ static func sample_death(age: float, side: float = 1.0, forward: float = 1.0) ->
 	return Transform3D(basis,origin)
 
 static func _add(parent: Node3D, kind: String) -> void:
+	if kind == "guard":
+		_add_articulated_guard(parent)
+		return
 	if parent.has_meta(&"actor_visuals"):
 		return
 	var visual := Node3D.new()
@@ -196,6 +223,28 @@ static func _add(parent: Node3D, kind: String) -> void:
 		arm.position = Vector3(side * width, 0.43 if kind == "armored" else 0.4, 0.0)
 		_instance(arm, _mesh(kind, "arm" + suffix), "Geometry")
 		visual.set_meta(&"arm_l" if side < 0 else &"arm_r", arm)
+
+static func _add_articulated_guard(parent: Node3D) -> void:
+	if parent.has_meta(&"actor_visuals"): return
+	var visual := Node3D.new()
+	visual.name = "ActorVisuals"
+	parent.add_child(visual)
+	parent.set_meta(&"actor_visuals", visual)
+	visual.set_meta(&"kind", "guard")
+	var nodes: Array[Node3D] = []
+	for part: String in ArticulatedSurvivor.PARTS:
+		var bone := Node3D.new()
+		bone.name = part
+		visual.add_child(bone)
+		_instance(bone, ArticulatedSurvivor.mesh_for(part), "Geometry")
+		nodes.append(bone)
+	visual.set_meta(&"part_nodes", nodes)
+	visual.set_meta(&"body", nodes[0])
+	visual.set_meta(&"leg_l", nodes[3])
+	visual.set_meta(&"leg_r", nodes[4])
+	visual.set_meta(&"arm_l", nodes[11])
+	visual.set_meta(&"arm_r", nodes[13])
+	pose(parent, 0.0, false)
 
 static func _instance(parent: Node3D, mesh: ArrayMesh, node_name: String) -> void:
 	var instance := MeshInstance3D.new()

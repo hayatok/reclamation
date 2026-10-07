@@ -2,6 +2,7 @@ extends RefCounted
 ## Cosmetic survivor motion only. Never changes orders, speed, cooldowns or RNG.
 ## Metadata is deliberately absent from unit save data and upgrade shot counters.
 const ActorVisuals = preload("res://actor_visuals.gd")
+const ArticulatedSurvivor = preload("res://articulated_survivor.gd")
 const META: StringName = &"survivor_motion"
 const CYCLE_DISTANCE: float = 2.20
 const TELEPORT_DISTANCE: float = 1.0
@@ -43,9 +44,11 @@ static func update_pose(unit: Dictionary, previous_position: Vector3, dt: float,
 	var distance: float = offset.length()
 	if not is_finite(distance) or distance > TELEPORT_DISTANCE: distance = 0.0
 	var speed: float = distance / dt
-	var target_weight: float = smoothstep(0.05, 3.2, speed)
+	var articulated: bool = unit.get("kind", "") == "guard"
+	var stride_distance: float = ArticulatedSurvivor.cycle_distance(speed) if articulated else CYCLE_DISTANCE
+	var target_weight: float = smoothstep(0.18, 0.80, speed) if articulated else smoothstep(0.05, 3.2, speed)
 	state.weight = move_toward(float(state.weight), target_weight, dt * (9.0 if target_weight > state.weight else 7.0))
-	state.phase = fposmod(float(state.phase) + distance * TAU / CYCLE_DISTANCE, TAU)
+	state.phase = fposmod(float(state.phase) + distance * TAU / stride_distance, TAU)
 	if working:
 		if not state.working: state.work_phase = 0.0
 		state.work_phase = fposmod(float(state.work_phase) + dt * TAU / WORK_CYCLE, TAU)
@@ -55,4 +58,4 @@ static func update_pose(unit: Dictionary, previous_position: Vector3, dt: float,
 	var attack_age: float = elapsed - float(unit.get("attack_at", -100.0))
 	# There is no rifle magazine simulation. Readable recoil/recovery is driven by
 	# the real shot; never invent a magazine gesture in every cooldown interval.
-	ActorVisuals.pose(node, phase, state.weight > 0.001 and not working, attack_age, -1.0, working, -1.0, 1.0, float(state.weight))
+	ActorVisuals.pose(node, phase, state.weight > 0.001 and not working, attack_age, -1.0, working, -1.0, 1.0, float(state.weight), stride_distance)
