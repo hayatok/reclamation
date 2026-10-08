@@ -1,0 +1,1932 @@
+{
+  "passed": true,
+  "unchanged_runtime_stride_m": 1.12,
+  "interpolation_samples_per_cycle": 12000,
+  "method": "Read-only, shader-equivalent comparison of frozen and trial GLB bytes.\n\nRun from any directory with Python and numpy. No Blender/Godot is needed.\nMeasures the same material corner's velocity under exact linear pose blending,\nthen adds unchanged root motion. The minimum-height shoe is a contact proxy,\nnot a force or center-of-mass simulation.\n",
+  "lods": {
+    "near": {
+      "before_sha256": "f68c68e07fcbb1f731cfebf0b26e273da8dfb20a0b198d59201824c700820db8",
+      "after_sha256": "d016255bc0ef4677f74e2a7b92355eaa5d7704ebaa23b86953ded48fb7c68a7a",
+      "pose_count": 32,
+      "nonwalk_pose_count": 20,
+      "nonwalk_attributes_bitwise_equal": false,
+      "nonwalk_max_absolute_attribute_error": {
+        "POSITION": 4.76837158203125e-07,
+        "NORMAL": 0.0001347064971923828,
+        "TEXCOORD_0": 0.0,
+        "TEXCOORD_1": 0.0
+      },
+      "all_pose_topology_and_uvs_exactly_unchanged": true,
+      "material_and_atlas_exactly_unchanged": true,
+      "foot_corner_counts": {
+        "L": 300,
+        "R": 300
+      },
+      "before": {
+        "left_old_problem_window_0125_0375": {
+          "phase_fraction": 0.25,
+          "root_travel_m": 0.28,
+          "material_forward_drift_m": 0.28,
+          "material_horizontal_path_m": 0.28185692616085056,
+          "path_over_root_travel": 1.0066318791458948,
+          "min_shoe_height_m": 0.0,
+          "max_shoe_height_m": 0.0008927718121558432,
+          "max_material_speed_over_root": 1.9993772141829111
+        },
+        "left_old_ground_core_1_6_to_1_3": {
+          "phase_fraction": 0.16666666666666666,
+          "root_travel_m": 0.18666666666666668,
+          "material_forward_drift_m": 0.18666666666666673,
+          "material_horizontal_path_m": 0.18668589902315466,
+          "path_over_root_travel": 1.0001030304811855,
+          "min_shoe_height_m": 0.0,
+          "max_shoe_height_m": 0.0,
+          "max_material_speed_over_root": 1.3638609051659334
+        },
+        "left_authored_stance_0_to_7_12": {
+          "phase_fraction": 0.5833333333333334,
+          "root_travel_m": 0.6533333333333334,
+          "material_forward_drift_m": 0.6873103277881941,
+          "material_horizontal_path_m": 0.759418152157568,
+          "path_over_root_travel": 1.162374722690155,
+          "min_shoe_height_m": 0.0,
+          "max_shoe_height_m": 0.03253829440427943,
+          "max_material_speed_over_root": 2.3652652759431474
+        },
+        "right_authored_stance_1_2_to_1": {
+          "phase_fraction": 0.5,
+          "root_travel_m": 0.56,
+          "material_forward_drift_m": 0.5600000000000002,
+          "material_horizontal_path_m": 0.5951201038175186,
+          "path_over_root_travel": 1.0627144711027117,
+          "min_shoe_height_m": 0.0,
+          "max_shoe_height_m": 0.001612269630655646,
+          "max_material_speed_over_root": 2.1827844511750274
+        },
+        "geometrically_lower_shoe": {
+          "L": {
+            "phase_fraction": 0.25033333333333335,
+            "root_travel_m": 0.28037333333333336,
+            "material_forward_drift_m": 0.2803733333333334,
+            "material_horizontal_path_m": 0.2822376102694013,
+            "path_over_root_travel": 1.0066492662262267,
+            "min_shoe_height_m": 0.0,
+            "max_shoe_height_m": 0.0008963464740663768,
+            "max_material_speed_over_root": 1.9993772141829111
+          },
+          "R": {
+            "phase_fraction": 0.7496666666666667,
+            "root_travel_m": 0.8396266666666667,
+            "material_forward_drift_m": 0.839626666666667,
+            "material_horizontal_path_m": 0.8750527692751833,
+            "path_over_root_travel": 1.042192683980797,
+            "min_shoe_height_m": 0.0,
+            "max_shoe_height_m": 0.001612269630655646,
+            "max_material_speed_over_root": 2.1827844511750274
+          }
+        },
+        "lower_or_tied_within_1_micron": {
+          "L": {
+            "phase_fraction": 0.25033333333333335,
+            "root_travel_m": 0.28037333333333336,
+            "material_forward_drift_m": 0.2803733333333334,
+            "material_horizontal_path_m": 0.2822376102694013,
+            "path_over_root_travel": 1.0066492662262267,
+            "min_shoe_height_m": 0.0,
+            "max_shoe_height_m": 0.0008963464740663768,
+            "max_material_speed_over_root": 1.9993772141829111
+          },
+          "R": {
+            "phase_fraction": 0.7496666666666667,
+            "root_travel_m": 0.8396266666666667,
+            "material_forward_drift_m": 0.839626666666667,
+            "material_horizontal_path_m": 0.8750527692751833,
+            "path_over_root_travel": 1.042192683980797,
+            "min_shoe_height_m": 0.0,
+            "max_shoe_height_m": 0.001612269630655646,
+            "max_material_speed_over_root": 2.1827844511750274
+          }
+        },
+        "height_thresholds": {
+          "0.002": {
+            "L": {
+              "phase_fraction": 0.3353333333333333,
+              "root_travel_m": 0.37557333333333337,
+              "material_forward_drift_m": 0.3755733333333335,
+              "material_horizontal_path_m": 0.38007876812971003,
+              "path_over_root_travel": 1.011996152006825,
+              "min_shoe_height_m": 0.0,
+              "max_shoe_height_m": 0.001991035843268036,
+              "max_material_speed_over_root": 2.35971485519664
+            },
+            "R": {
+              "phase_fraction": 1.0,
+              "root_travel_m": 1.12,
+              "material_forward_drift_m": 1.1200000000000003,
+              "material_horizontal_path_m": 1.1554909477644866,
+              "path_over_root_travel": 1.0316883462182915,
+              "min_shoe_height_m": 0.0,
+              "max_shoe_height_m": 0.0018015434517292307,
+              "max_material_speed_over_root": 2.1827844511750274
+            }
+          },
+          "0.005": {
+            "L": {
+              "phase_fraction": 0.3635,
+              "root_travel_m": 0.40712000000000004,
+              "material_forward_drift_m": 0.40712000000000004,
+              "material_horizontal_path_m": 0.42304441033526335,
+              "path_over_root_travel": 1.0391147827059917,
+              "min_shoe_height_m": 0.0,
+              "max_shoe_height_m": 0.00498461202345789,
+              "max_material_speed_over_root": 2.35971485519664
+            },
+            "R": {
+              "phase_fraction": 1.0,
+              "root_travel_m": 1.12,
+              "material_forward_drift_m": 1.1200000000000003,
+              "material_horizontal_path_m": 1.1554909477644866,
+              "path_over_root_travel": 1.0316883462182915,
+              "min_shoe_height_m": 0.0,
+              "max_shoe_height_m": 0.0018015434517292307,
+              "max_material_speed_over_root": 2.1827844511750274
+            }
+          },
+          "0.01": {
+            "L": {
+              "phase_fraction": 0.49666666666666665,
+              "root_travel_m": 0.5562666666666667,
+              "material_forward_drift_m": 0.5562666666666668,
+              "material_horizontal_path_m": 0.6269326961940042,
+              "path_over_root_travel": 1.1270362467533632,
+              "min_shoe_height_m": 0.0,
+              "max_shoe_height_m": 0.009998472062172368,
+              "max_material_speed_over_root": 2.3652652759431474
+            },
+            "R": {
+              "phase_fraction": 1.0,
+              "root_travel_m": 1.12,
+              "material_forward_drift_m": 1.1200000000000003,
+              "material_horizontal_path_m": 1.1554909477644866,
+              "path_over_root_travel": 1.0316883462182915,
+              "min_shoe_height_m": 0.0,
+              "max_shoe_height_m": 0.0018015434517292307,
+              "max_material_speed_over_root": 2.1827844511750274
+            }
+          },
+          "0.02": {
+            "L": {
+              "phase_fraction": 0.5733333333333334,
+              "root_travel_m": 0.6421333333333334,
+              "material_forward_drift_m": 0.6421333333333336,
+              "material_horizontal_path_m": 0.7142684044011555,
+              "path_over_root_travel": 1.1123365932326963,
+              "min_shoe_height_m": 0.0,
+              "max_shoe_height_m": 0.019979161306750044,
+              "max_material_speed_over_root": 2.3652652759431474
+            },
+            "R": {
+              "phase_fraction": 1.0,
+              "root_travel_m": 1.12,
+              "material_forward_drift_m": 1.1200000000000003,
+              "material_horizontal_path_m": 1.1554909477644866,
+              "path_over_root_travel": 1.0316883462182915,
+              "min_shoe_height_m": 0.0,
+              "max_shoe_height_m": 0.0018015434517292307,
+              "max_material_speed_over_root": 2.1827844511750274
+            }
+          }
+        },
+        "pose_segments": [
+          {
+            "phase_start": 0.0,
+            "phase_end": 0.08333333333333333,
+            "L": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": -0.03392360775421062,
+              "material_horizontal_path_m": 0.034352134316866414,
+              "path_over_root_travel": 0.3680585819664259,
+              "min_shoe_height_m": 0.0017961876895278683,
+              "max_shoe_height_m": 0.010119459833251312,
+              "max_material_speed_over_root": 0.368992659367346
+            },
+            "R": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": 0.14936376045023408,
+              "material_horizontal_path_m": 0.14941452426798094,
+              "path_over_root_travel": 1.6008699028712243,
+              "min_shoe_height_m": 3.7372973747547326e-07,
+              "max_shoe_height_m": 0.0005071512537542731,
+              "max_material_speed_over_root": 1.6008861563203873
+            }
+          },
+          {
+            "phase_start": 0.08333333333333333,
+            "phase_end": 0.16666666666666666,
+            "L": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": 9.545457859834923e-05,
+              "material_horizontal_path_m": 0.0037335142849867957,
+              "path_over_root_travel": 0.04000193876771567,
+              "min_shoe_height_m": 8.936654776337747e-07,
+              "max_shoe_height_m": 0.0017864372897893187,
+              "max_material_speed_over_root": 0.040001938767715656
+            },
+            "R": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": 0.13388330449660626,
+              "material_horizontal_path_m": 0.1339131245953773,
+              "path_over_root_travel": 1.4347834778076138,
+              "min_shoe_height_m": 9.009114000949292e-07,
+              "max_shoe_height_m": 0.0018009218887891617,
+              "max_material_speed_over_root": 1.434783477807613
+            }
+          },
+          {
+            "phase_start": 0.16666666666666666,
+            "phase_end": 0.25,
+            "L": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": 0.059379100402196267,
+              "material_horizontal_path_m": 0.05939221454100086,
+              "path_over_root_travel": 0.6363451557964378,
+              "min_shoe_height_m": 0.0,
+              "max_shoe_height_m": 0.0,
+              "max_material_speed_over_root": 0.6363451557964378
+            },
+            "R": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": 0.10802702565987908,
+              "material_horizontal_path_m": 0.1080320509079214,
+              "path_over_root_travel": 1.1574862597277291,
+              "min_shoe_height_m": 0.0012434052285971119,
+              "max_shoe_height_m": 0.0018015434517292307,
+              "max_material_speed_over_root": 1.157486259727729
+            }
+          },
+          {
+            "phase_start": 0.25,
+            "phase_end": 0.3333333333333333,
+            "L": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": 0.12728756626447046,
+              "material_horizontal_path_m": 0.12729368448215378,
+              "path_over_root_travel": 1.3638609051659334,
+              "min_shoe_height_m": 0.0,
+              "max_shoe_height_m": 0.0,
+              "max_material_speed_over_root": 1.3638609051659334
+            },
+            "R": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": 0.07863964100678765,
+              "material_horizontal_path_m": 0.07864654403168635,
+              "path_over_root_travel": 0.8426415431966394,
+              "min_shoe_height_m": 0.0012434052285971119,
+              "max_shoe_height_m": 0.0018015434517292305,
+              "max_material_speed_over_root": 0.8426415431966394
+            }
+          },
+          {
+            "phase_start": 0.3333333333333333,
+            "phase_end": 0.4166666666666667,
+            "L": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": 0.1865712120880684,
+              "material_horizontal_path_m": 0.186608539990405,
+              "path_over_root_travel": 1.9993772141829107,
+              "min_shoe_height_m": 8.93665477632981e-07,
+              "max_shoe_height_m": 0.0017864372897893196,
+              "max_material_speed_over_root": 1.9993772141829111
+            },
+            "R": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": 0.052783362170060494,
+              "material_horizontal_path_m": 0.05285895418887727,
+              "path_over_root_travel": 0.5663459377379707,
+              "min_shoe_height_m": 9.009114000941291e-07,
+              "max_shoe_height_m": 0.0018009218887891625,
+              "max_material_speed_over_root": 0.5663459377379706
+            }
+          },
+          {
+            "phase_start": 0.4166666666666667,
+            "phase_end": 0.5,
+            "L": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": 0.2205902744208773,
+              "material_horizontal_path_m": 0.2206565567245043,
+              "path_over_root_travel": 2.3641773934768318,
+              "min_shoe_height_m": 0.00179618768952788,
+              "max_shoe_height_m": 0.010119459833251314,
+              "max_material_speed_over_root": 2.3652652759431474
+            },
+            "R": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": 0.03730290621643266,
+              "material_horizontal_path_m": 0.037505645955124865,
+              "path_over_root_travel": 0.4018462066620521,
+              "min_shoe_height_m": 3.7372973747597116e-07,
+              "max_shoe_height_m": 0.0005071512537542728,
+              "max_material_speed_over_root": 0.4021822106113794
+            }
+          },
+          {
+            "phase_start": 0.5,
+            "phase_end": 0.5833333333333334,
+            "L": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": 0.12731032778819407,
+              "material_horizontal_path_m": 0.12738150781765098,
+              "path_over_root_travel": 1.3648018694748318,
+              "min_shoe_height_m": 0.010133698039222523,
+              "max_shoe_height_m": 0.03253829440427943,
+              "max_material_speed_over_root": 1.3648018694748316
+            },
+            "R": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": -0.017009945983688025,
+              "material_horizontal_path_m": 0.017597795258558306,
+              "path_over_root_travel": 0.18854780634169613,
+              "min_shoe_height_m": 0.0,
+              "max_shoe_height_m": 0.0,
+              "max_material_speed_over_root": 0.18854780634169604
+            }
+          },
+          {
+            "phase_start": 0.5833333333333334,
+            "phase_end": 0.6666666666666666,
+            "L": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": 0.11726341356833779,
+              "material_horizontal_path_m": 0.11730052476634986,
+              "path_over_root_travel": 1.2567913367823198,
+              "min_shoe_height_m": 0.03255681972019374,
+              "max_shoe_height_m": 0.04716580455191434,
+              "max_material_speed_over_root": 1.25679133678232
+            },
+            "R": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": 0.01070008418833217,
+              "material_horizontal_path_m": 0.011121625010820113,
+              "path_over_root_travel": 0.11916026797307264,
+              "min_shoe_height_m": 1.0736454278224717e-06,
+              "max_shoe_height_m": 0.001612269630655646,
+              "max_material_speed_over_root": 0.122025586043786
+            }
+          },
+          {
+            "phase_start": 0.6666666666666666,
+            "phase_end": 0.75,
+            "L": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": 0.10179067363341653,
+              "material_horizontal_path_m": 0.1017959070035618,
+              "path_over_root_travel": 1.0906704321810192,
+              "min_shoe_height_m": 0.04717652520537377,
+              "max_shoe_height_m": 0.05398740598559379,
+              "max_material_speed_over_root": 1.0906704321810186
+            },
+            "R": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": 0.06265495491524539,
+              "material_horizontal_path_m": 0.06266473994550356,
+              "path_over_root_travel": 0.6714079279875381,
+              "min_shoe_height_m": 0.0,
+              "max_shoe_height_m": 0.0,
+              "max_material_speed_over_root": 0.6714079279875382
+            }
+          },
+          {
+            "phase_start": 0.75,
+            "phase_end": 0.8333333333333334,
+            "L": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": 0.0848759930332502,
+              "material_horizontal_path_m": 0.08488226927523446,
+              "path_over_root_travel": 0.9094528850917977,
+              "min_shoe_height_m": 0.04717652520537377,
+              "max_shoe_height_m": 0.05398740598559379,
+              "max_material_speed_over_root": 0.9094528850917977
+            },
+            "R": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": 0.12401171175142132,
+              "material_horizontal_path_m": 0.1240166557706011,
+              "path_over_root_travel": 1.3287498832564404,
+              "min_shoe_height_m": 0.0,
+              "max_shoe_height_m": 0.0,
+              "max_material_speed_over_root": 1.32874988325644
+            }
+          },
+          {
+            "phase_start": 0.8333333333333334,
+            "phase_end": 0.9166666666666666,
+            "L": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": 0.06940325309832893,
+              "material_horizontal_path_m": 0.06946593761976254,
+              "path_over_root_travel": 0.7442779030688843,
+              "min_shoe_height_m": 0.032556819720193725,
+              "max_shoe_height_m": 0.04716580455191435,
+              "max_material_speed_over_root": 0.7442779030688844
+            },
+            "R": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": 0.17596658247833458,
+              "material_horizontal_path_m": 0.17599273905569965,
+              "path_over_root_travel": 1.8856364898824962,
+              "min_shoe_height_m": 1.0736454278205646e-06,
+              "max_shoe_height_m": 0.001612269630655646,
+              "max_material_speed_over_root": 1.886426620998057
+            }
+          },
+          {
+            "phase_start": 0.9166666666666666,
+            "phase_end": 1.0,
+            "L": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": 0.059356338878472664,
+              "material_horizontal_path_m": 0.05950885595789041,
+              "path_over_root_travel": 0.6375948852631115,
+              "min_shoe_height_m": 0.010133698039222523,
+              "max_shoe_height_m": 0.03253829440427943,
+              "max_material_speed_over_root": 0.6375948852631115
+            },
+            "R": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": 0.2036766126503547,
+              "material_horizontal_path_m": 0.20372654877633595,
+              "path_over_root_travel": 2.182784451175028,
+              "min_shoe_height_m": 0.0,
+              "max_shoe_height_m": 0.0,
+              "max_material_speed_over_root": 2.1827844511750274
+            }
+          }
+        ],
+        "whole_cycle_maximum_shoe_clearance_m": {
+          "L": 0.05398740598559379,
+          "R": 0.0018015434517292307
+        }
+      },
+      "after": {
+        "left_old_problem_window_0125_0375": {
+          "phase_fraction": 0.25,
+          "root_travel_m": 0.28,
+          "material_forward_drift_m": -6.731599566656143e-08,
+          "material_horizontal_path_m": 1.0752810482725527e-07,
+          "path_over_root_travel": 3.8402894581162593e-07,
+          "min_shoe_height_m": 0.0,
+          "max_shoe_height_m": 0.0,
+          "max_material_speed_over_root": 6.624068212377149e-07
+        },
+        "left_old_ground_core_1_6_to_1_3": {
+          "phase_fraction": 0.16666666666666666,
+          "root_travel_m": 0.18666666666666668,
+          "material_forward_drift_m": -2.8734405817705994e-08,
+          "material_horizontal_path_m": 6.803520118647886e-08,
+          "path_over_root_travel": 3.644742920704224e-07,
+          "min_shoe_height_m": 0.0,
+          "max_shoe_height_m": 0.0,
+          "max_material_speed_over_root": 5.001316015857558e-07
+        },
+        "left_authored_stance_0_to_7_12": {
+          "phase_fraction": 0.5833333333333334,
+          "root_travel_m": 0.6533333333333334,
+          "material_forward_drift_m": -9.218851719043168e-08,
+          "material_horizontal_path_m": 2.387299017070685e-07,
+          "path_over_root_travel": 3.654029107761252e-07,
+          "min_shoe_height_m": 0.0,
+          "max_shoe_height_m": 0.0,
+          "max_material_speed_over_root": 6.624068212377149e-07
+        },
+        "right_authored_stance_1_2_to_1": {
+          "phase_fraction": 0.5,
+          "root_travel_m": 0.56,
+          "material_forward_drift_m": -4.708766931926789e-08,
+          "material_horizontal_path_m": 1.503647354933026e-07,
+          "path_over_root_travel": 2.685084562380403e-07,
+          "min_shoe_height_m": 0.0,
+          "max_shoe_height_m": 4.352407995611427e-08,
+          "max_material_speed_over_root": 4.832233700481834e-07
+        },
+        "geometrically_lower_shoe": {
+          "L": {
+            "phase_fraction": 0.5833333333333334,
+            "root_travel_m": 0.6533333333333334,
+            "material_forward_drift_m": -9.218851719043168e-08,
+            "material_horizontal_path_m": 2.387299017070685e-07,
+            "path_over_root_travel": 3.654029107761252e-07,
+            "min_shoe_height_m": 0.0,
+            "max_shoe_height_m": 0.0,
+            "max_material_speed_over_root": 6.624068212377149e-07
+          },
+          "R": {
+            "phase_fraction": 0.4166666666666667,
+            "root_travel_m": 0.46666666666666673,
+            "material_forward_drift_m": -6.159146622349472e-08,
+            "material_horizontal_path_m": 1.2957039180170965e-07,
+            "path_over_root_travel": 2.7765083957509204e-07,
+            "min_shoe_height_m": 0.0,
+            "max_shoe_height_m": 1.3031996786594394e-08,
+            "max_material_speed_over_root": 4.832233700481834e-07
+          }
+        },
+        "lower_or_tied_within_1_micron": {
+          "L": {
+            "phase_fraction": 0.5833333333333334,
+            "root_travel_m": 0.6533333333333334,
+            "material_forward_drift_m": -9.218851719043168e-08,
+            "material_horizontal_path_m": 2.387299017070685e-07,
+            "path_over_root_travel": 3.654029107761252e-07,
+            "min_shoe_height_m": 0.0,
+            "max_shoe_height_m": 0.0,
+            "max_material_speed_over_root": 6.624068212377149e-07
+          },
+          "R": {
+            "phase_fraction": 0.5,
+            "root_travel_m": 0.56,
+            "material_forward_drift_m": -4.708766931926789e-08,
+            "material_horizontal_path_m": 1.503647354933026e-07,
+            "path_over_root_travel": 2.685084562380403e-07,
+            "min_shoe_height_m": 0.0,
+            "max_shoe_height_m": 4.352407995611427e-08,
+            "max_material_speed_over_root": 4.832233700481834e-07
+          }
+        },
+        "height_thresholds": {
+          "0.002": {
+            "L": {
+              "phase_fraction": 0.594,
+              "root_travel_m": 0.66528,
+              "material_forward_drift_m": 0.014909351615905828,
+              "material_horizontal_path_m": 0.014909682534324788,
+              "path_over_root_travel": 0.02241113897054592,
+              "min_shoe_height_m": 0.0,
+              "max_shoe_height_m": 0.0019744834136218212,
+              "max_material_speed_over_root": 1.2740219767604655
+            },
+            "R": {
+              "phase_fraction": 0.5476666666666666,
+              "root_travel_m": 0.6133866666666666,
+              "material_forward_drift_m": 0.04745475728432345,
+              "material_horizontal_path_m": 0.04745495473673196,
+              "path_over_root_travel": 0.07736548137672587,
+              "min_shoe_height_m": 0.0,
+              "max_shoe_height_m": 0.001998534760088659,
+              "max_material_speed_over_root": 0.9207605208670635
+            }
+          },
+          "0.005": {
+            "L": {
+              "phase_fraction": 0.6101666666666666,
+              "root_travel_m": 0.6833866666666667,
+              "material_forward_drift_m": 0.03750647738198447,
+              "material_horizontal_path_m": 0.03750680830040352,
+              "path_over_root_travel": 0.054883728538850894,
+              "min_shoe_height_m": 0.0,
+              "max_shoe_height_m": 0.0049906234312802784,
+              "max_material_speed_over_root": 1.2740219767604655
+            },
+            "R": {
+              "phase_fraction": 0.619,
+              "root_travel_m": 0.69328,
+              "material_forward_drift_m": 0.11847103795290004,
+              "material_horizontal_path_m": 0.11847123540531411,
+              "path_over_root_travel": 0.17088511915144547,
+              "min_shoe_height_m": 0.0,
+              "max_shoe_height_m": 0.004994521598913705,
+              "max_material_speed_over_root": 0.9207605208670635
+            }
+          },
+          "0.01": {
+            "L": {
+              "phase_fraction": 0.637,
+              "root_travel_m": 0.7134400000000001,
+              "material_forward_drift_m": 0.07501304695248612,
+              "material_horizontal_path_m": 0.07501337787090531,
+              "path_over_root_travel": 0.10514321859007808,
+              "min_shoe_height_m": 0.0,
+              "max_shoe_height_m": 0.009996793976053606,
+              "max_material_speed_over_root": 1.2740219767604655
+            },
+            "R": {
+              "phase_fraction": 0.7023333333333334,
+              "root_travel_m": 0.7866133333333335,
+              "material_forward_drift_m": 0.2546962348707518,
+              "material_horizontal_path_m": 0.2546964323231698,
+              "path_over_root_travel": 0.3237886030279634,
+              "min_shoe_height_m": 0.0,
+              "max_shoe_height_m": 0.009989008009666574,
+              "max_material_speed_over_root": 2.2874932161399353
+            }
+          },
+          "0.02": {
+            "L": {
+              "phase_fraction": 0.6905,
+              "root_travel_m": 0.77336,
+              "material_forward_drift_m": 0.14979322603404532,
+              "material_horizontal_path_m": 0.14979355695246482,
+              "path_over_root_travel": 0.19369188599418746,
+              "min_shoe_height_m": 0.0,
+              "max_shoe_height_m": 0.019978040838614108,
+              "max_material_speed_over_root": 1.2740219767604655
+            },
+            "R": {
+              "phase_fraction": 0.8215,
+              "root_travel_m": 0.9200800000000001,
+              "material_forward_drift_m": 0.5512889015543463,
+              "material_horizontal_path_m": 0.5512890990067649,
+              "path_over_root_travel": 0.5991751793395844,
+              "min_shoe_height_m": 0.0,
+              "max_shoe_height_m": 0.01999899200419895,
+              "max_material_speed_over_root": 2.2874932161399353
+            }
+          }
+        },
+        "pose_segments": [
+          {
+            "phase_start": 0.0,
+            "phase_end": 0.08333333333333333,
+            "L": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": -3.9736428962082e-10,
+              "material_horizontal_path_m": 1.490645844269179e-08,
+              "path_over_root_travel": 1.597120547431263e-07,
+              "min_shoe_height_m": 0.0,
+              "max_shoe_height_m": 0.0,
+              "max_material_speed_over_root": 1.5971205474312623e-07
+            },
+            "R": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": 0.07998824079831444,
+              "material_horizontal_path_m": 0.07998824079831582,
+              "path_over_root_travel": 0.8570168656962409,
+              "min_shoe_height_m": 3.501171595416963e-06,
+              "max_shoe_height_m": 0.006996516041108408,
+              "max_material_speed_over_root": 0.8570168656962407
+            }
+          },
+          {
+            "phase_start": 0.08333333333333333,
+            "phase_end": 0.16666666666666666,
+            "L": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": -6.000200906501145e-08,
+              "material_horizontal_path_m": 6.182463664885338e-08,
+              "path_over_root_travel": 6.624068212377148e-07,
+              "min_shoe_height_m": 0.0,
+              "max_shoe_height_m": 0.0,
+              "max_material_speed_over_root": 6.624068212377149e-07
+            },
+            "R": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": 0.20131555159886677,
+              "material_horizontal_path_m": 0.20131555159886735,
+              "path_over_root_travel": 2.156952338559293,
+              "min_shoe_height_m": 0.007007016023620965,
+              "max_shoe_height_m": 0.02099296621419489,
+              "max_material_speed_over_root": 2.1569523385592926
+            }
+          },
+          {
+            "phase_start": 0.16666666666666666,
+            "phase_end": 0.25,
+            "L": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": -1.5298525483468477e-08,
+              "material_horizontal_path_m": 2.135625170514165e-08,
+              "path_over_root_travel": 2.288169825550891e-07,
+              "min_shoe_height_m": 0.0,
+              "max_shoe_height_m": 0.0,
+              "max_material_speed_over_root": 2.288169825550891e-07
+            },
+            "R": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": 0.26651621942718823,
+              "material_horizontal_path_m": 0.26651621942718867,
+              "path_over_root_travel": 2.855530922434164,
+              "min_shoe_height_m": 0.02100346619915217,
+              "max_shoe_height_m": 0.027996485953219238,
+              "max_material_speed_over_root": 2.855530922434164
+            }
+          },
+          {
+            "phase_start": 0.25,
+            "phase_end": 0.3333333333333333,
+            "L": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": -1.3435880334237519e-08,
+              "material_horizontal_path_m": 4.667894948133721e-08,
+              "path_over_root_travel": 5.001316015857558e-07,
+              "min_shoe_height_m": 0.0,
+              "max_shoe_height_m": 0.0,
+              "max_material_speed_over_root": 5.001316015857558e-07
+            },
+            "R": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": 0.27274301980932547,
+              "material_horizontal_path_m": 0.27274301980932714,
+              "path_over_root_travel": 2.9222466408142194,
+              "min_shoe_height_m": 0.02100349040143192,
+              "max_shoe_height_m": 0.02799648596532643,
+              "max_material_speed_over_root": 2.9222466408142194
+            }
+          },
+          {
+            "phase_start": 0.3333333333333333,
+            "phase_end": 0.4166666666666667,
+            "L": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": -1.7161170632699434e-08,
+              "material_horizontal_path_m": 1.7161170632699434e-08,
+              "path_over_root_travel": 1.8386968535035108e-07,
+              "min_shoe_height_m": 0.0,
+              "max_shoe_height_m": 0.0,
+              "max_material_speed_over_root": 1.8386968535035105e-07
+            },
+            "R": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": 0.21349936683972676,
+              "material_horizontal_path_m": 0.21349936683972723,
+              "path_over_root_travel": 2.2874932161399344,
+              "min_shoe_height_m": 0.007007012777728956,
+              "max_shoe_height_m": 0.020992990414844828,
+              "max_material_speed_over_root": 2.2874932161399353
+            }
+          },
+          {
+            "phase_start": 0.4166666666666667,
+            "phase_end": 0.5,
+            "L": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": -3.9736428962082e-10,
+              "material_horizontal_path_m": 2.980497136517315e-08,
+              "path_over_root_travel": 3.1933897891256947e-07,
+              "min_shoe_height_m": 0.0,
+              "max_shoe_height_m": 0.0,
+              "max_material_speed_over_root": 3.1933897891256937e-07
+            },
+            "R": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": 0.08593764861424767,
+              "material_horizontal_path_m": 0.08593764861425927,
+              "path_over_root_travel": 0.9207605208670636,
+              "min_shoe_height_m": 3.54352395515695e-06,
+              "max_shoe_height_m": 0.006996512804296795,
+              "max_material_speed_over_root": 0.9207605208670635
+            }
+          },
+          {
+            "phase_start": 0.5,
+            "phase_end": 0.5833333333333334,
+            "L": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": 1.4503796904226837e-08,
+              "material_horizontal_path_m": 4.699746343117191e-08,
+              "path_over_root_travel": 5.035442510482704e-07,
+              "min_shoe_height_m": 0.0,
+              "max_shoe_height_m": 0.0,
+              "max_material_speed_over_root": 5.035442510482704e-07
+            },
+            "R": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": 1.4503796904226837e-08,
+              "material_horizontal_path_m": 2.079434369159294e-08,
+              "path_over_root_travel": 2.2279653955278149e-07,
+              "min_shoe_height_m": 1.3053766451776046e-08,
+              "max_shoe_height_m": 4.352407995611427e-08,
+              "max_material_speed_over_root": 2.2279653955278154e-07
+            }
+          },
+          {
+            "phase_start": 0.5833333333333334,
+            "phase_end": 0.6666666666666666,
+            "L": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": 0.11890871783097588,
+              "material_horizontal_path_m": 0.1189087178309768,
+              "path_over_root_travel": 1.2740219767604657,
+              "min_shoe_height_m": 1.5547081828108754e-05,
+              "max_shoe_height_m": 0.031078616574406633,
+              "max_material_speed_over_root": 1.2740219767604655
+            },
+            "R": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": -4.5100847871163787e-08,
+              "material_horizontal_path_m": 4.5100847871163787e-08,
+              "path_over_root_travel": 4.832233700481834e-07,
+              "min_shoe_height_m": 6.5192580223047365e-12,
+              "max_shoe_height_m": 1.3031996786594394e-08,
+              "max_material_speed_over_root": 4.832233700481834e-07
+            }
+          },
+          {
+            "phase_start": 0.6666666666666666,
+            "phase_end": 0.75,
+            "L": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": 0.28161426966389014,
+              "material_horizontal_path_m": 0.2816142696638906,
+              "path_over_root_travel": 3.0172957463988275,
+              "min_shoe_height_m": 0.031119319442659648,
+              "max_shoe_height_m": 0.08138058071956035,
+              "max_material_speed_over_root": 3.0172957463988275
+            },
+            "R": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": -3.019968667731613e-08,
+              "material_horizontal_path_m": 3.3675891678366835e-08,
+              "path_over_root_travel": 3.6081312512535894e-07,
+              "min_shoe_height_m": 0.0,
+              "max_shoe_height_m": 0.0,
+              "max_material_speed_over_root": 3.6081312512535894e-07
+            }
+          },
+          {
+            "phase_start": 0.75,
+            "phase_end": 0.8333333333333334,
+            "L": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": 0.33151993488272025,
+              "material_horizontal_path_m": 0.33151993488272175,
+              "path_over_root_travel": 3.5519993023148757,
+              "min_shoe_height_m": 0.08140573654696345,
+              "max_shoe_height_m": 0.08140581842139363,
+              "max_material_speed_over_root": 3.5519993023148744
+            },
+            "R": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": 1.822908720268875e-08,
+              "material_horizontal_path_m": 3.4935340844814387e-08,
+              "path_over_root_travel": 3.74307223337297e-07,
+              "min_shoe_height_m": 0.0,
+              "max_shoe_height_m": 0.0,
+              "max_material_speed_over_root": 3.7430722333729694e-07
+            }
+          },
+          {
+            "phase_start": 0.8333333333333334,
+            "phase_end": 0.9166666666666666,
+            "L": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": 0.2739058281977971,
+              "material_horizontal_path_m": 0.2739058281977976,
+              "path_over_root_travel": 2.9347053021192595,
+              "min_shoe_height_m": 0.031119382781907855,
+              "max_shoe_height_m": 0.08138066266663378,
+              "max_material_speed_over_root": 2.934705302119259
+            },
+            "R": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": -4.122654588082734e-09,
+              "material_horizontal_path_m": 1.5460947117743825e-08,
+              "path_over_root_travel": 1.6565300483296955e-07,
+              "min_shoe_height_m": 0.0,
+              "max_shoe_height_m": 0.0,
+              "max_material_speed_over_root": 1.6565300483296947e-07
+            }
+          },
+          {
+            "phase_start": 0.9166666666666666,
+            "phase_end": 1.0,
+            "L": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": 0.11405134161313378,
+              "material_horizontal_path_m": 0.11405134161313378,
+              "path_over_root_travel": 1.221978660140719,
+              "min_shoe_height_m": 1.5547113493103908e-05,
+              "max_shoe_height_m": 0.03107867987267671,
+              "max_material_speed_over_root": 1.2219786601407188
+            },
+            "R": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": -3.9736428962082e-10,
+              "material_horizontal_path_m": 3.9736428962082e-10,
+              "path_over_root_travel": 4.257474531651642e-09,
+              "min_shoe_height_m": 5.820766091353854e-13,
+              "max_shoe_height_m": 1.1635711416602128e-09,
+              "max_material_speed_over_root": 4.257474531651642e-09
+            }
+          }
+        ],
+        "whole_cycle_maximum_shoe_clearance_m": {
+          "L": 0.08140581842139363,
+          "R": 0.02799648596532643
+        }
+      }
+    },
+    "far": {
+      "before_sha256": "79509eb614172f98daadce7821419dbb8063e50689f7a8985d3ea0bcfe71177b",
+      "after_sha256": "b25d21bc7b0a2659911aecaf10d0a929bd7d8434ab58f240e515089c9349e348",
+      "pose_count": 32,
+      "nonwalk_pose_count": 20,
+      "nonwalk_attributes_bitwise_equal": false,
+      "nonwalk_max_absolute_attribute_error": {
+        "POSITION": 4.76837158203125e-07,
+        "NORMAL": 9.999377653002739e-05,
+        "TEXCOORD_0": 0.0,
+        "TEXCOORD_1": 0.0
+      },
+      "all_pose_topology_and_uvs_exactly_unchanged": true,
+      "material_and_atlas_exactly_unchanged": true,
+      "foot_corner_counts": {
+        "L": 60,
+        "R": 54
+      },
+      "before": {
+        "left_old_problem_window_0125_0375": {
+          "phase_fraction": 0.25,
+          "root_travel_m": 0.28,
+          "material_forward_drift_m": 0.28,
+          "material_horizontal_path_m": 0.28234787203110623,
+          "path_over_root_travel": 1.0083852572539507,
+          "min_shoe_height_m": 0.0,
+          "max_shoe_height_m": 0.0,
+          "max_material_speed_over_root": 2.007677824115847
+        },
+        "left_old_ground_core_1_6_to_1_3": {
+          "phase_fraction": 0.16666666666666666,
+          "root_travel_m": 0.18666666666666668,
+          "material_forward_drift_m": 0.18666666666666673,
+          "material_horizontal_path_m": 0.1866877139549752,
+          "path_over_root_travel": 1.000112753330224,
+          "min_shoe_height_m": 0.0,
+          "max_shoe_height_m": 0.0,
+          "max_material_speed_over_root": 1.3676595949600243
+        },
+        "left_authored_stance_0_to_7_12": {
+          "phase_fraction": 0.5833333333333334,
+          "root_travel_m": 0.6533333333333334,
+          "material_forward_drift_m": 0.6875909390052161,
+          "material_horizontal_path_m": 0.7611082551873727,
+          "path_over_root_travel": 1.1649616150827131,
+          "min_shoe_height_m": 0.0,
+          "max_shoe_height_m": 0.040247475923039004,
+          "max_material_speed_over_root": 2.365980966824969
+        },
+        "right_authored_stance_1_2_to_1": {
+          "phase_fraction": 0.5,
+          "root_travel_m": 0.56,
+          "material_forward_drift_m": 0.5600000000000002,
+          "material_horizontal_path_m": 0.594929958434648,
+          "path_over_root_travel": 1.062374925776157,
+          "min_shoe_height_m": 0.0,
+          "max_shoe_height_m": 0.0,
+          "max_material_speed_over_root": 2.180824968834096
+        },
+        "geometrically_lower_shoe": {
+          "L": {
+            "phase_fraction": 0.41833333333333333,
+            "root_travel_m": 0.46853333333333336,
+            "material_forward_drift_m": 0.4685333333333335,
+            "material_horizontal_path_m": 0.5082735486801028,
+            "path_over_root_travel": 1.0848183309905437,
+            "min_shoe_height_m": 0.0,
+            "max_shoe_height_m": 0.006124475310556592,
+            "max_material_speed_over_root": 2.365980966824969
+          },
+          "R": {
+            "phase_fraction": 0.5816666666666667,
+            "root_travel_m": 0.6514666666666667,
+            "material_forward_drift_m": 0.6514666666666669,
+            "material_horizontal_path_m": 0.6865469593080565,
+            "path_over_root_travel": 1.0538481774069635,
+            "min_shoe_height_m": 0.0,
+            "max_shoe_height_m": 0.006134366798680275,
+            "max_material_speed_over_root": 2.180824968834096
+          }
+        },
+        "lower_or_tied_within_1_micron": {
+          "L": {
+            "phase_fraction": 0.41833333333333333,
+            "root_travel_m": 0.46853333333333336,
+            "material_forward_drift_m": 0.4685333333333335,
+            "material_horizontal_path_m": 0.5082735486801028,
+            "path_over_root_travel": 1.0848183309905437,
+            "min_shoe_height_m": 0.0,
+            "max_shoe_height_m": 0.006124475310556592,
+            "max_material_speed_over_root": 2.365980966824969
+          },
+          "R": {
+            "phase_fraction": 0.5816666666666667,
+            "root_travel_m": 0.6514666666666667,
+            "material_forward_drift_m": 0.6514666666666669,
+            "material_horizontal_path_m": 0.6865469593080565,
+            "path_over_root_travel": 1.0538481774069635,
+            "min_shoe_height_m": 0.0,
+            "max_shoe_height_m": 0.006134366798680275,
+            "max_material_speed_over_root": 2.180824968834096
+          }
+        },
+        "height_thresholds": {
+          "0.002": {
+            "L": {
+              "phase_fraction": 0.361,
+              "root_travel_m": 0.40432,
+              "material_forward_drift_m": 0.4043200000000002,
+              "material_horizontal_path_m": 0.4204081792897777,
+              "path_over_root_travel": 1.039790708571868,
+              "min_shoe_height_m": 0.0,
+              "max_shoe_height_m": 0.0019894026769325134,
+              "max_material_speed_over_root": 2.365980966824969
+            },
+            "R": {
+              "phase_fraction": 0.5266666666666666,
+              "root_travel_m": 0.5898666666666667,
+              "material_forward_drift_m": 0.5898666666666669,
+              "material_horizontal_path_m": 0.6248457138218834,
+              "path_over_root_travel": 1.059299921714314,
+              "min_shoe_height_m": 0.0,
+              "max_shoe_height_m": 0.0019988386197946966,
+              "max_material_speed_over_root": 2.180824968834096
+            }
+          },
+          "0.005": {
+            "L": {
+              "phase_fraction": 0.4026666666666667,
+              "root_travel_m": 0.4509866666666667,
+              "material_forward_drift_m": 0.4509866666666668,
+              "material_horizontal_path_m": 0.48426382564902565,
+              "path_over_root_travel": 1.0737874563527945,
+              "min_shoe_height_m": 0.0,
+              "max_shoe_height_m": 0.004994542672298849,
+              "max_material_speed_over_root": 2.365980966824969
+            },
+            "R": {
+              "phase_fraction": 0.5665,
+              "root_travel_m": 0.63448,
+              "material_forward_drift_m": 0.6344800000000002,
+              "material_horizontal_path_m": 0.6695323734315664,
+              "path_over_root_travel": 1.0552458287598763,
+              "min_shoe_height_m": 0.0,
+              "max_shoe_height_m": 0.00499396357359365,
+              "max_material_speed_over_root": 2.180824968834096
+            }
+          },
+          "0.01": {
+            "L": {
+              "phase_fraction": 0.472,
+              "root_travel_m": 0.52864,
+              "material_forward_drift_m": 0.5286400000000002,
+              "material_horizontal_path_m": 0.590519621190814,
+              "path_over_root_travel": 1.117054368172696,
+              "min_shoe_height_m": 0.0,
+              "max_shoe_height_m": 0.009995095624588432,
+              "max_material_speed_over_root": 2.365980966824969
+            },
+            "R": {
+              "phase_fraction": 0.633,
+              "root_travel_m": 0.70896,
+              "material_forward_drift_m": 0.7089600000000001,
+              "material_horizontal_path_m": 0.7441347884284846,
+              "path_over_root_travel": 1.0496146304847729,
+              "min_shoe_height_m": 0.0,
+              "max_shoe_height_m": 0.009994193098973488,
+              "max_material_speed_over_root": 2.180824968834096
+            }
+          },
+          "0.02": {
+            "L": {
+              "phase_fraction": 0.5471666666666667,
+              "root_travel_m": 0.6128266666666667,
+              "material_forward_drift_m": 0.6128266666666669,
+              "material_horizontal_path_m": 0.6863347458365877,
+              "path_over_root_travel": 1.1199492175654686,
+              "min_shoe_height_m": 0.0,
+              "max_shoe_height_m": 0.01999865278135987,
+              "max_material_speed_over_root": 2.365980966824969
+            },
+            "R": {
+              "phase_fraction": 0.804,
+              "root_travel_m": 0.9004800000000002,
+              "material_forward_drift_m": 0.9004800000000003,
+              "material_horizontal_path_m": 0.935828365151725,
+              "path_over_root_travel": 1.039255025266219,
+              "min_shoe_height_m": 0.0,
+              "max_shoe_height_m": 0.019993891953025013,
+              "max_material_speed_over_root": 2.180824968834096
+            }
+          }
+        },
+        "pose_segments": [
+          {
+            "phase_start": 0.0,
+            "phase_end": 0.08333333333333333,
+            "L": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": -0.034077287117640166,
+              "material_horizontal_path_m": 0.034597695199994394,
+              "path_over_root_travel": 0.3706895914285113,
+              "min_shoe_height_m": 6.010279990732008e-06,
+              "max_shoe_height_m": 0.012014549701474607,
+              "max_material_speed_over_root": 0.3706895914285114
+            },
+            "R": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": 0.14914676507314054,
+              "material_horizontal_path_m": 0.14920858314396723,
+              "path_over_root_travel": 1.5986633908282202,
+              "min_shoe_height_m": 6.265951786190272e-06,
+              "max_shoe_height_m": 0.012525637620594353,
+              "max_material_speed_over_root": 1.59866339082822
+            }
+          },
+          {
+            "phase_start": 0.08333333333333333,
+            "phase_end": 0.16666666666666666,
+            "L": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": -0.0006764535109201978,
+              "material_horizontal_path_m": 0.003937052568116123,
+              "path_over_root_travel": 0.042182706086958455,
+              "min_shoe_height_m": 0.0,
+              "max_shoe_height_m": 0.0,
+              "max_material_speed_over_root": 0.04218270608695844
+            },
+            "R": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": 0.1336461152633032,
+              "material_horizontal_path_m": 0.1336846065483972,
+              "path_over_root_travel": 1.4323350701613986,
+              "min_shoe_height_m": 0.012536434227135034,
+              "max_shoe_height_m": 0.021588682426605374,
+              "max_material_speed_over_root": 1.432335070161398
+            }
+          },
+          {
+            "phase_start": 0.16666666666666666,
+            "phase_end": 0.25,
+            "L": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": 0.05902509351571403,
+              "material_horizontal_path_m": 0.059039485092039615,
+              "path_over_root_travel": 0.6325659117004244,
+              "min_shoe_height_m": 0.0,
+              "max_shoe_height_m": 0.0,
+              "max_material_speed_over_root": 0.6325659117004245
+            },
+            "R": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": 0.10792434175809228,
+              "material_horizontal_path_m": 0.10793083849239217,
+              "path_over_root_travel": 1.1564018409899162,
+              "min_shoe_height_m": 0.021593922812491655,
+              "max_shoe_height_m": 0.023011965613812208,
+              "max_material_speed_over_root": 1.156401840989916
+            }
+          },
+          {
+            "phase_start": 0.25,
+            "phase_end": 0.3333333333333333,
+            "L": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": 0.1276415731509527,
+              "material_horizontal_path_m": 0.1276482288629356,
+              "path_over_root_travel": 1.367659594960024,
+              "min_shoe_height_m": 0.0,
+              "max_shoe_height_m": 0.0,
+              "max_material_speed_over_root": 1.3676595949600243
+            },
+            "R": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": 0.07874232490857445,
+              "material_horizontal_path_m": 0.0787512291063501,
+              "path_over_root_travel": 0.8437631689966082,
+              "min_shoe_height_m": 0.021593922812491655,
+              "max_shoe_height_m": 0.023011965613812208,
+              "max_material_speed_over_root": 0.8437631689966082
+            }
+          },
+          {
+            "phase_start": 0.3333333333333333,
+            "phase_end": 0.4166666666666667,
+            "L": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": 0.18734312017758695,
+              "material_horizontal_path_m": 0.1873832635841458,
+              "path_over_root_travel": 2.0076778241158477,
+              "min_shoe_height_m": 0.0,
+              "max_shoe_height_m": 0.0,
+              "max_material_speed_over_root": 2.007677824115847
+            },
+            "R": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": 0.053020551403363564,
+              "material_horizontal_path_m": 0.05311749969778667,
+              "path_over_root_travel": 0.5691160681905714,
+              "min_shoe_height_m": 0.01253643422713503,
+              "max_shoe_height_m": 0.021588682426605377,
+              "max_material_speed_over_root": 0.5691160681905714
+            }
+          },
+          {
+            "phase_start": 0.4166666666666667,
+            "phase_end": 0.5,
+            "L": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": 0.22074395378430683,
+              "material_horizontal_path_m": 0.22082489023699714,
+              "path_over_root_travel": 2.3659809668249694,
+              "min_shoe_height_m": 6.010279990740015e-06,
+              "max_shoe_height_m": 0.01201454970147461,
+              "max_material_speed_over_root": 2.365980966824969
+            },
+            "R": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": 0.037519901593526216,
+              "material_horizontal_path_m": 0.03776488802625416,
+              "path_over_root_travel": 0.4046238002812946,
+              "min_shoe_height_m": 6.265951786186799e-06,
+              "max_shoe_height_m": 0.012525637620594344,
+              "max_material_speed_over_root": 0.40462380028129474
+            }
+          },
+          {
+            "phase_start": 0.5,
+            "phase_end": 0.5833333333333334,
+            "L": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": 0.127590939005216,
+              "material_horizontal_path_m": 0.127677639643144,
+              "path_over_root_travel": 1.367974710462257,
+              "min_shoe_height_m": 0.01203468049969526,
+              "max_shoe_height_m": 0.040247475923039004,
+              "max_material_speed_over_root": 1.3679747104622566
+            },
+            "R": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": -0.01682091544071832,
+              "material_horizontal_path_m": 0.017486285492417448,
+              "path_over_root_travel": 0.18735305884732978,
+              "min_shoe_height_m": 0.0,
+              "max_shoe_height_m": 0.0,
+              "max_material_speed_over_root": 0.18735305884732975
+            }
+          },
+          {
+            "phase_start": 0.5833333333333334,
+            "phase_end": 0.6666666666666666,
+            "L": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": 0.11736528535683953,
+              "material_horizontal_path_m": 0.11741257452175269,
+              "path_over_root_travel": 1.2579918698759216,
+              "min_shoe_height_m": 0.04026992797292769,
+              "max_shoe_height_m": 0.05691632822714746,
+              "max_material_speed_over_root": 1.2579918698759216
+            },
+            "R": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": 0.009563346927364677,
+              "material_horizontal_path_m": 0.010086409497607862,
+              "path_over_root_travel": 0.10806867318865566,
+              "min_shoe_height_m": 0.0,
+              "max_shoe_height_m": 0.0,
+              "max_material_speed_over_root": 0.10806867318865568
+            }
+          },
+          {
+            "phase_start": 0.6666666666666666,
+            "phase_end": 0.75,
+            "L": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": 0.10180591007073723,
+              "material_horizontal_path_m": 0.10181276277916762,
+              "path_over_root_travel": 1.090851029776796,
+              "min_shoe_height_m": 0.056927232416346674,
+              "max_shoe_height_m": 0.0620674021821469,
+              "max_material_speed_over_root": 1.090851029776796
+            },
+            "R": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": 0.06220654917260013,
+              "material_horizontal_path_m": 0.06221628257472739,
+              "path_over_root_travel": 0.6666030275863648,
+              "min_shoe_height_m": 0.0,
+              "max_shoe_height_m": 0.0,
+              "max_material_speed_over_root": 0.6666030275863646
+            }
+          },
+          {
+            "phase_start": 0.75,
+            "phase_end": 0.8333333333333334,
+            "L": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": 0.0848607565959295,
+              "material_horizontal_path_m": 0.08486897754438667,
+              "path_over_root_travel": 0.9093104736898572,
+              "min_shoe_height_m": 0.056927232416346674,
+              "max_shoe_height_m": 0.0620674021821469,
+              "max_material_speed_over_root": 0.9093104736898574
+            },
+            "R": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": 0.12446011749406659,
+              "material_horizontal_path_m": 0.12446498264207514,
+              "path_over_root_travel": 1.333553385450805,
+              "min_shoe_height_m": 0.0,
+              "max_shoe_height_m": 0.0,
+              "max_material_speed_over_root": 1.3335533854508048
+            }
+          },
+          {
+            "phase_start": 0.8333333333333334,
+            "phase_end": 0.9166666666666666,
+            "L": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": 0.06930138130982719,
+              "material_horizontal_path_m": 0.06938143772208692,
+              "path_over_root_travel": 0.7433725470223599,
+              "min_shoe_height_m": 0.04026992797292767,
+              "max_shoe_height_m": 0.05691632822714748,
+              "max_material_speed_over_root": 0.7433725470223599
+            },
+            "R": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": 0.17710331973930207,
+              "material_horizontal_path_m": 0.17713233446997112,
+              "path_over_root_travel": 1.8978464407496904,
+              "min_shoe_height_m": 0.0,
+              "max_shoe_height_m": 0.0,
+              "max_material_speed_over_root": 1.897846440749691
+            }
+          },
+          {
+            "phase_start": 0.9166666666666666,
+            "phase_end": 1.0,
+            "L": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": 0.05907572766145072,
+              "material_horizontal_path_m": 0.059262750082506935,
+              "path_over_root_travel": 0.6349580365982885,
+              "min_shoe_height_m": 0.01203468049969526,
+              "max_shoe_height_m": 0.040247475923039004,
+              "max_material_speed_over_root": 0.6349580365982884
+            },
+            "R": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": 0.203487582107385,
+              "material_horizontal_path_m": 0.20354366375784905,
+              "path_over_root_travel": 2.180824968834097,
+              "min_shoe_height_m": 0.0,
+              "max_shoe_height_m": 0.0,
+              "max_material_speed_over_root": 2.180824968834096
+            }
+          }
+        ],
+        "whole_cycle_maximum_shoe_clearance_m": {
+          "L": 0.0620674021821469,
+          "R": 0.023011965613812208
+        }
+      },
+      "after": {
+        "left_old_problem_window_0125_0375": {
+          "phase_fraction": 0.25,
+          "root_travel_m": 0.28,
+          "material_forward_drift_m": -6.731599566656143e-08,
+          "material_horizontal_path_m": 8.883117376182849e-08,
+          "path_over_root_travel": 3.172541920065303e-07,
+          "min_shoe_height_m": 0.0,
+          "max_shoe_height_m": 0.0,
+          "max_material_speed_over_root": 4.832233700481834e-07
+        },
+        "left_old_ground_core_1_6_to_1_3": {
+          "phase_fraction": 0.16666666666666666,
+          "root_travel_m": 0.18666666666666668,
+          "material_forward_drift_m": -6.039937335463226e-08,
+          "material_horizontal_path_m": 7.860044938623347e-08,
+          "path_over_root_travel": 4.2107383599767933e-07,
+          "min_shoe_height_m": 0.0,
+          "max_shoe_height_m": 0.0,
+          "max_material_speed_over_root": 4.832233700481834e-07
+        },
+        "left_authored_stance_0_to_7_12": {
+          "phase_fraction": 0.5833333333333334,
+          "root_travel_m": 0.6533333333333334,
+          "material_forward_drift_m": -9.218851719043168e-08,
+          "material_horizontal_path_m": 2.2101962338731226e-07,
+          "path_over_root_travel": 3.3829534191935547e-07,
+          "min_shoe_height_m": 0.0,
+          "max_shoe_height_m": 2.7925707399845123e-09,
+          "max_material_speed_over_root": 5.035442510482704e-07
+        },
+        "right_authored_stance_1_2_to_1": {
+          "phase_fraction": 0.5,
+          "root_travel_m": 0.56,
+          "material_forward_drift_m": -6.198883051311554e-08,
+          "material_horizontal_path_m": 1.940322640657418e-07,
+          "path_over_root_travel": 3.4648618583168175e-07,
+          "min_shoe_height_m": 0.0,
+          "max_shoe_height_m": 4.0961895138025266e-08,
+          "max_material_speed_over_root": 7.791529349140315e-07
+        },
+        "geometrically_lower_shoe": {
+          "L": {
+            "phase_fraction": 0.5833333333333334,
+            "root_travel_m": 0.6533333333333334,
+            "material_forward_drift_m": -9.218851719043168e-08,
+            "material_horizontal_path_m": 2.2101962338731226e-07,
+            "path_over_root_travel": 3.3829534191935547e-07,
+            "min_shoe_height_m": 0.0,
+            "max_shoe_height_m": 2.7925707399845123e-09,
+            "max_material_speed_over_root": 5.035442510482704e-07
+          },
+          "R": {
+            "phase_fraction": 0.4166666666666667,
+            "root_travel_m": 0.46666666666666673,
+            "material_forward_drift_m": -6.159146622349472e-08,
+            "material_horizontal_path_m": 1.9363489977612097e-07,
+            "path_over_root_travel": 4.1493192809168775e-07,
+            "min_shoe_height_m": 0.0,
+            "max_shoe_height_m": 8.37771221995354e-09,
+            "max_material_speed_over_root": 7.791529349140315e-07
+          }
+        },
+        "lower_or_tied_within_1_micron": {
+          "L": {
+            "phase_fraction": 0.5833333333333334,
+            "root_travel_m": 0.6533333333333334,
+            "material_forward_drift_m": -9.218851719043168e-08,
+            "material_horizontal_path_m": 2.2101962338731226e-07,
+            "path_over_root_travel": 3.3829534191935547e-07,
+            "min_shoe_height_m": 0.0,
+            "max_shoe_height_m": 2.7925707399845123e-09,
+            "max_material_speed_over_root": 5.035442510482704e-07
+          },
+          "R": {
+            "phase_fraction": 0.5,
+            "root_travel_m": 0.56,
+            "material_forward_drift_m": -6.198883051311554e-08,
+            "material_horizontal_path_m": 1.940322640657418e-07,
+            "path_over_root_travel": 3.4648618583168175e-07,
+            "min_shoe_height_m": 0.0,
+            "max_shoe_height_m": 4.0961895138025266e-08,
+            "max_material_speed_over_root": 7.791529349140315e-07
+          }
+        },
+        "height_thresholds": {
+          "0.002": {
+            "L": {
+              "phase_fraction": 0.5933333333333334,
+              "root_travel_m": 0.6645333333333334,
+              "material_forward_drift_m": 0.01397751227219906,
+              "material_horizontal_path_m": 0.013977825480339639,
+              "path_over_root_travel": 0.021034047171458122,
+              "min_shoe_height_m": 0.0,
+              "max_shoe_height_m": 0.0019768983232788706,
+              "max_material_speed_over_root": 1.2720433686460768
+            },
+            "R": {
+              "phase_fraction": 0.5348333333333334,
+              "root_travel_m": 0.5990133333333334,
+              "material_forward_drift_m": 0.03467844266970959,
+              "material_horizontal_path_m": 0.034678698690806885,
+              "path_over_root_travel": 0.057893033027879535,
+              "min_shoe_height_m": 0.0,
+              "max_shoe_height_m": 0.001995256992522626,
+              "max_material_speed_over_root": 0.9183149210045565
+            }
+          },
+          "0.005": {
+            "L": {
+              "phase_fraction": 0.6083333333333333,
+              "root_travel_m": 0.6813333333333333,
+              "material_forward_drift_m": 0.034943918963273445,
+              "material_horizontal_path_m": 0.03494423217141402,
+              "path_over_root_travel": 0.05128801199326911,
+              "min_shoe_height_m": 0.0,
+              "max_shoe_height_m": 0.004967160468455396,
+              "max_material_speed_over_root": 1.2720433686460768
+            },
+            "R": {
+              "phase_fraction": 0.587,
+              "root_travel_m": 0.65744,
+              "material_forward_drift_m": 0.08661323672771463,
+              "material_horizontal_path_m": 0.08661349274881598,
+              "path_over_root_travel": 0.13174357013387683,
+              "min_shoe_height_m": 0.0,
+              "max_shoe_height_m": 0.0049904733593575615,
+              "max_material_speed_over_root": 0.9183149210045565
+            }
+          },
+          "0.01": {
+            "L": {
+              "phase_fraction": 0.6335,
+              "root_travel_m": 0.70952,
+              "material_forward_drift_m": 0.07012089018940935,
+              "material_horizontal_path_m": 0.07012120339754992,
+              "path_over_root_travel": 0.09882907232713653,
+              "min_shoe_height_m": 0.0,
+              "max_shoe_height_m": 0.009984155845362679,
+              "max_material_speed_over_root": 1.2720433686460768
+            },
+            "R": {
+              "phase_fraction": 0.6705,
+              "root_travel_m": 0.7509600000000001,
+              "material_forward_drift_m": 0.175466541773677,
+              "material_horizontal_path_m": 0.17546679779478458,
+              "path_over_root_travel": 0.23365664988119814,
+              "min_shoe_height_m": 0.0,
+              "max_shoe_height_m": 0.00999956935411319,
+              "max_material_speed_over_root": 2.280542942030089
+            }
+          },
+          "0.02": {
+            "L": {
+              "phase_fraction": 0.6836666666666666,
+              "root_travel_m": 0.7657066666666668,
+              "material_forward_drift_m": 0.1402418725673359,
+              "material_horizontal_path_m": 0.14024218577547645,
+              "path_over_root_travel": 0.18315393071603978,
+              "min_shoe_height_m": 0.0,
+              "max_shoe_height_m": 0.019984921464230858,
+              "max_material_speed_over_root": 1.2720433686460768
+            },
+            "R": {
+              "phase_fraction": 0.7576666666666667,
+              "root_travel_m": 0.8485866666666668,
+              "material_forward_drift_m": 0.3924147674969833,
+              "material_horizontal_path_m": 0.39241502351809093,
+              "path_over_root_travel": 0.46243364282346827,
+              "min_shoe_height_m": 0.0,
+              "max_shoe_height_m": 0.019998097682837404,
+              "max_material_speed_over_root": 2.280542942030089
+            }
+          }
+        },
+        "pose_segments": [
+          {
+            "phase_start": 0.0,
+            "phase_end": 0.08333333333333333,
+            "L": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": -3.019968667731613e-08,
+              "material_horizontal_path_m": 3.019968667731613e-08,
+              "path_over_root_travel": 3.235680715426728e-07,
+              "min_shoe_height_m": 1.396983861923064e-12,
+              "max_shoe_height_m": 2.7925707399845123e-09,
+              "max_material_speed_over_root": 3.235680715426728e-07
+            },
+            "R": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": 0.08021646698315942,
+              "material_horizontal_path_m": 0.08021646698316079,
+              "path_over_root_travel": 0.8594621462481513,
+              "min_shoe_height_m": 4.78470791131258e-06,
+              "max_shoe_height_m": 0.009564631114713848,
+              "max_material_speed_over_root": 0.8594621462481511
+            }
+          },
+          {
+            "phase_start": 0.08333333333333333,
+            "phase_end": 0.16666666666666666,
+            "L": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": -3.9736428962082e-10,
+              "material_horizontal_path_m": 3.9736428962082e-10,
+              "path_over_root_travel": 4.257474531651642e-09,
+              "min_shoe_height_m": 0.0,
+              "max_shoe_height_m": 0.0,
+              "max_material_speed_over_root": 4.257474531651642e-09
+            },
+            "R": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": 0.20200016363182416,
+              "material_horizontal_path_m": 0.2020001636318243,
+              "path_over_root_travel": 2.1642874674838315,
+              "min_shoe_height_m": 0.009578974649310115,
+              "max_shoe_height_m": 0.02551289683859795,
+              "max_material_speed_over_root": 2.1653110617771802
+            }
+          },
+          {
+            "phase_start": 0.16666666666666666,
+            "phase_end": 0.25,
+            "L": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": -4.5100847871163787e-08,
+              "material_horizontal_path_m": 4.5100847871163787e-08,
+              "path_over_root_travel": 4.832233700481834e-07,
+              "min_shoe_height_m": 0.0,
+              "max_shoe_height_m": 0.0,
+              "max_material_speed_over_root": 4.832233700481834e-07
+            },
+            "R": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": 0.26678465546419217,
+              "material_horizontal_path_m": 0.26678465546419267,
+              "path_over_root_travel": 2.8584070228306357,
+              "min_shoe_height_m": 0.02551853106729686,
+              "max_shoe_height_m": 0.029262600379064682,
+              "max_material_speed_over_root": 2.8584070228306353
+            }
+          },
+          {
+            "phase_start": 0.25,
+            "phase_end": 0.3333333333333333,
+            "L": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": -1.5298525483468477e-08,
+              "material_horizontal_path_m": 3.3499601515069695e-08,
+              "path_over_root_travel": 3.589243019471753e-07,
+              "min_shoe_height_m": 0.0,
+              "max_shoe_height_m": 0.0,
+              "max_material_speed_over_root": 3.5892430194717524e-07
+            },
+            "R": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": 0.2724746014674504,
+              "material_horizontal_path_m": 0.27247460146745206,
+              "path_over_root_travel": 2.919370730008415,
+              "min_shoe_height_m": 0.025518607397563755,
+              "max_shoe_height_m": 0.02926260041724891,
+              "max_material_speed_over_root": 2.919370730008415
+            }
+          },
+          {
+            "phase_start": 0.3333333333333333,
+            "phase_end": 0.4166666666666667,
+            "L": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": -1.3435880334237519e-08,
+              "material_horizontal_path_m": 2.0064084461569188e-08,
+              "path_over_root_travel": 2.1497233351681272e-07,
+              "min_shoe_height_m": 0.0,
+              "max_shoe_height_m": 0.0,
+              "max_material_speed_over_root": 2.1497233351681264e-07
+            },
+            "R": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": 0.21281475806732972,
+              "material_horizontal_path_m": 0.21281475806732988,
+              "path_over_root_travel": 2.280158122149963,
+              "min_shoe_height_m": 0.009578981164377177,
+              "max_shoe_height_m": 0.02551297319121659,
+              "max_material_speed_over_root": 2.280542942030089
+            }
+          },
+          {
+            "phase_start": 0.4166666666666667,
+            "phase_end": 0.5,
+            "L": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": -2.260009438851777e-09,
+              "material_horizontal_path_m": 4.476057514140073e-08,
+              "path_over_root_travel": 4.795775908007221e-07,
+              "min_shoe_height_m": 0.0,
+              "max_shoe_height_m": 0.0,
+              "max_material_speed_over_root": 4.795775908007221e-07
+            },
+            "R": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": 0.08570939262708031,
+              "material_horizontal_path_m": 0.08570939262709193,
+              "path_over_root_travel": 0.9183149210045564,
+              "min_shoe_height_m": 4.825668875125379e-06,
+              "max_shoe_height_m": 0.009564637651201332,
+              "max_material_speed_over_root": 0.9183149210045565
+            }
+          },
+          {
+            "phase_start": 0.5,
+            "phase_end": 0.5833333333333334,
+            "L": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": 1.4503796904226837e-08,
+              "material_horizontal_path_m": 4.699746343117191e-08,
+              "path_over_root_travel": 5.035442510482704e-07,
+              "min_shoe_height_m": 0.0,
+              "max_shoe_height_m": 0.0,
+              "max_material_speed_over_root": 5.035442510482704e-07
+            },
+            "R": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": -3.9736428962082e-10,
+              "material_horizontal_path_m": 3.9736428962082e-10,
+              "path_over_root_travel": 4.257474531651642e-09,
+              "min_shoe_height_m": 8.398201316595097e-09,
+              "max_shoe_height_m": 4.0961895138025266e-08,
+              "max_material_speed_over_root": 4.257474531651642e-09
+            }
+          },
+          {
+            "phase_start": 0.5833333333333334,
+            "phase_end": 0.6666666666666666,
+            "L": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": 0.11872404774030053,
+              "material_horizontal_path_m": 0.11872404774030053,
+              "path_over_root_travel": 1.272043368646077,
+              "min_shoe_height_m": 1.661253534256491e-05,
+              "max_shoe_height_m": 0.03320845814980567,
+              "max_material_speed_over_root": 1.2720433686460768
+            },
+            "R": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": -7.117787996039719e-08,
+              "material_horizontal_path_m": 7.272094059197627e-08,
+              "path_over_root_travel": 7.791529349140314e-07,
+              "min_shoe_height_m": 4.190951585767331e-12,
+              "max_shoe_height_m": 8.37771221995354e-09,
+              "max_material_speed_over_root": 7.791529349140315e-07
+            }
+          },
+          {
+            "phase_start": 0.6666666666666666,
+            "phase_end": 0.75,
+            "L": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": 0.2812220003207524,
+              "material_horizontal_path_m": 0.2812220003207529,
+              "path_over_root_travel": 3.013092860579495,
+              "min_shoe_height_m": 0.0332519456688315,
+              "max_shoe_height_m": 0.08694816306792195,
+              "max_material_speed_over_root": 3.0130928605794947
+            },
+            "R": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": -1.5298525483468477e-08,
+              "material_horizontal_path_m": 3.3499601515069695e-08,
+              "path_over_root_travel": 3.589243019471753e-07,
+              "min_shoe_height_m": 0.0,
+              "max_shoe_height_m": 0.0,
+              "max_material_speed_over_root": 3.5892430194717524e-07
+            }
+          },
+          {
+            "phase_start": 0.75,
+            "phase_end": 0.8333333333333334,
+            "L": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": 0.33151997586091353,
+              "material_horizontal_path_m": 0.33151997586091647,
+              "path_over_root_travel": 3.551999741366962,
+              "min_shoe_height_m": 0.0869750380963087,
+              "max_shoe_height_m": 0.08697512741386891,
+              "max_material_speed_over_root": 3.5519997413669637
+            },
+            "R": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": 2.5679667799612577e-08,
+              "material_horizontal_path_m": 5.155430905970654e-08,
+              "path_over_root_travel": 5.523675970682844e-07,
+              "min_shoe_height_m": 0.0,
+              "max_shoe_height_m": 0.0,
+              "max_material_speed_over_root": 5.523675970682844e-07
+            }
+          },
+          {
+            "phase_start": 0.8333333333333334,
+            "phase_end": 0.9166666666666666,
+            "L": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": 0.27429804166158034,
+              "material_horizontal_path_m": 0.27429804166158084,
+              "path_over_root_travel": 2.9389075892312233,
+              "min_shoe_height_m": 0.03325201273523264,
+              "max_shoe_height_m": 0.08694825246371335,
+              "max_material_speed_over_root": 2.938907589231223
+            },
+            "R": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": 1.4503796904226837e-08,
+              "material_horizontal_path_m": 1.4503796904226837e-08,
+              "path_over_root_travel": 1.5539782397385897e-07,
+              "min_shoe_height_m": 0.0,
+              "max_shoe_height_m": 0.0,
+              "max_material_speed_over_root": 1.5539782397385895e-07
+            }
+          },
+          {
+            "phase_start": 0.9166666666666666,
+            "phase_end": 1.0,
+            "L": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": 0.11423602660497033,
+              "material_horizontal_path_m": 0.11423602660497033,
+              "path_over_root_travel": 1.2239574279103964,
+              "min_shoe_height_m": 1.6615361440947094e-05,
+              "max_shoe_height_m": 0.03320852517290039,
+              "max_material_speed_over_root": 1.223957427910396
+            },
+            "R": {
+              "phase_fraction": 0.08333333333333333,
+              "root_travel_m": 0.09333333333333334,
+              "material_forward_drift_m": -1.5298525483468477e-08,
+              "material_horizontal_path_m": 2.135625170514165e-08,
+              "path_over_root_travel": 2.288169825550891e-07,
+              "min_shoe_height_m": 0.0,
+              "max_shoe_height_m": 0.0,
+              "max_material_speed_over_root": 2.288169825550891e-07
+            }
+          }
+        ],
+        "whole_cycle_maximum_shoe_clearance_m": {
+          "L": 0.08697512741386891,
+          "R": 0.02926260041724891
+        }
+      }
+    }
+  },
+  "limits": [
+    "Straight travel at unit actor scale only; turning may scrub feet.",
+    "Lowest-shoe/contact thresholds are geometric proxies, not force measurements.",
+    "Transfer and low recovery intentionally retain some near-ground slip.",
+    "No gameplay or subjective motion-quality verdict is supplied by these numbers."
+  ]
+}

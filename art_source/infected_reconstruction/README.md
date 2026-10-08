@@ -1,3 +1,7 @@
+# Current walk correction
+
+The current walk uses the offline support trajectory in source/support_gait.py. See [support gait report](SUPPORT_GAIT_REPORT.md) for measured contact, the 9 cm pelvis tradeoff, unchanged runtime requirements and visual-validation limits. The original generator/rig/atlas remain available below. Earlier reconstruction details follow as history; legacy walk mechanics are superseded.
+
 # Infected pose reconstruction, 8 October 2026
 
 These are **newly reconstructed assets**, derived from the verified base infected

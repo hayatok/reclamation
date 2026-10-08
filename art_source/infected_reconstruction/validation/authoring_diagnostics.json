@@ -1,0 +1,794 @@
+[
+  {
+    "phase": 0.0,
+    "feet": {
+      "L": {
+        "reach_m": 0.7139328072410412,
+        "maximum_reach_m": 0.7318723201751709,
+        "knee_bend_offset_m": 0.08051598733796768,
+        "ankle_error_m": 3.0719530773294423e-08,
+        "ankle_target": [
+          0.14000000059604645,
+          -0.31166666746139526,
+          0.11800002306699753
+        ],
+        "clearance_m": 0.0,
+        "shoe_pitch_rad": 0.0,
+        "authored_stance": true
+      },
+      "R": {
+        "reach_m": 0.7153942568505222,
+        "maximum_reach_m": 0.7318723201751709,
+        "knee_bend_offset_m": 0.0772057178215166,
+        "ankle_error_m": 4.012260442327338e-08,
+        "ankle_target": [
+          -0.14000000059604645,
+          0.3149999976158142,
+          0.11800002306699753
+        ],
+        "clearance_m": 0.0,
+        "shoe_pitch_rad": 0.0,
+        "authored_stance": true
+      }
+    }
+  },
+  {
+    "phase": 0.08333333333333333,
+    "feet": {
+      "L": {
+        "reach_m": 0.6840858410865999,
+        "maximum_reach_m": 0.7318723201751709,
+        "knee_bend_offset_m": 0.13004550865775025,
+        "ankle_error_m": 1.4901161193847656e-08,
+        "ankle_target": [
+          0.14000000059604645,
+          -0.21833333373069763,
+          0.11800002306699753
+        ],
+        "clearance_m": 0.0,
+        "shoe_pitch_rad": 0.0,
+        "authored_stance": true
+      },
+      "R": {
+        "reach_m": 0.7173801362318525,
+        "maximum_reach_m": 0.7318723201751709,
+        "knee_bend_offset_m": 0.0724538255890941,
+        "ankle_error_m": 1.4901161193847656e-08,
+        "ankle_target": [
+          -0.14000000059604645,
+          0.3253703713417053,
+          0.12696294486522675
+        ],
+        "clearance_m": 0.006999999999999988,
+        "shoe_pitch_rad": 0.024999999999999956,
+        "authored_stance": false
+      }
+    }
+  },
+  {
+    "phase": 0.16666666666666666,
+    "feet": {
+      "L": {
+        "reach_m": 0.6645605077283996,
+        "maximum_reach_m": 0.7318723201751709,
+        "knee_bend_offset_m": 0.15327459413527275,
+        "ankle_error_m": 1.4901161193847656e-08,
+        "ankle_target": [
+          0.14000000059604645,
+          -0.125,
+          0.11800002306699753
+        ],
+        "clearance_m": 0.0,
+        "shoe_pitch_rad": 0.0,
+        "authored_stance": true
+      },
+      "R": {
+        "reach_m": 0.6607447834137269,
+        "maximum_reach_m": 0.7318723201751709,
+        "knee_bend_offset_m": 0.15734342931851916,
+        "ankle_error_m": 2.1073424255447017e-08,
+        "ankle_target": [
+          -0.14000000059604645,
+          0.21129629015922546,
+          0.14466267824172974
+        ],
+        "clearance_m": 0.02099999999999999,
+        "shoe_pitch_rad": 0.07499999999999997,
+        "authored_stance": false
+      }
+    }
+  },
+  {
+    "phase": 0.25,
+    "feet": {
+      "L": {
+        "reach_m": 0.6550715722877748,
+        "maximum_reach_m": 0.7318723201751709,
+        "knee_bend_offset_m": 0.16316426870011053,
+        "ankle_error_m": 1.7071424778386354e-08,
+        "ankle_target": [
+          0.14000000059604645,
+          -0.03166666626930237,
+          0.11800002306699753
+        ],
+        "clearance_m": 0.0,
+        "shoe_pitch_rad": 0.0,
+        "authored_stance": true
+      },
+      "R": {
+        "reach_m": 0.6199148723836863,
+        "maximum_reach_m": 0.7318723201751709,
+        "knee_bend_offset_m": 0.19448534580701213,
+        "ankle_error_m": 2.2351741790771484e-08,
+        "ankle_target": [
+          -0.14000000059604645,
+          0.03500000014901161,
+          0.15339718759059906
+        ],
+        "clearance_m": 0.028,
+        "shoe_pitch_rad": 0.1,
+        "authored_stance": false
+      }
+    }
+  },
+  {
+    "phase": 0.3333333333333333,
+    "feet": {
+      "L": {
+        "reach_m": 0.6556054044916901,
+        "maximum_reach_m": 0.7318723201751709,
+        "knee_bend_offset_m": 0.16262753615169973,
+        "ankle_error_m": 2.006130221163669e-08,
+        "ankle_target": [
+          0.14000000059604645,
+          0.061666667461395264,
+          0.11800002306699753
+        ],
+        "clearance_m": 0.0,
+        "shoe_pitch_rad": 0.0,
+        "authored_stance": true
+      },
+      "R": {
+        "reach_m": 0.6417960657947881,
+        "maximum_reach_m": 0.7318723201751709,
+        "knee_bend_offset_m": 0.17585576547853835,
+        "ankle_error_m": 1.4901161193847656e-08,
+        "ankle_target": [
+          -0.14000000059604645,
+          -0.14129629731178284,
+          0.14466267824172974
+        ],
+        "clearance_m": 0.02100000000000001,
+        "shoe_pitch_rad": 0.07500000000000005,
+        "authored_stance": false
+      }
+    }
+  },
+  {
+    "phase": 0.4166666666666667,
+    "feet": {
+      "L": {
+        "reach_m": 0.6665800734898928,
+        "maximum_reach_m": 0.7318723201751709,
+        "knee_bend_offset_m": 0.15106696117217244,
+        "ankle_error_m": 2.1073424255447017e-08,
+        "ankle_target": [
+          0.14000000059604645,
+          0.1550000011920929,
+          0.11800002306699753
+        ],
+        "clearance_m": 0.0,
+        "shoe_pitch_rad": 0.0,
+        "authored_stance": true
+      },
+      "R": {
+        "reach_m": 0.6884638040287058,
+        "maximum_reach_m": 0.7318723201751709,
+        "knee_bend_offset_m": 0.12413702452247305,
+        "ankle_error_m": 2.9802322387695312e-08,
+        "ankle_target": [
+          -0.14000000059604645,
+          -0.2553703784942627,
+          0.12696294486522675
+        ],
+        "clearance_m": 0.006999999999999988,
+        "shoe_pitch_rad": 0.024999999999999956,
+        "authored_stance": false
+      }
+    }
+  },
+  {
+    "phase": 0.5,
+    "feet": {
+      "L": {
+        "reach_m": 0.6886460554709248,
+        "maximum_reach_m": 0.7318723201751709,
+        "knee_bend_offset_m": 0.12388410982434922,
+        "ankle_error_m": 3.332000937312528e-08,
+        "ankle_target": [
+          0.14000000059604645,
+          0.24833333492279053,
+          0.11800002306699753
+        ],
+        "clearance_m": 0.0,
+        "shoe_pitch_rad": 0.0,
+        "authored_stance": true
+      },
+      "R": {
+        "reach_m": 0.6874510498901613,
+        "maximum_reach_m": 0.7318723201751709,
+        "knee_bend_offset_m": 0.12553195891925475,
+        "ankle_error_m": 7.450580596923828e-09,
+        "ankle_target": [
+          -0.14000000059604645,
+          -0.24500000476837158,
+          0.11800002306699753
+        ],
+        "clearance_m": 0.0,
+        "shoe_pitch_rad": 0.0,
+        "authored_stance": true
+      }
+    }
+  },
+  {
+    "phase": 0.5833333333333334,
+    "feet": {
+      "L": {
+        "reach_m": 0.7222410251961615,
+        "maximum_reach_m": 0.7318723201751709,
+        "knee_bend_offset_m": 0.05916494854075302,
+        "ankle_error_m": 2.1073424255447017e-08,
+        "ankle_target": [
+          0.14000000059604645,
+          0.34166666865348816,
+          0.11800002306699753
+        ],
+        "clearance_m": 0.0,
+        "shoe_pitch_rad": 0.0,
+        "authored_stance": true
+      },
+      "R": {
+        "reach_m": 0.6541397125710627,
+        "maximum_reach_m": 0.7318723201751709,
+        "knee_bend_offset_m": 0.16409594292427643,
+        "ankle_error_m": 1.4901161193847656e-08,
+        "ankle_target": [
+          -0.14000000059604645,
+          -0.15166667103767395,
+          0.11800002306699753
+        ],
+        "clearance_m": 0.0,
+        "shoe_pitch_rad": 0.0,
+        "authored_stance": true
+      }
+    }
+  },
+  {
+    "phase": 0.6666666666666666,
+    "feet": {
+      "L": {
+        "reach_m": 0.6815396324771054,
+        "maximum_reach_m": 0.7318723201751709,
+        "knee_bend_offset_m": 0.13334498269702566,
+        "ankle_error_m": 4.470348358154297e-08,
+        "ankle_target": [
+          0.14000000059604645,
+          0.3185200095176697,
+          0.14741066098213196
+        ],
+        "clearance_m": 0.03109423525312733,
+        "shoe_pitch_rad": -0.02072949016875155,
+        "authored_stance": false
+      },
+      "R": {
+        "reach_m": 0.6346109771328196,
+        "maximum_reach_m": 0.7318723201751709,
+        "knee_bend_offset_m": 0.1822558344454386,
+        "ankle_error_m": 1.4901161193847656e-08,
+        "ankle_target": [
+          -0.14000000059604645,
+          -0.05833333358168602,
+          0.11800002306699753
+        ],
+        "clearance_m": 0.0,
+        "shoe_pitch_rad": 0.0,
+        "authored_stance": true
+      }
+    }
+  },
+  {
+    "phase": 0.75,
+    "feet": {
+      "L": {
+        "reach_m": 0.5694812756616557,
+        "maximum_reach_m": 0.7318723201751709,
+        "knee_bend_offset_m": 0.2298122219577415,
+        "ankle_error_m": 1.4901161193847656e-08,
+        "ankle_target": [
+          0.14000000059604645,
+          0.13409332931041718,
+          0.1948925405740738
+        ],
+        "clearance_m": 0.08140576474687262,
+        "shoe_pitch_rad": -0.05427050983124841,
+        "authored_stance": false
+      },
+      "R": {
+        "reach_m": 0.6312883638543971,
+        "maximum_reach_m": 0.7318723201751709,
+        "knee_bend_offset_m": 0.18511703496252893,
+        "ankle_error_m": 1.666000468656264e-08,
+        "ankle_target": [
+          -0.14000000059604645,
+          0.03500000014901161,
+          0.11800002306699753
+        ],
+        "clearance_m": 0.0,
+        "shoe_pitch_rad": 0.0,
+        "authored_stance": true
+      }
+    }
+  },
+  {
+    "phase": 0.8333333333333334,
+    "feet": {
+      "L": {
+        "reach_m": 0.5647516277013402,
+        "maximum_reach_m": 0.7318723201751709,
+        "knee_bend_offset_m": 0.2327101290554485,
+        "ankle_error_m": 2.9802322387695312e-08,
+        "ankle_target": [
+          0.14000000059604645,
+          -0.10409333556890488,
+          0.1948925405740738
+        ],
+        "clearance_m": 0.08140576474687262,
+        "shoe_pitch_rad": -0.05427050983124841,
+        "authored_stance": false
+      },
+      "R": {
+        "reach_m": 0.6448238191938455,
+        "maximum_reach_m": 0.7318723201751709,
+        "knee_bend_offset_m": 0.17306560045527083,
+        "ankle_error_m": 0.0,
+        "ankle_target": [
+          -0.14000000059604645,
+          0.12833333015441895,
+          0.11800002306699753
+        ],
+        "clearance_m": 0.0,
+        "shoe_pitch_rad": 0.0,
+        "authored_stance": true
+      }
+    }
+  },
+  {
+    "phase": 0.9166666666666666,
+    "feet": {
+      "L": {
+        "reach_m": 0.6720077256545475,
+        "maximum_reach_m": 0.7318723201751709,
+        "knee_bend_offset_m": 0.14493249018954726,
+        "ankle_error_m": 2.9802322387695312e-08,
+        "ankle_target": [
+          0.14000000059604645,
+          -0.2885200083255768,
+          0.14741066098213196
+        ],
+        "clearance_m": 0.031094235253127378,
+        "shoe_pitch_rad": -0.020729490168751585,
+        "authored_stance": false
+      },
+      "R": {
+        "reach_m": 0.6738190366125177,
+        "maximum_reach_m": 0.7318723201751709,
+        "knee_bend_offset_m": 0.14281519070360563,
+        "ankle_error_m": 7.450580596923828e-09,
+        "ankle_target": [
+          -0.14000000059604645,
+          0.22166666388511658,
+          0.11800002306699753
+        ],
+        "clearance_m": 0.0,
+        "shoe_pitch_rad": 0.0,
+        "authored_stance": true
+      }
+    }
+  },
+  {
+    "phase": 0.0,
+    "feet": {
+      "L": {
+        "reach_m": 0.7139328072410412,
+        "maximum_reach_m": 0.7318723201751709,
+        "knee_bend_offset_m": 0.08051598733796768,
+        "ankle_error_m": 3.0719530773294423e-08,
+        "ankle_target": [
+          0.14000000059604645,
+          -0.31166666746139526,
+          0.11800002306699753
+        ],
+        "clearance_m": 0.0,
+        "shoe_pitch_rad": 0.0,
+        "authored_stance": true
+      },
+      "R": {
+        "reach_m": 0.7153942568505222,
+        "maximum_reach_m": 0.7318723201751709,
+        "knee_bend_offset_m": 0.0772057178215166,
+        "ankle_error_m": 4.012260442327338e-08,
+        "ankle_target": [
+          -0.14000000059604645,
+          0.3149999976158142,
+          0.11800002306699753
+        ],
+        "clearance_m": 0.0,
+        "shoe_pitch_rad": 0.0,
+        "authored_stance": true
+      }
+    }
+  },
+  {
+    "phase": 0.08333333333333333,
+    "feet": {
+      "L": {
+        "reach_m": 0.6840858410865999,
+        "maximum_reach_m": 0.7318723201751709,
+        "knee_bend_offset_m": 0.13004550865775025,
+        "ankle_error_m": 1.4901161193847656e-08,
+        "ankle_target": [
+          0.14000000059604645,
+          -0.21833333373069763,
+          0.11800002306699753
+        ],
+        "clearance_m": 0.0,
+        "shoe_pitch_rad": 0.0,
+        "authored_stance": true
+      },
+      "R": {
+        "reach_m": 0.7173801362318525,
+        "maximum_reach_m": 0.7318723201751709,
+        "knee_bend_offset_m": 0.0724538255890941,
+        "ankle_error_m": 1.4901161193847656e-08,
+        "ankle_target": [
+          -0.14000000059604645,
+          0.3253703713417053,
+          0.12696294486522675
+        ],
+        "clearance_m": 0.006999999999999988,
+        "shoe_pitch_rad": 0.024999999999999956,
+        "authored_stance": false
+      }
+    }
+  },
+  {
+    "phase": 0.16666666666666666,
+    "feet": {
+      "L": {
+        "reach_m": 0.6645605077283996,
+        "maximum_reach_m": 0.7318723201751709,
+        "knee_bend_offset_m": 0.15327459413527275,
+        "ankle_error_m": 1.4901161193847656e-08,
+        "ankle_target": [
+          0.14000000059604645,
+          -0.125,
+          0.11800002306699753
+        ],
+        "clearance_m": 0.0,
+        "shoe_pitch_rad": 0.0,
+        "authored_stance": true
+      },
+      "R": {
+        "reach_m": 0.6607447834137269,
+        "maximum_reach_m": 0.7318723201751709,
+        "knee_bend_offset_m": 0.15734342931851916,
+        "ankle_error_m": 2.1073424255447017e-08,
+        "ankle_target": [
+          -0.14000000059604645,
+          0.21129629015922546,
+          0.14466267824172974
+        ],
+        "clearance_m": 0.02099999999999999,
+        "shoe_pitch_rad": 0.07499999999999997,
+        "authored_stance": false
+      }
+    }
+  },
+  {
+    "phase": 0.25,
+    "feet": {
+      "L": {
+        "reach_m": 0.6550715722877748,
+        "maximum_reach_m": 0.7318723201751709,
+        "knee_bend_offset_m": 0.16316426870011053,
+        "ankle_error_m": 1.7071424778386354e-08,
+        "ankle_target": [
+          0.14000000059604645,
+          -0.03166666626930237,
+          0.11800002306699753
+        ],
+        "clearance_m": 0.0,
+        "shoe_pitch_rad": 0.0,
+        "authored_stance": true
+      },
+      "R": {
+        "reach_m": 0.6199148723836863,
+        "maximum_reach_m": 0.7318723201751709,
+        "knee_bend_offset_m": 0.19448534580701213,
+        "ankle_error_m": 2.2351741790771484e-08,
+        "ankle_target": [
+          -0.14000000059604645,
+          0.03500000014901161,
+          0.15339718759059906
+        ],
+        "clearance_m": 0.028,
+        "shoe_pitch_rad": 0.1,
+        "authored_stance": false
+      }
+    }
+  },
+  {
+    "phase": 0.3333333333333333,
+    "feet": {
+      "L": {
+        "reach_m": 0.6556054044916901,
+        "maximum_reach_m": 0.7318723201751709,
+        "knee_bend_offset_m": 0.16262753615169973,
+        "ankle_error_m": 2.006130221163669e-08,
+        "ankle_target": [
+          0.14000000059604645,
+          0.061666667461395264,
+          0.11800002306699753
+        ],
+        "clearance_m": 0.0,
+        "shoe_pitch_rad": 0.0,
+        "authored_stance": true
+      },
+      "R": {
+        "reach_m": 0.6417960657947881,
+        "maximum_reach_m": 0.7318723201751709,
+        "knee_bend_offset_m": 0.17585576547853835,
+        "ankle_error_m": 1.4901161193847656e-08,
+        "ankle_target": [
+          -0.14000000059604645,
+          -0.14129629731178284,
+          0.14466267824172974
+        ],
+        "clearance_m": 0.02100000000000001,
+        "shoe_pitch_rad": 0.07500000000000005,
+        "authored_stance": false
+      }
+    }
+  },
+  {
+    "phase": 0.4166666666666667,
+    "feet": {
+      "L": {
+        "reach_m": 0.6665800734898928,
+        "maximum_reach_m": 0.7318723201751709,
+        "knee_bend_offset_m": 0.15106696117217244,
+        "ankle_error_m": 2.1073424255447017e-08,
+        "ankle_target": [
+          0.14000000059604645,
+          0.1550000011920929,
+          0.11800002306699753
+        ],
+        "clearance_m": 0.0,
+        "shoe_pitch_rad": 0.0,
+        "authored_stance": true
+      },
+      "R": {
+        "reach_m": 0.6884638040287058,
+        "maximum_reach_m": 0.7318723201751709,
+        "knee_bend_offset_m": 0.12413702452247305,
+        "ankle_error_m": 2.9802322387695312e-08,
+        "ankle_target": [
+          -0.14000000059604645,
+          -0.2553703784942627,
+          0.12696294486522675
+        ],
+        "clearance_m": 0.006999999999999988,
+        "shoe_pitch_rad": 0.024999999999999956,
+        "authored_stance": false
+      }
+    }
+  },
+  {
+    "phase": 0.5,
+    "feet": {
+      "L": {
+        "reach_m": 0.6886460554709248,
+        "maximum_reach_m": 0.7318723201751709,
+        "knee_bend_offset_m": 0.12388410982434922,
+        "ankle_error_m": 3.332000937312528e-08,
+        "ankle_target": [
+          0.14000000059604645,
+          0.24833333492279053,
+          0.11800002306699753
+        ],
+        "clearance_m": 0.0,
+        "shoe_pitch_rad": 0.0,
+        "authored_stance": true
+      },
+      "R": {
+        "reach_m": 0.6874510498901613,
+        "maximum_reach_m": 0.7318723201751709,
+        "knee_bend_offset_m": 0.12553195891925475,
+        "ankle_error_m": 7.450580596923828e-09,
+        "ankle_target": [
+          -0.14000000059604645,
+          -0.24500000476837158,
+          0.11800002306699753
+        ],
+        "clearance_m": 0.0,
+        "shoe_pitch_rad": 0.0,
+        "authored_stance": true
+      }
+    }
+  },
+  {
+    "phase": 0.5833333333333334,
+    "feet": {
+      "L": {
+        "reach_m": 0.7222410251961615,
+        "maximum_reach_m": 0.7318723201751709,
+        "knee_bend_offset_m": 0.05916494854075302,
+        "ankle_error_m": 2.1073424255447017e-08,
+        "ankle_target": [
+          0.14000000059604645,
+          0.34166666865348816,
+          0.11800002306699753
+        ],
+        "clearance_m": 0.0,
+        "shoe_pitch_rad": 0.0,
+        "authored_stance": true
+      },
+      "R": {
+        "reach_m": 0.6541397125710627,
+        "maximum_reach_m": 0.7318723201751709,
+        "knee_bend_offset_m": 0.16409594292427643,
+        "ankle_error_m": 1.4901161193847656e-08,
+        "ankle_target": [
+          -0.14000000059604645,
+          -0.15166667103767395,
+          0.11800002306699753
+        ],
+        "clearance_m": 0.0,
+        "shoe_pitch_rad": 0.0,
+        "authored_stance": true
+      }
+    }
+  },
+  {
+    "phase": 0.6666666666666666,
+    "feet": {
+      "L": {
+        "reach_m": 0.6815396324771054,
+        "maximum_reach_m": 0.7318723201751709,
+        "knee_bend_offset_m": 0.13334498269702566,
+        "ankle_error_m": 4.470348358154297e-08,
+        "ankle_target": [
+          0.14000000059604645,
+          0.3185200095176697,
+          0.14741066098213196
+        ],
+        "clearance_m": 0.03109423525312733,
+        "shoe_pitch_rad": -0.02072949016875155,
+        "authored_stance": false
+      },
+      "R": {
+        "reach_m": 0.6346109771328196,
+        "maximum_reach_m": 0.7318723201751709,
+        "knee_bend_offset_m": 0.1822558344454386,
+        "ankle_error_m": 1.4901161193847656e-08,
+        "ankle_target": [
+          -0.14000000059604645,
+          -0.05833333358168602,
+          0.11800002306699753
+        ],
+        "clearance_m": 0.0,
+        "shoe_pitch_rad": 0.0,
+        "authored_stance": true
+      }
+    }
+  },
+  {
+    "phase": 0.75,
+    "feet": {
+      "L": {
+        "reach_m": 0.5694812756616557,
+        "maximum_reach_m": 0.7318723201751709,
+        "knee_bend_offset_m": 0.2298122219577415,
+        "ankle_error_m": 1.4901161193847656e-08,
+        "ankle_target": [
+          0.14000000059604645,
+          0.13409332931041718,
+          0.1948925405740738
+        ],
+        "clearance_m": 0.08140576474687262,
+        "shoe_pitch_rad": -0.05427050983124841,
+        "authored_stance": false
+      },
+      "R": {
+        "reach_m": 0.6312883638543971,
+        "maximum_reach_m": 0.7318723201751709,
+        "knee_bend_offset_m": 0.18511703496252893,
+        "ankle_error_m": 1.666000468656264e-08,
+        "ankle_target": [
+          -0.14000000059604645,
+          0.03500000014901161,
+          0.11800002306699753
+        ],
+        "clearance_m": 0.0,
+        "shoe_pitch_rad": 0.0,
+        "authored_stance": true
+      }
+    }
+  },
+  {
+    "phase": 0.8333333333333334,
+    "feet": {
+      "L": {
+        "reach_m": 0.5647516277013402,
+        "maximum_reach_m": 0.7318723201751709,
+        "knee_bend_offset_m": 0.2327101290554485,
+        "ankle_error_m": 2.9802322387695312e-08,
+        "ankle_target": [
+          0.14000000059604645,
+          -0.10409333556890488,
+          0.1948925405740738
+        ],
+        "clearance_m": 0.08140576474687262,
+        "shoe_pitch_rad": -0.05427050983124841,
+        "authored_stance": false
+      },
+      "R": {
+        "reach_m": 0.6448238191938455,
+        "maximum_reach_m": 0.7318723201751709,
+        "knee_bend_offset_m": 0.17306560045527083,
+        "ankle_error_m": 0.0,
+        "ankle_target": [
+          -0.14000000059604645,
+          0.12833333015441895,
+          0.11800002306699753
+        ],
+        "clearance_m": 0.0,
+        "shoe_pitch_rad": 0.0,
+        "authored_stance": true
+      }
+    }
+  },
+  {
+    "phase": 0.9166666666666666,
+    "feet": {
+      "L": {
+        "reach_m": 0.6720077256545475,
+        "maximum_reach_m": 0.7318723201751709,
+        "knee_bend_offset_m": 0.14493249018954726,
+        "ankle_error_m": 2.9802322387695312e-08,
+        "ankle_target": [
+          0.14000000059604645,
+          -0.2885200083255768,
+          0.14741066098213196
+        ],
+        "clearance_m": 0.031094235253127378,
+        "shoe_pitch_rad": -0.020729490168751585,
+        "authored_stance": false
+      },
+      "R": {
+        "reach_m": 0.6738190366125177,
+        "maximum_reach_m": 0.7318723201751709,
+        "knee_bend_offset_m": 0.14281519070360563,
+        "ankle_error_m": 7.450580596923828e-09,
+        "ankle_target": [
+          -0.14000000059604645,
+          0.22166666388511658,
+          0.11800002306699753
+        ],
+        "clearance_m": 0.0,
+        "shoe_pitch_rad": 0.0,
+        "authored_stance": true
+      }
+    }
+  }
+]

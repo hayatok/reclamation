@@ -11,6 +11,7 @@ import ast
 import hashlib
 import json
 import math
+import sys
 import time
 from pathlib import Path
 
@@ -20,6 +21,8 @@ from mathutils import Matrix, Vector
 ROOT = Path(__file__).resolve().parent.parent
 SOURCE = ROOT / "source"
 ASSETS = ROOT / "assets"
+sys.path.insert(0, str(SOURCE))
+from support_gait import SupportGait
 CLIPS = {"idle": (1.6, 2), "walk": (1.2, 12), "attack": (0.8, 8), "death": (1.2, 10)}
 FAR_RATIO = 0.16
 
@@ -132,7 +135,8 @@ def main():
     node = next(n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == "pose")
     scope = {"bpy": bpy, "math": math, "Matrix": Matrix, "Vector": Vector, "rig": rig, "mesh": mesh}
     exec(compile(ast.Module(body=[node], type_ignores=[]), str(legacy), "exec"), scope)
-    pose = scope["pose"]
+    support_gait = SupportGait(rig, mesh, scope["pose"])
+    pose = support_gait.pose
     pose(0.25, "idle")
     far.hide_render = True
     far.hide_set(True)
@@ -141,7 +145,7 @@ def main():
     far.hide_set(False)
     far.hide_render = False
     manifest = {
-        "status": "new_reconstruction_not_recovered_039",
+        "status": "isolated_offline_support_gait_candidate",
         "generator": "source/build_reconstructed_poses.py",
         "original_rig": "source/infected_civilian_original.blend",
         "original_generator": "source/legacy_build_infected.py",
@@ -155,6 +159,16 @@ def main():
         "pose_count": 32,
         "bones_in_editable_source_only": len(rig.data.bones),
         "runtime_bones": 0,
+        "walk_authoring": {
+            "module": "source/support_gait.py",
+            "module_sha256": sha256(SOURCE / "support_gait.py"),
+            "runtime_stride_m": 1.12,
+            "left_stance_phase": [0.0, 7.0 / 12.0],
+            "right_stance_phase": [0.5, 1.0],
+            "left_recovery_clearance_m": 0.09,
+            "right_recovery_clearance_m": 0.028,
+            "offline_only": True,
+        },
         "clips": {},
         "lods": counts,
         "changes_from_verified_base": [
@@ -162,10 +176,13 @@ def main():
             "One unique triangle-corner ID in UV2; stable correspondence across all poses.",
             "Attack starts at original t=0.5 contact and recovers through original t=1.0.",
             "All exported object transforms are identity; geometry carries coordinate conversion.",
+            "Walk uses offline two-bone posing, linear shoe support and asymmetric low recovery.",
+            "Only walk legs and pelvis change; legacy upper-body motion and other clips are retained.",
         ],
         "validation_limits": [
             "No original 039 generator or full asset bytes were recovered; no byte identity claimed.",
-            "Legacy walk mechanics retained; 1.12 m runtime stride is not independently reauthored.",
+            "Walk contact measurements assume straight travel and actor scale 1; turning can still scrub feet.",
+            "Twelve baked frames retain piecewise-linear interpolation and finite transfer windows.",
             "Native visual and gameplay review belongs to the integrating parent task.",
         ],
     }
@@ -231,6 +248,7 @@ def main():
     manifest["triangles_per_pose"] = counts["near"]["triangles_per_pose"]
     manifest["far_triangles_per_pose"] = [counts["far"]["triangles_per_pose"]] * 32
     manifest["elapsed_seconds"] = round(time.monotonic() - started, 3)
+    (ROOT / "validation" / "authoring_diagnostics.json").write_text(json.dumps(support_gait.diagnostics, indent=2) + "\n")
     manifest["generator_sha256"] = sha256(Path(__file__))
     (ROOT / "infected_manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
     print("INFECTED_RECONSTRUCTION_OK", json.dumps({"lods": {k: {a: v[a] for a in ["triangles_per_pose", "expected_imported_vertices_per_pose", "uv2_grid_side", "bytes"]} for k, v in counts.items()}, "elapsed_seconds": manifest["elapsed_seconds"]}))

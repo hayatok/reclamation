@@ -13,9 +13,9 @@
       "all_node_transforms_identity": true,
       "floor_safe_endpoints_and_linear_blends": true,
       "min_y_m": 0.0,
-      "max_y_m": 1.6635798215866089,
-      "bytes": 14252768,
-      "sha256": "f68c68e07fcbb1f731cfebf0b26e273da8dfb20a0b198d59201824c700820db8"
+      "max_y_m": 1.6474412679672241,
+      "bytes": 14252772,
+      "sha256": "d016255bc0ef4677f74e2a7b92355eaa5d7704ebaa23b86953ded48fb7c68a7a"
     },
     "far": {
       "poses": 32,
@@ -29,9 +29,9 @@
       "all_node_transforms_identity": true,
       "floor_safe_endpoints_and_linear_blends": true,
       "min_y_m": 0.0,
-      "max_y_m": 1.6702669858932495,
-      "bytes": 2894240,
-      "sha256": "79509eb614172f98daadce7821419dbb8063e50689f7a8985d3ea0bcfe71177b"
+      "max_y_m": 1.641690969467163,
+      "bytes": 2894244,
+      "sha256": "b25d21bc7b0a2659911aecaf10d0a929bd7d8434ab58f240e515089c9349e348"
     }
   }
 }

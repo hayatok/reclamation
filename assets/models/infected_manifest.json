@@ -1,5 +1,5 @@
 {
-  "status": "new_reconstruction_not_recovered_039",
+  "status": "isolated_offline_support_gait_candidate",
   "generator": "source/build_reconstructed_poses.py",
   "original_rig": "source/infected_civilian_original.blend",
   "original_generator": "source/legacy_build_infected.py",
@@ -13,6 +13,22 @@
   "pose_count": 32,
   "bones_in_editable_source_only": 18,
   "runtime_bones": 0,
+  "walk_authoring": {
+    "module": "source/support_gait.py",
+    "module_sha256": "abc224db7fd6a42e7aaa8caa2ace09398a857e482a35dfbac3e605254a03ff1b",
+    "runtime_stride_m": 1.12,
+    "left_stance_phase": [
+      0.0,
+      0.5833333333333334
+    ],
+    "right_stance_phase": [
+      0.5,
+      1.0
+    ],
+    "left_recovery_clearance_m": 0.09,
+    "right_recovery_clearance_m": 0.028,
+    "offline_only": true
+  },
   "clips": {
     "idle": {
       "duration": 1.6,
@@ -144,108 +160,108 @@
           "legacy_t": 0.0,
           "triangle_count": 3337,
           "corner_count": 10011,
-          "floor_correction_m": -6.51925802230835e-09,
+          "floor_correction_m": -1.7695128917694092e-08,
           "min_height_m": 0.0,
-          "max_height_m": 1.6488690376281738
+          "max_height_m": 1.5507465600967407
         },
         {
           "name": "walk_01",
           "legacy_t": 0.08333333333333333,
           "triangle_count": 3337,
           "corner_count": 10011,
-          "floor_correction_m": -1.210719347000122e-08,
+          "floor_correction_m": -3.050081431865692e-08,
           "min_height_m": 0.0,
-          "max_height_m": 1.6364752054214478
+          "max_height_m": 1.5503456592559814
         },
         {
           "name": "walk_02",
           "legacy_t": 0.16666666666666666,
           "triangle_count": 3337,
           "corner_count": 10011,
-          "floor_correction_m": -5.587935447692871e-08,
+          "floor_correction_m": -3.958120942115784e-08,
           "min_height_m": 0.0,
-          "max_height_m": 1.6271737813949585
+          "max_height_m": 1.5507460832595825
         },
         {
           "name": "walk_03",
           "legacy_t": 0.25,
           "triangle_count": 3337,
           "corner_count": 10011,
-          "floor_correction_m": 3.5390257835388184e-08,
+          "floor_correction_m": -5.448237061500549e-08,
           "min_height_m": 0.0,
-          "max_height_m": 1.6224236488342285
+          "max_height_m": 1.5514477491378784
         },
         {
           "name": "walk_04",
           "legacy_t": 0.3333333333333333,
           "triangle_count": 3337,
           "corner_count": 10011,
-          "floor_correction_m": -5.587935447692871e-08,
+          "floor_correction_m": -4.493631422519684e-08,
           "min_height_m": 0.0,
-          "max_height_m": 1.6284066438674927
+          "max_height_m": 1.5519789457321167
         },
         {
           "name": "walk_05",
           "legacy_t": 0.4166666666666667,
           "triangle_count": 3337,
           "corner_count": 10011,
-          "floor_correction_m": -1.210719347000122e-08,
+          "floor_correction_m": -2.3748725652694702e-08,
           "min_height_m": 0.0,
-          "max_height_m": 1.6384309530258179
+          "max_height_m": 1.5523014068603516
         },
         {
           "name": "walk_06",
           "legacy_t": 0.5,
           "triangle_count": 3337,
           "corner_count": 10011,
-          "floor_correction_m": -6.51925802230835e-09,
+          "floor_correction_m": 1.6298145055770874e-09,
           "min_height_m": 0.0,
-          "max_height_m": 1.6508424282073975
+          "max_height_m": 1.5527198314666748
         },
         {
           "name": "walk_07",
           "legacy_t": 0.5833333333333334,
           "triangle_count": 3337,
           "corner_count": 10011,
-          "floor_correction_m": 8.568167686462402e-08,
+          "floor_correction_m": -2.6309862732887268e-08,
           "min_height_m": 0.0,
-          "max_height_m": 1.6622941493988037
+          "max_height_m": 1.5403014421463013
         },
         {
           "name": "walk_08",
           "legacy_t": 0.6666666666666666,
           "triangle_count": 3337,
           "corner_count": 10011,
-          "floor_correction_m": -3.725290298461914e-09,
+          "floor_correction_m": -4.6798959374427795e-08,
           "min_height_m": 0.0,
-          "max_height_m": 1.663308024406433
+          "max_height_m": 1.5311943292617798
         },
         {
           "name": "walk_09",
           "legacy_t": 0.75,
           "triangle_count": 3337,
           "corner_count": 10011,
-          "floor_correction_m": 2.9802322387695312e-08,
+          "floor_correction_m": -4.237517714500427e-08,
           "min_height_m": 0.0,
-          "max_height_m": 1.6635798215866089
+          "max_height_m": 1.5274478197097778
         },
         {
           "name": "walk_10",
           "legacy_t": 0.8333333333333334,
           "triangle_count": 3337,
           "corner_count": 10011,
-          "floor_correction_m": -3.725290298461914e-09,
+          "floor_correction_m": -1.6996636986732483e-08,
           "min_height_m": 0.0,
-          "max_height_m": 1.662075161933899
+          "max_height_m": 1.5299614667892456
         },
         {
           "name": "walk_11",
           "legacy_t": 0.9166666666666666,
           "triangle_count": 3337,
           "corner_count": 10011,
-          "floor_correction_m": 8.568167686462402e-08,
+          "floor_correction_m": -2.444721758365631e-08,
           "min_height_m": 0.0,
-          "max_height_m": 1.6603384017944336
+          "max_height_m": 1.5383456945419312
         },
         {
           "name": "attack_00",
@@ -398,7 +414,7 @@
           "corner_count": 10011,
           "floor_correction_m": -0.0,
           "min_height_m": 0.0,
-          "max_height_m": 0.6516503691673279
+          "max_height_m": 0.6516502499580383
         },
         {
           "name": "death_09",
@@ -407,12 +423,12 @@
           "corner_count": 10011,
           "floor_correction_m": -1.1920928955078125e-07,
           "min_height_m": 0.0,
-          "max_height_m": 0.7278909087181091
+          "max_height_m": 0.7278905510902405
         }
       ],
       "file": "assets/infected_baked_poses.glb",
-      "sha256": "f68c68e07fcbb1f731cfebf0b26e273da8dfb20a0b198d59201824c700820db8",
-      "bytes": 14252768
+      "sha256": "d016255bc0ef4677f74e2a7b92355eaa5d7704ebaa23b86953ded48fb7c68a7a",
+      "bytes": 14252772
     },
     "far": {
       "triangles_per_pose": 520,
@@ -446,108 +462,108 @@
           "legacy_t": 0.0,
           "triangle_count": 520,
           "corner_count": 1560,
-          "floor_correction_m": -0.005945896729826927,
+          "floor_correction_m": -0.007843988947570324,
           "min_height_m": 0.0,
-          "max_height_m": 1.6404515504837036
+          "max_height_m": 1.540431022644043
         },
         {
           "name": "walk_01",
           "legacy_t": 0.08333333333333333,
           "triangle_count": 520,
           "corner_count": 1560,
-          "floor_correction_m": 0.0034415842965245247,
+          "floor_correction_m": -0.007844006642699242,
           "min_height_m": 0.0,
-          "max_height_m": 1.6363712549209595
+          "max_height_m": 1.5389561653137207
         },
         {
           "name": "walk_02",
           "legacy_t": 0.16666666666666666,
           "triangle_count": 520,
           "corner_count": 1560,
-          "floor_correction_m": 0.007856200449168682,
+          "floor_correction_m": -0.007844014093279839,
           "min_height_m": 0.0,
-          "max_height_m": 1.630875587463379
+          "max_height_m": 1.5387476682662964
         },
         {
           "name": "walk_03",
           "legacy_t": 0.25,
           "triangle_count": 520,
           "corner_count": 1560,
-          "floor_correction_m": 0.008794370107352734,
+          "floor_correction_m": -0.007844028994441032,
           "min_height_m": 0.0,
-          "max_height_m": 1.6270816326141357
+          "max_height_m": 1.5394673347473145
         },
         {
           "name": "walk_04",
           "legacy_t": 0.3333333333333333,
           "triangle_count": 520,
           "corner_count": 1560,
-          "floor_correction_m": 0.007856200449168682,
+          "floor_correction_m": -0.007844009436666965,
           "min_height_m": 0.0,
-          "max_height_m": 1.6340755224227905
+          "max_height_m": 1.541947603225708
         },
         {
           "name": "walk_05",
           "legacy_t": 0.4166666666666667,
           "triangle_count": 520,
           "corner_count": 1560,
-          "floor_correction_m": 0.0034415842965245247,
+          "floor_correction_m": -0.00784397590905428,
           "min_height_m": 0.0,
-          "max_height_m": 1.6421396732330322
+          "max_height_m": 1.5447245836257935
         },
         {
           "name": "walk_06",
           "legacy_t": 0.5,
           "triangle_count": 520,
           "corner_count": 1560,
-          "floor_correction_m": -0.005945896729826927,
+          "floor_correction_m": -0.007843957282602787,
           "min_height_m": 0.0,
-          "max_height_m": 1.646681308746338
+          "max_height_m": 1.5466606616973877
         },
         {
           "name": "walk_07",
           "legacy_t": 0.5833333333333334,
           "triangle_count": 520,
           "corner_count": 1560,
-          "floor_correction_m": 0.004049159586429596,
+          "floor_correction_m": -0.007843988947570324,
           "min_height_m": 0.0,
-          "max_height_m": 1.6666103601455688
+          "max_height_m": 1.5327246189117432
         },
         {
           "name": "walk_08",
           "legacy_t": 0.6666666666666666,
           "triangle_count": 520,
           "corner_count": 1560,
-          "floor_correction_m": 0.00914638489484787,
+          "floor_correction_m": -0.007844004780054092,
           "min_height_m": 0.0,
-          "max_height_m": 1.6702669858932495
+          "max_height_m": 1.521162986755371
         },
         {
           "name": "walk_09",
           "legacy_t": 0.75,
           "triangle_count": 520,
           "corner_count": 1560,
-          "floor_correction_m": 0.008591994643211365,
+          "floor_correction_m": -0.00784401223063469,
           "min_height_m": 0.0,
-          "max_height_m": 1.6680353879928589
+          "max_height_m": 1.5154674053192139
         },
         {
           "name": "walk_10",
           "legacy_t": 0.8333333333333334,
           "triangle_count": 520,
           "corner_count": 1560,
-          "floor_correction_m": 0.00914638489484787,
+          "floor_correction_m": -0.007844001054763794,
           "min_height_m": 0.0,
-          "max_height_m": 1.667067050933838
+          "max_height_m": 1.5179630517959595
         },
         {
           "name": "walk_11",
           "legacy_t": 0.9166666666666666,
           "triangle_count": 520,
           "corner_count": 1560,
-          "floor_correction_m": 0.004049159586429596,
+          "floor_correction_m": -0.007844008505344391,
           "min_height_m": 0.0,
-          "max_height_m": 1.660841941833496
+          "max_height_m": 1.5269562005996704
         },
         {
           "name": "attack_00",
@@ -700,32 +716,35 @@
           "corner_count": 1560,
           "floor_correction_m": -0.0034598112106323242,
           "min_height_m": 0.0,
-          "max_height_m": 0.6450099945068359
+          "max_height_m": 0.6450098752975464
         },
         {
           "name": "death_09",
           "legacy_t": 1.0,
           "triangle_count": 520,
           "corner_count": 1560,
-          "floor_correction_m": -0.0038520097732543945,
+          "floor_correction_m": -0.0038518905639648438,
           "min_height_m": 0.0,
-          "max_height_m": 0.7167972922325134
+          "max_height_m": 0.7167970538139343
         }
       ],
       "file": "assets/infected_baked_poses_far.glb",
-      "sha256": "79509eb614172f98daadce7821419dbb8063e50689f7a8985d3ea0bcfe71177b",
-      "bytes": 2894240
+      "sha256": "b25d21bc7b0a2659911aecaf10d0a929bd7d8434ab58f240e515089c9349e348",
+      "bytes": 2894244
     }
   },
   "changes_from_verified_base": [
     "Far LOD decimated once in the rest pose, before deformation.",
     "One unique triangle-corner ID in UV2; stable correspondence across all poses.",
     "Attack starts at original t=0.5 contact and recovers through original t=1.0.",
-    "All exported object transforms are identity; geometry carries coordinate conversion."
+    "All exported object transforms are identity; geometry carries coordinate conversion.",
+    "Walk uses offline two-bone posing, linear shoe support and asymmetric low recovery.",
+    "Only walk legs and pelvis change; legacy upper-body motion and other clips are retained."
   ],
   "validation_limits": [
     "No original 039 generator or full asset bytes were recovered; no byte identity claimed.",
-    "Legacy walk mechanics retained; 1.12 m runtime stride is not independently reauthored.",
+    "Walk contact measurements assume straight travel and actor scale 1; turning can still scrub feet.",
+    "Twelve baked frames retain piecewise-linear interpolation and finite transfer windows.",
     "Native visual and gameplay review belongs to the integrating parent task."
   ],
   "triangles_per_pose": 3337,
@@ -763,6 +782,6 @@
     520,
     520
   ],
-  "elapsed_seconds": 0.968,
-  "generator_sha256": "833d65eff2387e235b9926ca1d1a2336ef6c94efa8c89eda149cd3f8af235508"
+  "elapsed_seconds": 1.167,
+  "generator_sha256": "6acb06a40dd79e5f2dae41eafbb2d5cf3d8f3c95d798384dbddc0fd7810a8296"
 }

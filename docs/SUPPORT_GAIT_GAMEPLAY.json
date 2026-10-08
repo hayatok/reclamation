@@ -1,0 +1,19 @@
+{
+  "baseline": "v0.40.0",
+  "fixture": "earned_critical_factory.json",
+  "main_process_step_seconds": 0.025,
+  "frames": 160,
+  "ending_checkpoint_all_fields_equal": true,
+  "movie_frames": 161,
+  "movie_fps": 40,
+  "movie_resolution": [
+    1280,
+    800
+  ],
+  "game_viewport": [
+    1178,
+    736
+  ],
+  "offline_recording": true,
+  "real_time_fps_claim": false
+}
