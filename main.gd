@@ -1126,6 +1126,7 @@ func command_at(p:Vector3,screen:Vector2=Vector2.INF,append_orders:bool=false)->
  for enemy in combat_targets():
   if enemy.dead:continue
   var separation=camera.unproject_position(enemy.node.position+Vector3(0,.9*enemy.node.scale.y,0)).distance_to(screen) if screen!=Vector2.INF else enemy.node.position.distance_to(p)
+  if enemy.get("enemy_structure",false) and p.distance_to(enemy.node.position)<float(enemy.radius)+.4:separation=0
   if separation<nearest:nearest=separation;enemy_target=enemy
  # Enemy hits consume only ordinary combat orders; workers still resolve their
  # destination or work target, and Shift remains a worker queue command.
@@ -3552,7 +3553,8 @@ func update_ui():
   if boss_spawned:progress_lines.append("破砕体 "+("撃破" if boss_defeated else "接近"))
   mission_action_button.text="変電所へ"
  elif frontier!=null:
-  if frontier.nest.known:progress_lines.append("感染源を破壊")
+  if frontier.nest.known and frontier_visibility.is_visible(frontier.nest.node.position):progress_lines.append("感染源 耐久 %d%%"%ceili(frontier.nest.hp/frontier.nest.maxhp*100))
+  if frontier.alarm_remaining>0:progress_lines.append("群れ出現 %.1f秒"%frontier.alarm_remaining)
  elif hold_time>0 or (settlement_age>=3 and pump.reclaimed):progress_lines.append("揚水 %d/%d秒"%[int(hold_time),int(mission.hold)])
  objective.text="\n".join(progress_lines);objective.visible=not progress_lines.is_empty()
  pause_button.text="再開" if paused else "一時停止"
@@ -3564,8 +3566,9 @@ func update_ui():
  var warning_text="次の襲撃 %d秒  /  騒音 %d"%[int(maxf(0,wave_clock)),int(noise)]
  if buildings.any(func(building):return building.kind=="relay" and building.powered):warning_text+=" / 次は"+wave_direction_text(wave+1)
  if frontier!=null:
-  warning_text="未踏の街区を偵察" if not frontier.nest.known else "感染源を攻撃・破壊"
+  warning_text="未踏の街区を偵察" if not frontier.nest.known else ""
  status.text=warning_text
+ status.visible=not warning_text.is_empty()
  RTSHud.set_label_color(status,AMBER if wave_clock<=20 else Color("aca994"))
  context_button.visible=false
  dismantle_button.visible=can_dismantle(inspected)
@@ -3791,7 +3794,8 @@ func dispatch_frontier_cues(cues:Array)->void:
    "nest_destroyed":
     audio_system.play_event("ruin_collapse",cue.position,1.4)
     explosion_visual(cue.position,6,true)
-   "nest_raid":notify("感染源から群れが出た。",4)
+   "nest_raid":
+    if frontier_visibility.is_visible(cue.position):notify("感染源から群れが出た。",4)
 
 func apply_frontier_blast(position:Vector3,radius:float,damage:float)->void:
  var result:Dictionary=frontier.apply_blast(position,radius,damage)

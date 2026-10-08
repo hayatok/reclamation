@@ -67,7 +67,8 @@ func setup(index: int, world_positions: Dictionary = {}) -> void:
 			_build_water()
 		1:
 			if world_positions.has("frontier"):
-				position = _ground(world_positions.frontier, Vector3.ZERO)
+				var frontier_point: Variant = world_positions.frontier
+				position = Vector3(frontier_point.x, 0, frontier_point.z) if frontier_point is Vector3 and frontier_point.is_finite() else Vector3.ZERO
 				focal_point = position
 				camera_focus = position
 				camera_size = 38.0

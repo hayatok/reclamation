@@ -1,0 +1,31 @@
+{
+  "enemies": 45,
+  "enemy_queries": {
+    "max": 32,
+    "mean": 0.728,
+    "p95": 4,
+    "samples": 500
+  },
+  "forced_visibility_ms": {
+    "max": 3.434,
+    "mean": 2.026624,
+    "p95": 2.368,
+    "samples": 500
+  },
+  "friendly_queries": {
+    "max": 8,
+    "mean": 0.178,
+    "p95": 1,
+    "samples": 500
+  },
+  "from": 720.349999999893,
+  "limits": "Headless CPU timing of one earned route; not render, browser or physical phone performance. Forced visibility sample is separate from simulation timing.",
+  "simulation_ms": {
+    "max": 17.023,
+    "mean": 4.933652,
+    "p95": 8.26,
+    "samples": 500
+  },
+  "to": 745.34999999987,
+  "units": 30
+}

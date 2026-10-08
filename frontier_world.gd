@@ -4,6 +4,7 @@ extends "res://world_art.gd"
 ## This node creates art only. The host owns all movement, physics, fog and gameplay.
 
 const FreightVisuals = preload("res://freight_yard_visuals.gd")
+const PavementShader = preload("res://frontier_pavement.gdshader")
 const PLAYABLE_BOUNDS := Rect2(-96, -80, 192, 160)
 const TERRAIN_SIZE := Vector2(200, 168)
 const HOME := Vector3(-64, 0, 48)
@@ -73,26 +74,33 @@ static func layout_contract() -> Dictionary:
 	}
 
 func _make_surface_textures() -> void:
-	# Retain the original shell plaster, with flat untextured terrain and road mats.
-	_surface_textures["plaster"] = load("res://assets/materials/ruined_plaster.png")
+	# Reuse the established, mipmapped low-contrast pavement and salvage surfaces.
+	# The dramatic crack atlas is not tiled over the broad playable district.
+	super._make_surface_textures()
 	_surface_textures["yard"] = null
-	for key in ["masonry", "asphalt", "metal", "marking"]:
-		_surface_textures[key] = null
 
 func _make_materials() -> void:
 	super._make_materials()
-	_material("ground", "#596360", 1.0)
-	_material("road", "#354044", 1.0)
+	_pavement_material("ground", "#596360", "asphalt")
+	_pavement_material("road", "#354044", "asphalt")
 	_material("canal_water", "#172c31", 1.0)
 	_material("canal_wall", "#434e4d", 1.0)
-	_material("district_survivor", "#626b61", 1.0)
-	_material("district_salvage", "#666b67", 1.0)
-	_material("district_freight", "#626562", 1.0)
-	_material("district_port", "#515d58", 1.0)
+	_pavement_material("district_survivor", "#626b61", "asphalt")
+	_pavement_material("district_salvage", "#666b67", "asphalt")
+	_pavement_material("district_freight", "#626562", "asphalt")
+	_pavement_material("district_port", "#515d58", "asphalt")
 	_material("stain_oil", "#394644", 1.0)
 	_material("stain_moss", "#4c5d49", 1.0)
 	_material("stain_dust", "#73776e", 1.0)
 	_material("quay_mark", "#92947e", 1.0)
+	_pavement_material("apron", "#858b80", "masonry")
+
+func _pavement_material(key: String, tint: String, surface: String) -> void:
+	var material := ShaderMaterial.new()
+	material.shader = PavementShader
+	material.set_shader_parameter("base_color", Color(tint))
+	material.set_shader_parameter("surface_albedo", _surface_textures[surface])
+	_materials[key] = material
 
 func _make_atmosphere() -> void:
 	# Exactly one shared environment and its original two directional lights.
@@ -249,3 +257,15 @@ func _add_instance(shape: String, mat: String, transform: Transform3D) -> void:
 		_batches[key] = []
 	_batches[key].append(transform)
 	# world_art._flush_batches uses the first two key fields for shape/material.
+
+func _flush_batches() -> void:
+	super._flush_batches()
+	# Every spatial sector shares its material, but duplicate node names can be
+	# auto-renamed by Godot. Match materials so both banks keep the same treatment.
+	var floors: Array = [_materials.ground, _materials.apron, _materials.district_survivor,
+		_materials.district_salvage, _materials.district_freight, _materials.district_port]
+	for node in get_children():
+		if node is MultiMeshInstance3D and node.multimesh != null:
+			var surface_material: Material = node.multimesh.mesh.surface_get_material(0)
+			if surface_material in floors:
+				node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF

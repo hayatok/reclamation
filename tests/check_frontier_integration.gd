@@ -40,6 +40,12 @@ func run():
  check(g.load_checkpoint(),"actual checkpoint reload")
  check(g.frontier.nest.known and g.selected[0].target==g.frontier.nest,"target restored")
  check(g.enemies.size()==32,"no duplicate sleeping packs on reload")
+ var live_before=g.checkpoint_data()
+ var invalid=JSON.parse_string(JSON.stringify(live_before))
+ invalid.frontier.nest.known=false
+ f=FileAccess.open("user://settlement_v2/checkpoint.json",FileAccess.WRITE);f.store_string(JSON.stringify(invalid));f.close()
+ check(not g.load_checkpoint(),"inconsistent discovery save rejected")
+ check(g.checkpoint_data()==live_before,"rejected save preserves live state")
  var hp=g.frontier.nest.hp
  g.detonate_shell({"to":g.frontier.nest.node.position,"radius":4.1,"damage":85.0,"kind":"mortar","critical":false})
  check(is_equal_approx(g.frontier.nest.hp,hp-85.0),"shell structure damage exactly once")
@@ -49,5 +55,16 @@ func run():
  g.hit(g.frontier.nest,10000,false)
  g.simulate(.05)
  check(g.ended and not g.result_won,"simultaneous headquarters loss takes priority")
+ g.free();await process_frame
+ c.current=1;c.launch=true;c.resume=false;c.choose_run_seed(4451)
+ g=load("res://main.tscn").instantiate();root.add_child(g);g.set_process(false)
+ scout=g.units[0];scout.node.position=Vector3(45,0,-48);scout.goal=scout.node.position
+ g.refresh_frontier_visibility(0,true)
+ g.hit(g.frontier.nest,10000,false)
+ g.simulate(.05)
+ check(g.ended and g.result_won,"nest destruction wins actual main")
+ check(g.hold_time==0 and not g.convoy_started,"no inherited convoy or hold requirement")
+ check(is_instance_valid(g.modal) and is_instance_valid(g.aftermath_scene),"assault completion presentation created")
+ check(g.aftermath_scene.camera_focus==g.frontier.nest.node.position,"completion view stays at conquered nest outside old map")
  print("FRONTIER_INTEGRATION_PASS checks=",checks)
  g.free();await process_frame;quit()

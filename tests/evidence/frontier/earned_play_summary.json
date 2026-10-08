@@ -1,0 +1,75 @@
+{
+  "outcome": {
+    "won": true,
+    "ended": true,
+    "duration_seconds": 785.549999999833,
+    "seed": "5278979258395613045",
+    "hq_hp": 1000.0,
+    "nest_hp": 0.0,
+    "kills": 316,
+    "level": 10,
+    "live_units": {
+      "guard": 12,
+      "worker": 14,
+      "grenade": 2,
+      "siegecart": 1,
+      "truck": 1
+    },
+    "recorded_losses": [],
+    "milestones": {
+      "assault_muster_started": 699.999999999911,
+      "east_bank_reached": 240.00000000002,
+      "generator_on": 310.000000000036,
+      "generator_restored": 310.000000000036,
+      "nest_discovered": 250.000000000023,
+      "pre_assault_earned": 719.999999999893,
+      "remote_defense_complete": 225.000000000017,
+      "remote_depot_complete": 205.000000000012,
+      "remote_resource_seen": 165.000000000003,
+      "research_age_2": 200.000000000011,
+      "research_age_3": 505.000000000081
+    }
+  },
+  "investment": {
+    "normal_purchases": {
+      "food": 2530.0,
+      "parts": 640.0,
+      "salvage": 2140.0
+    },
+    "refunds": {
+      "food": 0.0,
+      "parts": 0.0,
+      "salvage": 0.0
+    },
+    "factory_operating_salvage": 54.7500000000318,
+    "deposits": {
+      "food": 2800.00000000144,
+      "parts": 1165.60000000002,
+      "salvage": 4000.00000000253
+    },
+    "final_stockpile": {
+      "food": 490.000000001445,
+      "parts": 555.600000000022,
+      "salvage": 2005.25000000249
+    },
+    "ammo_spent": 661.0,
+    "reserve_shots": 0,
+    "completed_counts": {
+      "worker": 8,
+      "house": 6,
+      "depot": 2,
+      "barracks": 1,
+      "guard": 10,
+      "tower": 2,
+      "age_2": 1,
+      "factory": 1,
+      "vehicle_workshop": 1,
+      "grenade": 2,
+      "age_3": 1,
+      "siegecart": 1,
+      "truck": 1
+    }
+  },
+  "evidence_scope": "One scripted normal-cost run using visible information; not human enjoyment, native controls or device performance proof.",
+  "source_main_sha256": "33ea4bcd6a7c7a71bcaf11b3c345c3fbbfd1e42753e08d1a3ad81ecca54d4441"
+}
