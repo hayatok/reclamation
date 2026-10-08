@@ -1,0 +1,17 @@
+[
+  {
+    "screen": "hq",
+    "pixel_identical": true,
+    "difference_bounds": null
+  },
+  {
+    "screen": "workers",
+    "pixel_identical": true,
+    "difference_bounds": null
+  },
+  {
+    "screen": "growth",
+    "pixel_identical": true,
+    "difference_bounds": null
+  }
+]

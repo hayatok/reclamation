@@ -5,9 +5,13 @@ extends RefCounted
 ## phase is a gait/work angle in radians. Survivor gait advances with travel distance.
 
 const ArticulatedSurvivor = preload("res://articulated_survivor.gd")
+const ArticulatedGrenadier = preload("res://articulated_grenadier.gd")
+const ArticulatedWorker = preload("res://articulated_worker.gd")
 const LEGACY_PARTS: Array[String] = ["torso", "head", "legL", "legR", "armL", "armR"]
 
 static func parts_for(kind: String) -> Array[String]:
+	if kind == "worker": return ArticulatedWorker.PARTS
+	if kind in ["grenade", "grenadier"]: return ArticulatedGrenadier.PARTS
 	return ArticulatedSurvivor.PARTS if kind == "guard" else LEGACY_PARTS
 
 static func part_nodes(visual: Node3D) -> Array[Node3D]:
@@ -18,8 +22,23 @@ static func part_nodes(visual: Node3D) -> Array[Node3D]:
 	var body: Node3D = visual.get_meta(&"body")
 	return [body, body, visual.get_meta(&"leg_l"), visual.get_meta(&"leg_r"), visual.get_meta(&"arm_l"), visual.get_meta(&"arm_r")]
 
+static func part_visibility(visual: Node3D) -> Array[bool]:
+	var result: Array[bool] = []
+	if visual.has_meta(&"part_visibility"):
+		result.assign(visual.get_meta(&"part_visibility")); return result
+	result.resize(part_nodes(visual).size()); result.fill(true)
+	return result
+
+static func add_legacy_worker(parent: Node3D) -> void:
+	_add_legacy(parent, "worker")
+	var visual: Node3D = parent.get_meta(&"actor_visuals")
+	visual.set_meta(&"kind", "worker_legacy")
+
+static func legacy_worker_mesh(part: String) -> ArrayMesh:
+	return _mesh("worker", part)
+
 static func muzzle_part_index(kind: String) -> int:
-	return 13 if kind == "guard" else 5
+	return 13 if kind in ["guard", "grenade", "grenadier"] else 5
 
 static var _meshes: Dictionary = {}
 static var _material: StandardMaterial3D
@@ -27,6 +46,7 @@ static var _material: StandardMaterial3D
 ## Front-face centres of the actual ArmR barrel geometry in _human_geometry.
 ## Rifle: -.745 - .28/2. Launcher: -1.055 - .03/2.
 static func muzzle_local(kind: String) -> Vector3:
+	if kind in ["grenade", "grenadier"]: return ArticulatedGrenadier.MUZZLE
 	if kind == "guard": return ArticulatedSurvivor.MUZZLE
 	return Vector3(-.035, -.18, -1.070) if kind in ["grenade", "grenadier"] else Vector3(-.035, -.175, -.885)
 
@@ -38,6 +58,8 @@ static func add_enemy(parent: Node3D, fast: bool, armored: bool = false) -> void
 
 ## Shared source geometry for the horde MultiMesh renderer.
 static func mesh_for(kind: String, part: String) -> ArrayMesh:
+	if kind == "worker": return ArticulatedWorker.mesh_for(part)
+	if kind in ["grenade", "grenadier"]: return ArticulatedGrenadier.mesh_for(part)
 	return ArticulatedSurvivor.mesh_for(part) if kind == "guard" else _mesh(kind, part)
 
 ## Backward-compatible walk/idle entry point. Call pose instead when combat timing is available.
@@ -46,16 +68,23 @@ static func animate(parent: Node3D, phase: float, moving: bool) -> void:
 
 ## All times are seconds since event; -1 means inactive. Reload is normalized [0,1], -1 inactive.
 ## Calling each frame is required: pose fully resets transforms, so effects never accumulate.
-static func pose(parent: Node3D, phase: float, moving: bool, attack_age: float = -1.0, reload_progress: float = -1.0, working: bool = false, hit_age: float = -1.0, hit_strength: float = 1.0, locomotion_weight: float = 1.0, stride_distance: float = 2.2) -> void:
+static func pose(parent: Node3D, phase: float, moving: bool, attack_age: float = -1.0, reload_progress: float = -1.0, working: bool = false, hit_age: float = -1.0, hit_strength: float = 1.0, locomotion_weight: float = 1.0, stride_distance: float = 2.2, worker_state: Dictionary = {}) -> void:
 	if not is_instance_valid(parent) or not parent.has_meta(&"actor_visuals"):
 		return
 	var visual: Node3D = parent.get_meta(&"actor_visuals")
 	if not is_instance_valid(visual): return
 	var kind: String = visual.get_meta(&"kind")
-	var frames := sample_pose(kind, phase, moving, attack_age, reload_progress, working, hit_age, hit_strength, locomotion_weight, stride_distance)
-	if kind == "guard" and visual.has_meta(&"part_nodes"):
+	var frames := sample_pose(kind, phase, moving, attack_age, reload_progress, working, hit_age, hit_strength, locomotion_weight, stride_distance, worker_state)
+	if kind in ["guard", "grenade", "grenadier", "worker"] and visual.has_meta(&"part_nodes"):
 		var nodes: Array[Node3D] = part_nodes(visual)
-		for index: int in frames.size(): nodes[index].transform = frames[index]
+		var visible_parts: Array[bool] = []
+		if kind == "worker": visible_parts = ArticulatedWorker.part_visibility(worker_state)
+		if visible_parts.is_empty():
+			visible_parts.resize(frames.size()); visible_parts.fill(true)
+		visual.set_meta(&"part_visibility", visible_parts)
+		for index: int in frames.size():
+			nodes[index].transform = frames[index]
+			nodes[index].visible = visible_parts[index]
 		return
 	var body: Node3D = visual.get_meta(&"body")
 	body.transform = frames[0]
@@ -73,9 +102,14 @@ static func pose(parent: Node3D, phase: float, moving: bool, attack_age: float =
 ## One transform per parts_for(kind), all ACTOR-ROOT-LOCAL.
 ## Legacy kinds use torso/head/legL/legR/armL/armR; guards use fourteen articulated parts.
 ## No nodes, materials, meshes, simulation state or actor root transforms are changed here.
-static func sample_pose(kind: String, phase: float, moving: bool, attack_age: float = -1.0, reload_progress: float = -1.0, working: bool = false, hit_age: float = -1.0, hit_strength: float = 1.0, locomotion_weight: float = 1.0, stride_distance: float = 2.2) -> Array[Transform3D]:
+static func sample_pose(kind: String, phase: float, moving: bool, attack_age: float = -1.0, reload_progress: float = -1.0, working: bool = false, hit_age: float = -1.0, hit_strength: float = 1.0, locomotion_weight: float = 1.0, stride_distance: float = 2.2, worker_state: Dictionary = {}) -> Array[Transform3D]:
 	if kind == "guard":
 		return ArticulatedSurvivor.sample_pose(phase, moving, attack_age, reload_progress, hit_age, hit_strength, locomotion_weight, stride_distance)
+	if kind in ["grenade", "grenadier"]:
+		return ArticulatedGrenadier.sample_pose(phase, moving, attack_age, reload_progress, hit_age, hit_strength, locomotion_weight, stride_distance)
+	if kind == "worker":
+		return ArticulatedWorker.sample_pose(phase, moving, attack_age, reload_progress, hit_age, hit_strength, locomotion_weight, stride_distance, worker_state)
+	if kind == "worker_legacy": kind = "worker"
 	phase = phase if is_finite(phase) else 0.0
 	attack_age = attack_age if is_finite(attack_age) else -1.0
 	reload_progress = reload_progress if is_finite(reload_progress) else -1.0
@@ -186,9 +220,12 @@ static func sample_death(age: float, side: float = 1.0, forward: float = 1.0) ->
 	return Transform3D(basis,origin)
 
 static func _add(parent: Node3D, kind: String) -> void:
-	if kind == "guard":
-		_add_articulated_guard(parent)
+	if kind in ["guard", "grenade", "grenadier", "worker"]:
+		_add_articulated_guard(parent,kind)
 		return
+	_add_legacy(parent,kind)
+
+static func _add_legacy(parent: Node3D, kind: String) -> void:
 	if parent.has_meta(&"actor_visuals"):
 		return
 	var visual := Node3D.new()
@@ -224,19 +261,19 @@ static func _add(parent: Node3D, kind: String) -> void:
 		_instance(arm, _mesh(kind, "arm" + suffix), "Geometry")
 		visual.set_meta(&"arm_l" if side < 0 else &"arm_r", arm)
 
-static func _add_articulated_guard(parent: Node3D) -> void:
+static func _add_articulated_guard(parent: Node3D, kind: String) -> void:
 	if parent.has_meta(&"actor_visuals"): return
 	var visual := Node3D.new()
 	visual.name = "ActorVisuals"
 	parent.add_child(visual)
 	parent.set_meta(&"actor_visuals", visual)
-	visual.set_meta(&"kind", "guard")
+	visual.set_meta(&"kind", kind)
 	var nodes: Array[Node3D] = []
-	for part: String in ArticulatedSurvivor.PARTS:
+	for part: String in parts_for(kind):
 		var bone := Node3D.new()
 		bone.name = part
 		visual.add_child(bone)
-		_instance(bone, ArticulatedSurvivor.mesh_for(part), "Geometry")
+		_instance(bone, mesh_for(kind,part), "Geometry")
 		nodes.append(bone)
 	visual.set_meta(&"part_nodes", nodes)
 	visual.set_meta(&"body", nodes[0])

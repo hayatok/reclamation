@@ -1,4 +1,5 @@
 extends Node3D
+const SurvivorMotion = preload("res://survivor_motion.gd")
 ## Render-only horde batching. Enemy Node3D roots continue to own simulation state.
 ## Usage: add this node under the game, setup(), then update_horde(enemies, elapsed)
 ## after enemy simulation. Do not also call ActorVisuals.add_enemy on those roots.
@@ -224,14 +225,20 @@ func update_friends(units:Array,rendered:Dictionary={})->void:
 		if not is_instance_valid(skeleton):continue
 		var index:int=counts[u.kind]
 		if index>=64:continue
+		SurvivorMotion.sync_worker_presentation(u)
 		var parts: Array = ActorVisuals.part_nodes(skeleton)
 		var state: Dictionary = rendered.get(u.node.get_instance_id(), {})
 		var actor_world: Transform3D = state.get("world", u.node.global_transform)
 		var actor_inverse: Transform3D = u.node.global_transform.affine_inverse()
 		var rendered_parts: Array = state.get("parts", [])
+		var visible_parts: Array = state.get("part_visibility", ActorVisuals.part_visibility(skeleton))
+		if state.get("presentation_revision", 0) != SurvivorMotion.worker_presentation_revision(u):
+			rendered_parts = []; visible_parts = ActorVisuals.part_visibility(skeleton)
 		for i in parts.size():
 			var local_part: Transform3D = rendered_parts[i] if rendered_parts.size()==parts.size() else actor_inverse * parts[i].global_transform
-			_friendly_batches[u.kind][i].set_instance_transform(index,inverse * actor_world * local_part)
+			var final_transform: Transform3D = inverse * actor_world * local_part
+			if i < visible_parts.size() and not visible_parts[i]: final_transform = Transform3D(Basis.IDENTITY.scaled(Vector3.ZERO), Vector3.ZERO)
+			_friendly_batches[u.kind][i].set_instance_transform(index,final_transform)
 		counts[u.kind]+=1
 	for kind in counts:
 		for mm in _friendly_batches[kind]:mm.visible_instance_count=counts[kind]

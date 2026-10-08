@@ -1,4 +1,6 @@
 extends Node3D
+const DesktopSurfaceScale=preload("res://desktop_surface_scale.gd")
+var desktop_surface_scale:RefCounted=null
 
 const MobileGUIGuard=preload("res://mobile_gui_guard.gd")
 var mobile_gui_guard=MobileGUIGuard.new()
@@ -35,6 +37,7 @@ const RED = Color("b9523e")
 const PALE = Color("ded7c7")
 const BG = Color("222520")
 const RTSHud=preload("res://rts_hud.gd")
+const DesktopCommandDock=preload("res://desktop_command_dock.gd")
 const CommandDeck=preload("res://command_deck.gd")
 const EnvironmentOverlay=preload("res://environment_overlay.gd")
 const BattleFX=preload("res://battle_fx.gd")
@@ -154,6 +157,7 @@ var battle_fx:Node
 var camera:Camera3D
 var camera_focus=Vector3.ZERO
 var root_ui:Control
+var desktop_command_dock:Node
 var stats:Label
 var objective:Label
 var guide:Label
@@ -249,6 +253,9 @@ var font:Font
 func _ready():
  mobile_browser.setup(_mobile_reset)
  _mobile_layout(true)
+ if not mobile_enabled:
+  desktop_surface_scale=DesktopSurfaceScale.new()
+  desktop_surface_scale.setup(get_window())
  for data in UpgradeCatalog.all():catalog_by_id[data.id]=data
  mission=campaign_state.config()
  stockpile=GameRules.STARTING_STOCKPILE.duplicate(true)
@@ -266,7 +273,7 @@ func _ready():
   campaign_state.choose_run_seed(campaign_state.seed_from_args(OS.get_cmdline_user_args()))
  run_seed=campaign_state.run_seed
  seed_run_streams()
- font=load("res://assets/Japanese.ttc")
+ font=load("res://assets/ReclamationUIJP-Regular.otf")
  command_font=load("res://assets/Command.ttf")
  command_font.fallbacks=[font]
  nav.region=Rect2i(-31,-31,63,63)
@@ -723,6 +730,10 @@ func make_ui():
      var p=camera.unproject_position(actor.node.position+Vector3(0,2.2,0))
      drag_overlay.draw_rect(Rect2(p-Vector2(15,0),Vector2(30,4)),Color("171c15"))
      drag_overlay.draw_rect(Rect2(p-Vector2(15,0),Vector2(30*actor.hp/actor.maxhp,4)),Color("afbc84") if actor.hp>actor.maxhp*.4 else RED))
+ if not mobile_enabled:
+  desktop_command_dock=DesktopCommandDock.new()
+  root_ui.add_child(desktop_command_dock)
+  desktop_command_dock.setup(self,unit_panel,command_panel,top,menu_button)
  update_ui()
 
 func field_panel(preset:int,offsets:Vector4,color:Color)->PanelContainer:
@@ -1256,6 +1267,7 @@ func place_building(p:Vector3,append_orders:bool=false)->bool:
  return true
 
 func _process(delta):
+ if desktop_surface_scale!=null and desktop_surface_scale.update():_desktop_modal_layout()
  mobile_layout_clock-=delta
  if mobile_enabled and mobile_layout_clock<=0:
   mobile_layout_clock=.25;_mobile_layout()
@@ -1826,6 +1838,7 @@ func display_cards():
  var row=HBoxContainer.new()
  row.add_theme_constant_override("separation",18)
  content.add_child(row)
+ var desktop_cards:Array=[]
  for i in 3:
   var data=cards[i]
   var b=button("",func():choose_upgrade(i),350)
@@ -1847,7 +1860,9 @@ func display_cards():
   v.add_child(serial)
   var name_label=label(data.name,29,ink)
   v.add_child(name_label)
-  v.add_child(equipment_diagram(data.id))
+  var equipment=equipment_diagram(data.id)
+  v.add_child(equipment)
+  desktop_cards.append({"button":b,"body":v,"art":equipment})
   var desc=label(data.desc,17,ink)
   desc.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
   desc.custom_minimum_size=Vector2(300,62)
@@ -1871,6 +1886,8 @@ func display_cards():
  reroll_button.disabled=rerolls<=0
  content.add_child(reroll_button)
  content.add_child(button("あとで選ぶ  [Esc]",postpone_growth_choice,260))
+ choice_panel.set_meta("desktop_cards",desktop_cards)
+ _desktop_modal_layout()
 
 func equipment_diagram(id:String)->Control:
  return CommandDeck.equipment(UpgradeCatalog.family_for(id))
@@ -2289,7 +2306,8 @@ func show_title():
   if mobile_enabled:return
   var viewport=get_viewport().get_visible_rect().size
   backdrop.draw_line(Vector2(54,57),Vector2(626,57),AMBER,3)
-  for i in 11:backdrop.draw_line(Vector2(54+i*18,viewport.y-47),Vector2(66+i*18,viewport.y-61),Color("74613b"),5)
+  if viewport.y>=790:
+   for i in 11:backdrop.draw_line(Vector2(54+i*18,viewport.y-47),Vector2(66+i*18,viewport.y-61),Color("74613b"),5)
  )
  var v=VBoxContainer.new()
  surface.add_child(v)
@@ -2310,12 +2328,14 @@ func show_title():
   var saved=CheckpointValidation.read("user://settlement_v2/checkpoint.json")
   if valid_checkpoint(saved):v.add_child(button("作戦を再開",resume_checkpoint,555))
   else:v.add_child(label("旧版の保存は元のリリースで再開できます。この版は新規作戦から開始。",14,RED))
+ var desktop_mission_buttons:Array=[]
  for i in 3:
   var m=campaign_state.MISSIONS[i]
   var unlocked=i<campaign_state.unlocked
   var prefix="達成済" if campaign_state.best.has(str(i)) else "出撃可能" if unlocked else "未開放"
   var b=button(m.title+"    /    "+prefix,func():start_mission(i),555)
   b.custom_minimum_size.y=65
+  desktop_mission_buttons.append(b)
   b.alignment=HORIZONTAL_ALIGNMENT_LEFT
   b.disabled=not unlocked
   v.add_child(b)
@@ -2326,6 +2346,32 @@ func show_title():
  v.add_child(label(" ",8))
  v.add_child(label("選択して指揮。回収して建設。群れを迎え撃つ。",16,PALE))
  v.add_child(label("左ドラッグ 選択  /  右クリック 指示  /  Space 戦術停止",14,Color("a29c85")))
+ title_panel.set_meta("desktop_title",{"body":v,"logo":logo,"missions":desktop_mission_buttons})
+ _desktop_modal_layout()
+
+## Keep authored text sizes while fitting desktop modal actions at the supported
+## compact height. Mobile owns its separate responsive/scrolling presentation.
+func _desktop_modal_layout():
+ if mobile_enabled:return
+ var height=get_viewport().get_visible_rect().size.y
+ var compact=height<790
+ if is_instance_valid(title_panel) and title_panel.has_meta("desktop_title"):
+  var title=title_panel.get_meta("desktop_title")
+  title.body.position=Vector2(55,60 if compact else 90)
+  title.body.add_theme_constant_override("separation",10 if compact else 13)
+  title.logo.add_theme_font_size_override("font_size",48 if compact else 55)
+  for child in title.body.get_children():
+   if child is Label and child.text.strip_edges().is_empty():child.visible=not compact
+  for mission_button in title.missions:mission_button.custom_minimum_size.y=55 if compact else 65
+ if is_instance_valid(choice_panel) and choice_panel.has_meta("desktop_cards"):
+  var card_height=minf(550,maxf(430,height-265)) if compact else 550.0
+  for item in choice_panel.get_meta("desktop_cards"):
+   item.button.custom_minimum_size.y=card_height
+   item.body.offset_top=14 if compact else 18
+   item.body.offset_bottom=-14 if compact else -18
+   item.body.add_theme_constant_override("separation",8 if compact else 10)
+   item.art.custom_minimum_size.y=170 if compact else 210
+   item.art.get_child(0).custom_minimum_size.y=160 if compact else 200
 
 func start_mission(index:int,seed_override:int=-1):
  campaign_state.current=index

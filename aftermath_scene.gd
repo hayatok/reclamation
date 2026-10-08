@@ -195,12 +195,12 @@ func _civilian(node_name: String) -> Node3D:
 	var actor := Node3D.new()
 	actor.name = node_name
 	add_child(actor)
-	Actors.add_human(actor, "worker")
+	Actors.add_legacy_worker(actor)
 	# Reuse the unarmed left-hand mesh on this private right-hand instance. The
 	# shared source meshes and all actual game workers retain their tools.
 	var visual: Node3D = actor.get_meta(&"actor_visuals")
 	var right_arm: Node3D = visual.get_meta(&"arm_r")
-	(right_arm.get_node("Geometry") as MeshInstance3D).mesh = Actors.mesh_for("worker", "armL")
+	(right_arm.get_node("Geometry") as MeshInstance3D).mesh = Actors.legacy_worker_mesh("armL")
 	_actors.append(actor)
 	return actor
 

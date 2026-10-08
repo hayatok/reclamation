@@ -1,4 +1,5 @@
 extends RefCounted
+const SurvivorMotion = preload("res://survivor_motion.gd")
 ## Render-only snapshots. Actor roots always retain authoritative simulation state.
 ## New actors, lifecycle changes and teleports snap; old actors never persist as ghosts.
 
@@ -65,6 +66,8 @@ func frame(alpha: float) -> Dictionary:
 			for i: int in current.parts.size():
 				parts.append(previous.get("parts", current.parts)[i].interpolate_with(current.parts[i], weight))
 			state.parts = parts
+			state.part_visibility = current.get("part_visibility", [])
+			state.presentation_revision = current.get("presentation_revision", 0)
 		if current.has("life"):
 			state.life = lerpf(previous.life, current.life, weight)
 			state.baked_world = previous.baked_world.interpolate_with(current.baked_world, weight)
@@ -90,6 +93,7 @@ func _capture() -> Dictionary:
 	return result
 
 func _snapshot(record: Dictionary, stage: int) -> Dictionary:
+	if stage == 0: SurvivorMotion.sync_worker_presentation(record)
 	var actor: Node3D = record.node
 	var world: Transform3D = actor.global_transform
 	var state: Dictionary = {"node": actor, "stage": stage, "world": world}
@@ -101,6 +105,8 @@ func _snapshot(record: Dictionary, stage: int) -> Dictionary:
 		for part: Node3D in nodes:
 			parts.append(inverse * part.global_transform)
 		state.parts = parts
+		state.part_visibility = ActorVisuals.part_visibility(skeleton)
+		state.presentation_revision = SurvivorMotion.worker_presentation_revision(record)
 	if stage == 2:
 		state.life = float(record.life)
 		# Baked death meshes already contain the topple, unlike procedural corpses.
@@ -121,8 +127,10 @@ func _sync_lifecycle() -> void:
 			var actor: Node3D = record.node
 			var id: int = actor.get_instance_id()
 			seen[id] = true
+			if group == 0: SurvivorMotion.sync_worker_presentation(record)
+			var presentation_revision: int = SurvivorMotion.worker_presentation_revision(record) if group == 0 else 0
 			# Out-of-step changes include load, developer teleport and newly spawned actors.
-			if not _current.has(id) or _current[id].stage != group or not _current[id].world.is_equal_approx(actor.global_transform) or (group == 2 and not is_equal_approx(_current[id].life, float(record.life))):
+			if not _current.has(id) or _current[id].get("presentation_revision", 0) != presentation_revision or _current[id].stage != group or not _current[id].world.is_equal_approx(actor.global_transform) or (group == 2 and not is_equal_approx(_current[id].life, float(record.life))):
 				_current[id] = _snapshot(record, group)
 				_previous[id] = _current[id]
 	for id: int in _current.keys():

@@ -1,0 +1,16 @@
+Reclamation UI JP Regular is a modified subset of collection face 0,
+Noto Sans CJK JP Regular, from the bundled assets/Japanese.ttc.
+
+Original embedded copyright notice:
+© 2014-2021 Adobe (http://www.adobe.com/).
+
+The modified font remains licensed under the SIL Open Font License, Version 1.1.
+See the included Noto-CJK-copyright.txt for the complete license and distribution
+copyright notice. Original copyright, license text, and license URL are also
+preserved inside the modified font. The new family name does not imply any
+endorsement by the original authors. The original full TTC remains in source.
+
+Modifications: retain the existing Japanese Regular face, subset to the audited
+runtime source character corpus and OpenType layout closure, rename the family.
+Retained outlines, hinting, horizontal and vertical metrics are not redesigned.
+Regenerate using tools/build_runtime_font.py with fontTools 4.61.1.
