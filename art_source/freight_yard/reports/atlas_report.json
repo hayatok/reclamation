@@ -1,0 +1,38 @@
+{
+  "size": [
+    1024,
+    1024
+  ],
+  "tile_size": 256,
+  "gutter": 16,
+  "tiles": [
+    "faded_teal",
+    "red_oxide",
+    "exposed_steel",
+    "old_timber",
+    "cavity_soot",
+    "faded_ochre",
+    "old_cream",
+    "concrete",
+    "canvas",
+    "dark_steel",
+    "broad_rust",
+    "pale_patch",
+    "clay",
+    "rubber",
+    "amber_lens",
+    "green_lens"
+  ],
+  "files": [
+    {
+      "file": "freight_yard_albedo.png",
+      "sha256": "d07822426de8d02694c63d1c03cf4df73c10cf4023f368e187a5ecc2324c1474",
+      "size": 26166
+    },
+    {
+      "file": "freight_yard_orm.png",
+      "sha256": "1f19c758d20c2d50576460e2b0906f4a9664aa353a53bad7adc481f1d8999afb",
+      "size": 4623
+    }
+  ]
+}

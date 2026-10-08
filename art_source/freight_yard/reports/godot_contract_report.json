@@ -1,0 +1,21 @@
+{
+  "failures": [],
+  "geometry": {
+    "cover_0": {
+      "surfaces": 1,
+      "triangles": 912
+    },
+    "cover_1": {
+      "surfaces": 1,
+      "triangles": 906
+    },
+    "gantry": {
+      "surfaces": 1,
+      "triangles": 3204
+    }
+  },
+  "passed": true,
+  "shared_material_instances": 3,
+  "engine": "Godot 4.6.3",
+  "scope": "Isolated headless import and visual API contract; not integrated runtime performance or same-camera approval."
+}

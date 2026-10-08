@@ -1,0 +1,82 @@
+[
+  {
+    "path": "assets/freight_transfer_gantry.glb",
+    "bytes": 216712,
+    "sha256": "3c96a57679411477507bf63b08ff9f7b6de943e7613a7f07fa4a1e9da7c7ef59"
+  },
+  {
+    "path": "assets/freight_yard_albedo.png",
+    "bytes": 26166,
+    "sha256": "d07822426de8d02694c63d1c03cf4df73c10cf4023f368e187a5ecc2324c1474"
+  },
+  {
+    "path": "assets/freight_yard_albedo.png.import",
+    "bytes": 974,
+    "sha256": "eeb87854549a1fd5ca60ef31e1350f45c126bf377e44d31c91accaafeba07278"
+  },
+  {
+    "path": "assets/freight_yard_orm.png",
+    "bytes": 4623,
+    "sha256": "1f19c758d20c2d50576460e2b0906f4a9664aa353a53bad7adc481f1d8999afb"
+  },
+  {
+    "path": "assets/freight_yard_orm.png.import",
+    "bytes": 965,
+    "sha256": "e2fc4d031814fd34bde6f0cb2ee0c3a2d52987ce6c2d077c673c3d0529476c94"
+  },
+  {
+    "path": "assets/ruined_freight_oxide.glb",
+    "bytes": 76340,
+    "sha256": "fbc9aa8422a4442e6125529d4fc1ce19027c8c60ae6ee6d196fff1c0124c90b6"
+  },
+  {
+    "path": "assets/ruined_freight_teal.glb",
+    "bytes": 76492,
+    "sha256": "f3a5070bf96141980a161858db5d02756f72688c836ffa4c1932e2c989fcc6d6"
+  },
+  {
+    "path": "source/build_freight_yard.py",
+    "bytes": 25422,
+    "sha256": "8a73b5b1aab7f6b8b5936d15ff3bbc494b8a1b1bc3616751ff3fddf3c7ecc5a8"
+  },
+  {
+    "path": "source/create_freight_atlas.py",
+    "bytes": 4066,
+    "sha256": "39eca4960bbdcae7501c2877cbfb8784dd5fed7d298cc856e15d8862ac014f8f"
+  },
+  {
+    "path": "source/freight_transfer_gantry.blend",
+    "bytes": 1575449,
+    "sha256": "9953aa824803fc21fde91ed73b255fa5a420e172616c683a02b8f69ae8acfc08"
+  },
+  {
+    "path": "source/ruined_freight_oxide.blend",
+    "bytes": 838457,
+    "sha256": "d8ecd83c154210243954ac13ae1fe1107ce838330822ac1501ac82ebec5f2407"
+  },
+  {
+    "path": "source/ruined_freight_teal.blend",
+    "bytes": 839241,
+    "sha256": "bfedbd4112028d2aeddf971eb9567ffc8100deb354d77909cdeded6a7802a3fe"
+  },
+  {
+    "path": "source/verify_freight_blend.py",
+    "bytes": 2140,
+    "sha256": "3e13dd63b7570054034e128b0ed44ce6e17ef19fb09dbee7d1acc4ec5abb83aa"
+  },
+  {
+    "path": "source/verify_freight_glb.py",
+    "bytes": 4152,
+    "sha256": "8a2dda55eda9eb116646fd05648ccad6206fd2b3e7ec99c3187c09c778e4ce3b"
+  },
+  {
+    "path": "integration/check_freight_import.gd",
+    "bytes": 2847,
+    "sha256": "cd6a4ab704d6d19459ee33f5faefe0705cfa15bbacbc7b454bfe36e6ac3a104c"
+  },
+  {
+    "path": "integration/freight_yard_visuals.gd",
+    "bytes": 2925,
+    "sha256": "120910bb84c73fec6cb08d53c480e33f9feca30a3d34a46e0db728b4cfaba9d2"
+  }
+]

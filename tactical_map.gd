@@ -1,4 +1,5 @@
 extends Node3D
+const FreightYardVisuals=preload("res://freight_yard_visuals.gd")
 ## Mission-specific, low industrial cover on the shared procedural district.
 ## Positions are ground-plane centers; collision and pathfinding share exact X/Z sizes.
 ## Paint is raised above the district's road deck and never adds a hidden blocker.
@@ -109,23 +110,7 @@ func _concrete_island(p: Vector3, size: Vector3, _index: int) -> void:
 	_cover_model(p,size,"shattered_road_obstruction",Vector3(6,.9,2.5))
 
 func _freight(p: Vector3, size: Vector3, index: int) -> void:
-	var color := "freight" if index % 2 == 0 else "freight_rust"
-	_box(p + Vector3(0, size.y * 0.5, 0), size, color)
-	_box(p + Vector3(0, size.y - 0.08, 0), Vector3(size.x, 0.16, size.z), "edge")
-	for side in [-1.0, 1.0]:
-		_box(p + Vector3(0, 0.12, side * (size.z * 0.5 - 0.045)), Vector3(size.x, 0.12, 0.09), "steel")
-		_box(p + Vector3(0, size.y - 0.13, side * (size.z * 0.5 - 0.045)), Vector3(size.x, 0.11, 0.09), "rib")
-		var count := maxi(4, int(size.x / 0.58))
-		for i in range(count):
-			var x := -size.x * 0.5 + (float(i) + 0.5) * size.x / count
-			_box(p + Vector3(x, size.y * 0.5, side * (size.z * 0.5 - 0.03)), Vector3(0.065, size.y * 0.76, 0.06), "rib")
-	for side in [-1.0, 1.0]:
-		_box(p + Vector3(side * (size.x * 0.5 - 0.09), size.y * 0.5, 0), Vector3(0.17, size.y, size.z), "steel")
-		_box(p + Vector3(side * (size.x * 0.5 - 0.13), size.y + 0.012, 0), Vector3(0.18, 0.016, size.z * 0.78), "amber_paint")
-	# Recessed lid panels make the half-height freight distinct at the RTS zoom.
-	for x in [-0.24, 0.24]:
-		_box(p + Vector3(size.x * x, size.y + 0.012, 0), Vector3(size.x * 0.40, 0.015, size.z * 0.70), color)
-	_box(p + Vector3(-size.x * 0.22, size.y + 0.026, 0), Vector3(0.62, 0.012, 0.38), "ivory")
+	FreightYardVisuals.add_cover(self,p,size,index)
 
 func _broken_main(p: Vector3, size: Vector3, _index: int) -> void:
 	_cover_model(p,size,"ruptured_water_main",Vector3(10,1.25,2.4))

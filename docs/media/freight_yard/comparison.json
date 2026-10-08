@@ -1,0 +1,81 @@
+{
+  "same_existing_earned_gameplay_state": true,
+  "logical_frames": 150,
+  "renderer": "llvmpipe (LLVM 19.1.7, 256 bits)",
+  "viewport": "(1178.0, 736.0)",
+  "before": {
+    "draw_calls": {
+      "mean": 376.941666666667,
+      "n": 120,
+      "p95": 382.0
+    },
+    "frame_ms": {
+      "mean": 103.68275,
+      "n": 120,
+      "p95": 116.835
+    },
+    "primitives": {
+      "mean": 202730.75,
+      "n": 120,
+      "p95": 205644.0
+    },
+    "render_cpu_ms": {
+      "mean": 87.435725180308,
+      "n": 120,
+      "p95": 101.264999389648
+    },
+    "render_gpu_timer_ms": {
+      "mean": 90.4314664204915,
+      "n": 120,
+      "p95": 102.77799987793
+    },
+    "script_cpu_ms": {
+      "mean": 6.0413,
+      "n": 120,
+      "p95": 10.452
+    },
+    "texture_bytes": {
+      "mean": 111602507.516667,
+      "n": 120,
+      "p95": 111688796.0
+    }
+  },
+  "after": {
+    "draw_calls": {
+      "mean": 386.1,
+      "n": 120,
+      "p95": 391.0
+    },
+    "frame_ms": {
+      "mean": 104.857691666667,
+      "n": 120,
+      "p95": 117.116
+    },
+    "primitives": {
+      "mean": 208810.75,
+      "n": 120,
+      "p95": 211724.0
+    },
+    "render_cpu_ms": {
+      "mean": 71.7773917516073,
+      "n": 120,
+      "p95": 99.1289978027344
+    },
+    "render_gpu_timer_ms": {
+      "mean": 90.9500331878662,
+      "n": 120,
+      "p95": 102.061996459961
+    },
+    "script_cpu_ms": {
+      "mean": 6.22119166666667,
+      "n": 120,
+      "p95": 10.645
+    },
+    "texture_bytes": {
+      "mean": 119991113.516667,
+      "n": 120,
+      "p95": 120077402.0
+    }
+  },
+  "scope": "One native cloud before/after pair; fixed logical dt1/60;120sample frames each. Software llvmpipe, not real Web/phone/GPU benchmark. Small wall-time difference is inconclusive."
+}

@@ -1,0 +1,80 @@
+{
+  "ruined_freight_teal": {
+    "triangles": 912,
+    "editable_components": 49,
+    "surface_count": 1,
+    "material_count": 1,
+    "godot_aabb_min": [
+      -3.0,
+      0.0,
+      -1.25
+    ],
+    "godot_aabb_max": [
+      3.0,
+      1.2918965816497803,
+      1.25
+    ],
+    "runtime_bytes": 76492,
+    "texture_uris": {
+      "albedo": "freight_yard_albedo.png",
+      "orm": "freight_yard_orm.png"
+    },
+    "embedded_image_bytes": 0,
+    "physics": false,
+    "skeleton": false,
+    "animations": false,
+    "lights": false
+  },
+  "ruined_freight_oxide": {
+    "triangles": 906,
+    "editable_components": 49,
+    "surface_count": 1,
+    "material_count": 1,
+    "godot_aabb_min": [
+      -3.0,
+      0.0,
+      -1.25
+    ],
+    "godot_aabb_max": [
+      3.0,
+      1.2918965816497803,
+      1.25
+    ],
+    "runtime_bytes": 76340,
+    "texture_uris": {
+      "albedo": "freight_yard_albedo.png",
+      "orm": "freight_yard_orm.png"
+    },
+    "embedded_image_bytes": 0,
+    "physics": false,
+    "skeleton": false,
+    "animations": false,
+    "lights": false
+  },
+  "freight_transfer_gantry": {
+    "triangles": 3204,
+    "editable_components": 150,
+    "surface_count": 1,
+    "material_count": 1,
+    "godot_aabb_min": [
+      -2.0999999046325684,
+      0.0,
+      -1.75
+    ],
+    "godot_aabb_max": [
+      2.0999999046325684,
+      3.261399984359741,
+      1.75
+    ],
+    "runtime_bytes": 216712,
+    "texture_uris": {
+      "albedo": "freight_yard_albedo.png",
+      "orm": "freight_yard_orm.png"
+    },
+    "embedded_image_bytes": 0,
+    "physics": false,
+    "skeleton": false,
+    "animations": false,
+    "lights": false
+  }
+}

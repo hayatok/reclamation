@@ -1,4 +1,5 @@
 extends RefCounted
+const FreightYardVisuals=preload("res://freight_yard_visuals.gd")
 ## Original RECLAMATION rail-yard models. Single indexed vertex-colored mesh per model.
 ## Forward is -Z. Geometry only: never mutates gameplay state or collision.
 const Shapes = preload("res://actor_visuals.gd")
@@ -251,6 +252,7 @@ static func add_vehicle(parent: Node3D, kind: String = "truck") -> void:
 	parent.add_child(scene.instantiate())
 
 static func add_site(parent: Node3D, kind: String) -> bool:
+	if kind == "rail_depot":return FreightYardVisuals.add_to(parent) != null
 	if kind in ["central_station", "substation"]:
 		return PowerFacilityVisuals.add_to(parent, kind) != null
 	if kind == "pump": return WaterStationVisuals.add_to(parent) != null

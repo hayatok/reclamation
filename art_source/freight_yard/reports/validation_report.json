@@ -1,0 +1,74 @@
+{
+  "ruined_freight_teal": {
+    "passed": true,
+    "triangles": 912,
+    "mesh_count": 1,
+    "surface_count": 1,
+    "material_count": 1,
+    "godot_aabb_min": [
+      -3.0,
+      0.0,
+      -1.25
+    ],
+    "godot_aabb_max": [
+      3.0,
+      1.2918965816497803,
+      1.25
+    ],
+    "texture_uris": [
+      "freight_yard_albedo.png",
+      "freight_yard_orm.png"
+    ],
+    "mipmapped_minification": true,
+    "bytes": 76492,
+    "sha256": "f3a5070bf96141980a161858db5d02756f72688c836ffa4c1932e2c989fcc6d6"
+  },
+  "ruined_freight_oxide": {
+    "passed": true,
+    "triangles": 906,
+    "mesh_count": 1,
+    "surface_count": 1,
+    "material_count": 1,
+    "godot_aabb_min": [
+      -3.0,
+      0.0,
+      -1.25
+    ],
+    "godot_aabb_max": [
+      3.0,
+      1.2918965816497803,
+      1.25
+    ],
+    "texture_uris": [
+      "freight_yard_albedo.png",
+      "freight_yard_orm.png"
+    ],
+    "mipmapped_minification": true,
+    "bytes": 76340,
+    "sha256": "fbc9aa8422a4442e6125529d4fc1ce19027c8c60ae6ee6d196fff1c0124c90b6"
+  },
+  "freight_transfer_gantry": {
+    "passed": true,
+    "triangles": 3204,
+    "mesh_count": 1,
+    "surface_count": 1,
+    "material_count": 1,
+    "godot_aabb_min": [
+      -2.0999999046325684,
+      0.0,
+      -1.75
+    ],
+    "godot_aabb_max": [
+      2.0999999046325684,
+      3.261399984359741,
+      1.75
+    ],
+    "texture_uris": [
+      "freight_yard_albedo.png",
+      "freight_yard_orm.png"
+    ],
+    "mipmapped_minification": true,
+    "bytes": 216712,
+    "sha256": "3c96a57679411477507bf63b08ff9f7b6de943e7613a7f07fa4a1e9da7c7ef59"
+  }
+}

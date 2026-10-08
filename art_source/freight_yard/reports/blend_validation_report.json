@@ -1,0 +1,65 @@
+{
+  "ruined_freight_teal": {
+    "passed": true,
+    "editable_components": 49,
+    "export_meshes": 1,
+    "images": [
+      {
+        "name": "freight_yard_albedo.png",
+        "relative_path": "//../assets/freight_yard_albedo.png",
+        "packed": true,
+        "matches_runtime_png": true
+      },
+      {
+        "name": "freight_yard_orm.png",
+        "relative_path": "//../assets/freight_yard_orm.png",
+        "packed": true,
+        "matches_runtime_png": true
+      }
+    ],
+    "bytes": 839241,
+    "sha256": "bfedbd4112028d2aeddf971eb9567ffc8100deb354d77909cdeded6a7802a3fe"
+  },
+  "ruined_freight_oxide": {
+    "passed": true,
+    "editable_components": 49,
+    "export_meshes": 1,
+    "images": [
+      {
+        "name": "freight_yard_albedo.png",
+        "relative_path": "//../assets/freight_yard_albedo.png",
+        "packed": true,
+        "matches_runtime_png": true
+      },
+      {
+        "name": "freight_yard_orm.png",
+        "relative_path": "//../assets/freight_yard_orm.png",
+        "packed": true,
+        "matches_runtime_png": true
+      }
+    ],
+    "bytes": 838457,
+    "sha256": "d8ecd83c154210243954ac13ae1fe1107ce838330822ac1501ac82ebec5f2407"
+  },
+  "freight_transfer_gantry": {
+    "passed": true,
+    "editable_components": 150,
+    "export_meshes": 1,
+    "images": [
+      {
+        "name": "freight_yard_albedo.png",
+        "relative_path": "//../assets/freight_yard_albedo.png",
+        "packed": true,
+        "matches_runtime_png": true
+      },
+      {
+        "name": "freight_yard_orm.png",
+        "relative_path": "//../assets/freight_yard_orm.png",
+        "packed": true,
+        "matches_runtime_png": true
+      }
+    ],
+    "bytes": 1575449,
+    "sha256": "9953aa824803fc21fde91ed73b255fa5a420e172616c683a02b8f69ae8acfc08"
+  }
+}
