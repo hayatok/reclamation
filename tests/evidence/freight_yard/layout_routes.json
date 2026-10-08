@@ -1,0 +1,61 @@
+{
+  "deliveries": [
+    {
+      "credited_parts": 24.0,
+      "destination": [
+        -22.0,
+        0.0,
+        12.0
+      ],
+      "elapsed": 79.9999999999976
+    },
+    {
+      "credited_parts": 24.0,
+      "destination": [
+        11.0,
+        0.0,
+        -11.0
+      ],
+      "elapsed": 79.9999999999976
+    }
+  ],
+  "m2": {
+    "parts": [
+      {
+        "pos": [
+          -11.0,
+          0.0,
+          2.0
+        ],
+        "stock": 300.0
+      },
+      {
+        "pos": [
+          11.0,
+          0.0,
+          -11.0
+        ],
+        "stock": 1000.0
+      },
+      {
+        "pos": [
+          -22.0,
+          0.0,
+          12.0
+        ],
+        "stock": 1500.0
+      }
+    ],
+    "totals": {
+      "food": 4800.0,
+      "parts": 2800.0,
+      "salvage": 6600.0
+    }
+  },
+  "unchanged_missions": [
+    0,
+    2
+  ],
+  "scope": "Fresh-game route and delivery fixtures before first wave, not full campaign play",
+  "save_roundtrip_stock_tolerance": 1e-09
+}
