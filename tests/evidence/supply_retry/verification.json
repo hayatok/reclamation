@@ -1,0 +1,26 @@
+{
+  "version": "0.42.0",
+  "actual_capped_credit_discounted_debit_reserve_pause_reload": true,
+  "integrated_defeat_fixture": "31 checks passed; actual cleanup, repair before removal, atomic save rejection, load, terminal capture and Retry",
+  "native_render_sizes": [
+    [
+      1178,
+      736
+    ],
+    [
+      844,
+      390
+    ],
+    [
+      390,
+      844
+    ]
+  ],
+  "native_mouse_retry_at_touch_layout": true,
+  "ui_images": "controlled presentation/loss fixtures; not normal-cost campaign playthrough",
+  "real_phone": false,
+  "real_web": false,
+  "real_mac": false,
+  "runtime_performance": "not benchmarked; presentation bookkeeping added",
+  "engine_exit_warning": "ObjectDB instances leaked at exit; not attributed to this change"
+}

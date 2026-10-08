@@ -4,6 +4,7 @@ extends RefCounted
 const Rules=preload("res://settlement_rules.gd")
 const Catalog=preload("res://upgrade_catalog.gd")
 const Atomic=preload("res://atomic_save.gd")
+const DefeatRecap=preload("res://defeat_recap.gd")
 const WorkerOrders=preload("res://worker_orders.gd")
 const Navigation=preload("res://friendly_navigation.gd")
 const MAX_ITEMS:=10000
@@ -72,6 +73,7 @@ static func validate(value:Variant)->bool:
   if not integer(d.get(key)):return false
  if not integer(d.get("level"),1) or not number(d.noise,0,100):return false
  if not rng_state(d.get("run_seed")) or int(d.run_seed)<0:return false
+ if d.has("defeat_recap") and not DefeatRecap.validate(d.defeat_recap,int(d.mission),d.run_seed,float(d.elapsed)):return false
  for key in ["rng","card_rng","visual_rng"]:
   if not rng_state(d.get(key)):return false
  if not d.get("preferred_family") is String or (d.preferred_family!="" and not Catalog.FAMILIES.has(d.preferred_family)):return false

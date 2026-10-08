@@ -129,6 +129,9 @@ func sync()->void:
   cell.value.text=host.hud_counters[key].value.text.replace(" ","")
   if key=="power":cell.value.text=cell.value.text.replace(".0","")
   cell.value.modulate=host.hud_counters[key].value.get_theme_color("font_color")
+  if key=="ammo":
+   cell.title.text={"消費超過":"弾薬減少","予備弾使用":"予備弾使用"}.get(host.hud_counters.ammo.caption.text,"弾薬")
+   cell.title.modulate=host.hud_counters.ammo.caption.get_theme_color("font_color")
   if key in ["food","salvage","parts"]:
    cell.title.text={"food":"食","salvage":"廃","parts":"部"}[key]+" · "+host.hud_counters[key].assigned.text
  pause_button.text="再開" if host.paused else "停止"
@@ -331,6 +334,8 @@ func _show_selection(replace_current:bool=false)->void:
   shortcut.size_flags_horizontal=Control.SIZE_EXPAND_FILL
  MobileGroups.add_to_selection(self,body)
  _body_text(body,_touch_words(host.selection_info.tooltip_text+"\n"+host.supply_status.text+"\n"+host.supply_status.tooltip_text),15)
+ if host.current_supply_feedback.get("active",false) and host.inspected.get("kind","")!="factory" and not host.supply_status.text.contains(host.current_supply_feedback.context):
+  _body_text(body,host.current_supply_feedback.context,15,AMBER)
  _body_text(body,_touch_words(host.queue_caption.text+"\n"+host.command_detail.text),14)
  if host.can_dismantle(host.inspected):_button("この施設を解体…",func():_close_popup();host.request_dismantle(),body)
  if host.context_button.visible:_button(host.context_button.text,func():host.toggle_inspected();_close_popup(),body)
@@ -436,7 +441,7 @@ func _adapt_panel(panel:Control,kind:String)->void:
  panel.custom_minimum_size=Vector2.ZERO
  panel.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
  if kind=="result":
-  scroll.set_meta("mobile_result",true)
+  if host.result_won:scroll.set_meta("mobile_result",true)
   scroll.add_theme_stylebox_override("panel",_surface(Color("20261ff2")))
   _fit_scroll(scroll)
  fitted_panels[panel.get_instance_id()]={"scroll":scroll}
@@ -466,6 +471,19 @@ func _reflow_result_rows(body:VBoxContainer)->void:
    child.size_flags_horizontal=Control.SIZE_EXPAND_FILL
    if actions:child.custom_minimum_size=Vector2(44,48)
   old_row.hide();old_row.queue_free()
+
+ # Defeat has no aftermath scene to preserve. Keep retry actions together
+ # so the added factual recap does not push them below a short landscape sheet.
+ if not host.result_won:
+  var actions=body.get_children().filter(func(child):return child is Button)
+  if actions.size()>1:
+   var row=GridContainer.new();body.add_child(row);body.move_child(row,actions[0].get_index())
+   row.size_flags_horizontal=Control.SIZE_EXPAND_FILL
+   row.set_meta("mobile_result_actions",true);row.columns=1 if portrait else actions.size()
+   row.add_theme_constant_override("h_separation",8);row.add_theme_constant_override("v_separation",8)
+   for action in actions:
+    action.reparent(row,false);action.size_flags_horizontal=Control.SIZE_EXPAND_FILL
+    action.custom_minimum_size=Vector2(44,48)
 
 func _confirm_restart()->void:
  # Deliberate in-game confirmation protects the current unsaved operation.

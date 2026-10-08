@@ -19,6 +19,8 @@ const SimulationClock=preload("res://simulation_clock.gd")
 var simulation_clock=SimulationClock.new()
 const RenderInterpolation=preload("res://render_interpolation.gd")
 var render_interpolation=RenderInterpolation.new()
+const DefeatRecap=preload("res://defeat_recap.gd")
+var defeat_recap=DefeatRecap.new()
 const CheckpointValidation=preload("res://checkpoint_validation.gd")
 const AtomicSave=preload("res://atomic_save.gd")
 const WorkerOrders=preload("res://worker_orders.gd")
@@ -36,6 +38,9 @@ const AMBER = Color("d2a148")
 const RED = Color("b9523e")
 const PALE = Color("ded7c7")
 const BG = Color("222520")
+const SupplyFeedback=preload("res://supply_feedback.gd")
+var supply_feedback=SupplyFeedback.new()
+var current_supply_feedback:Dictionary={}
 const RTSHud=preload("res://rts_hud.gd")
 const DesktopCommandDock=preload("res://desktop_command_dock.gd")
 const CommandDeck=preload("res://command_deck.gd")
@@ -274,6 +279,7 @@ func _ready():
   campaign_state.choose_run_seed(campaign_state.seed_from_args(OS.get_cmdline_user_args()))
  run_seed=campaign_state.run_seed
  seed_run_streams()
+ defeat_recap.reset(campaign_state.current,run_seed)
  font=load("res://assets/ReclamationUIJP-Regular.otf")
  command_font=load("res://assets/Command.ttf")
  command_font.fallbacks=[font]
@@ -1355,6 +1361,10 @@ func render_actors()->Dictionary:
  return rendered
 
 func simulate(dt:float):
+ simulate_world(dt)
+ supply_feedback.finish_step(dt)
+
+func simulate_world(dt:float):
  heavy_targeting.begin_step()
  friendly_navigation.begin_frame(dt,units)
  enemy_navigation.begin_step(nav)
@@ -1381,9 +1391,10 @@ func simulate(dt:float):
  combat_spacing.prepare(units,friendly_navigation.work_reservations)
  for u in units.duplicate():
   if u.hp<=0:
+   defeat_recap.record_loss(u,elapsed)
    friendly_navigation.release_unit(u)
    if u.kind=="convoy":
-    failure_reason="輸送隊が感染群に飲まれた。"
+    failure_reason="輸送隊を失った。"
     finish(false)
     return
    if u in selected:selected.erase(u)
@@ -1468,6 +1479,7 @@ func simulate(dt:float):
    SurvivorMotion.update_pose(u,previous_position,dt,elapsed,SurvivorMotion.did_work(u,motion_work))
  for b in buildings.duplicate():
   if b.hp<=0:
+   defeat_recap.record_loss(b,elapsed)
    if b.kind=="hq":finish(false);return
    production.on_building_destroyed(b)
    remove_garden_resource(b)
@@ -1540,7 +1552,7 @@ func simulate(dt:float):
   return
  var convoy=convoy_unit()
  if convoy_started and (convoy.is_empty() or convoy.hp<=0):
-  failure_reason="輸送隊が感染群に飲まれた。"
+  failure_reason="輸送隊を失った。"
   finish(false)
   return
  update_mission(dt)
@@ -1574,7 +1586,10 @@ func fire(origin:Vector3,target:Dictionary,base:float,kind:String,source:Diction
  var socket:Dictionary=WeaponMuzzles.anchor(source)
  var ammo_cost=(3.0 if kind in ["grenade","mortar"] else 1.0)*maxf(.4,1-bonus("supply","ammo_reduction_add")-(.1 if (kind in ["guard","grenade"] or source.get("kind","")=="siegecart") and mobile_aura(origin) else 0.0))
  var supplied=ammo>=ammo_cost
- if supplied:ammo-=ammo_cost
+ if supplied:
+  ammo-=ammo_cost
+  supply_feedback.record_combat_spend(ammo_cost)
+ else:supply_feedback.record_reserve_shot()
  var damage=base*(1+bonus("damage","damage_add"))*(1 if supplied else .4)
  var conditional=bonus("overload","conditional_damage_add") if noise>=60 else 0.0
  if (kind in ["guard","grenade"] or source.get("kind","")=="siegecart") and mobile_aura(origin):conditional+=.2
@@ -1929,6 +1944,7 @@ func choose_upgrade(index:int):
 
 func finish(won:bool):
  if ended:return
+ if not won:defeat_recap.capture_losses(units,buildings,elapsed)
  ended=true
  result_won=won
  result_progress_error=campaign_state.complete(elapsed,kills) if won else OK
@@ -1969,6 +1985,13 @@ func finish(won:bool):
  v.add_child(label("OPERATION COMPLETE" if won else "COMMAND LOST",20,AMBER))
  v.add_child(label("経過 %02d:%02d  /  撃破 %d  /  生存者 Lv.%d"%[int(elapsed)/60,int(elapsed)%60,kills,level],21))
  v.add_child(label(ConvoyPlan.ending(campaign_state.current) if won else failure_reason,18))
+ var recap_lines=defeat_recap.recent_lines(elapsed)
+ if not recap_lines.is_empty():
+  var recap_label=label("直前の記録\n"+"\n".join(recap_lines),17,PALE)
+  recap_label.name="DefeatRecap"
+  recap_label.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
+  recap_label.custom_minimum_size.x=440
+  v.add_child(recap_label)
  if result_progress_error!=OK:
   v.add_child(label("達成記録を保存できませんでした。前回の途中保存を保持しています。",16,RED))
   v.add_child(button("達成記録の保存を再試行",retry_completion_save,440))
@@ -2453,6 +2476,7 @@ func checkpoint_data()->Dictionary:
  for e in living_enemies:
   if not e.dead:data.enemies.append({"pos":vec_data(e.node.position),"hp":e.hp,"speed":e.speed,"cd":e.cd,"armored":e.get("armored",false),"charged_until":e.get("charged_until",0),"convoy_hunter":e.get("convoy_hunter",false),"boss":e.get("boss",false),"windup":e.get("windup",0),"attack_pos":vec_data(e.get("attack_pos",e.node.position))})
  data["control_groups"]=control_groups.snapshot(units,buildings)
+ data["defeat_recap"]=defeat_recap.snapshot()
  # Selection shortcuts can set focus before the next frame clamps the view.
  data["camera"]={"focus":vec_data(Vector3(clampf(camera_focus.x,-18,18),0,clampf(camera_focus.z,-18,18))),"size":clampf(camera.size,26,85)}
  return data
@@ -2460,6 +2484,10 @@ func checkpoint_data()->Dictionary:
 func load_checkpoint()->bool:
  var d=CheckpointValidation.read("user://settlement_v2/checkpoint.json")
  if ended or not valid_checkpoint(d) or int(d.mission)!=campaign_state.current:return false
+ if d.has("defeat_recap"):
+  if not defeat_recap.restore(d.defeat_recap,int(d.mission),int(d.run_seed),float(d.elapsed)):return false
+ else:defeat_recap.reset(int(d.mission),int(d.run_seed))
+ supply_feedback.reset()
  var recovered=CheckpointValidation.last_read_used_backup
  building_attack_alerts.reset()
  building_attack_button.visible=false
@@ -2659,7 +2687,9 @@ func update_economy(dt:float):
  production.update(dt*production_multiplier())
  build_boost=maxf(0,build_boost-dt)
  victory_boost=maxf(0,victory_boost-dt)
+ var before_base_ammo=ammo
  ammo=minf(400,ammo+dt*2)
+ supply_feedback.record_supply(ammo-before_base_ammo,"base")
  power_clock-=dt
  if power_clock<=0:
   power_clock=1
@@ -2674,7 +2704,9 @@ func update_economy(dt:float):
   elif resources<dt*1.5:b.production_state="資材不足"
   else:
    resources-=dt*1.5
+   var before_factory_ammo=ammo
    ammo=minf(400,ammo+dt*8*production_multiplier())
+   supply_feedback.record_supply(ammo-before_factory_ammo,"factory")
  var industry=active_producers()
  if is_instance_valid(audio_system):audio_system.set_industry(industry)
  if upgrades.get("repair",0)>0:
@@ -3326,6 +3358,8 @@ func refresh_context_commands(force:bool=false):
    if not next_age.ok:
     detail_text=next_age.get("reason","")
     if detail_text.begins_with("必要施設:"):detail_text="発展 "+compact_cost(GameRules.age(settlement_age+1).cost)+" / "+detail_text
+  if not mobile_enabled and detail_text.is_empty() and current_supply_feedback.get("active",false) and (selected.any(func(unit):return unit.kind in ["guard","grenade","siegecart"]) or inspected.get("kind","") in ["factory","tower","mortar"]):
+   detail_text=current_supply_feedback.context
   command_detail.text=detail_text
 
 func build_availability(kind:String)->Dictionary:
@@ -3416,9 +3450,17 @@ func update_ui():
  hud_counters.experience.value.text="Lv %d"%level
  RTSHud.set_growth_pending(hud_counters.experience,pending_upgrade_levels.size())
  hud_counters.experience.root.tooltip_text="共有XP %d / %d。強化 %d件。クリック / Tabで選択、Escで保留。"%[int(xp),int(xp_needed()),pending_upgrade_levels.size()]
+ var factory_states:Array[String]=[]
+ for factory in buildings:
+  if factory.kind=="factory" and factory.hp>0:factory_states.append(factory_status(factory))
+ var ammo_feedback=supply_feedback.view(factory_states)
+ current_supply_feedback=ammo_feedback
+ hud_counters.ammo.caption.text=ammo_feedback.caption
+ RTSHud.set_label_color(hud_counters.ammo.caption,AMBER if ammo_feedback.active else Color("b6b5a7"))
  hud_counters.ammo.value.text="%d"%int(ammo)
  RTSHud.set_label_color(hud_counters.ammo.value,RED if ammo<40 else PALE)
  hud_counters.ammo.root.tooltip_text="弾薬 %d / 400。弾薬工房で補給。枯渇時は予備弾で威力40%%。"%int(ammo)
+ if ammo_feedback.active:hud_counters.ammo.root.tooltip_text+="\n"+ammo_feedback.tooltip
  hud_counters.power.value.text=str(snappedf(power_used,.1))+" / "+str(snappedf(power_capacity,.1))
  hud_counters.power.root.tooltip_text="使用電力 / 発電容量。施設は送電範囲と空き電力が必要。"
  var idle_count=units.filter(func(unit):return worker_needs_attention(unit)).size()
@@ -3500,6 +3542,8 @@ func update_ui():
   selection_text=site_title(inspected_site.kind)+"\n"+("復旧済" if inspected_site.reclaimed else "復旧 %d%%"%int(inspected_site.progress*100))
  selection_info.text=selection_text
  selection_info.tooltip_text=selection_tooltip
+ if mobile_enabled and ammo_feedback.active and (selected.any(func(unit):return unit.kind in ["guard","grenade","siegecart"]) or inspected.get("kind","") in ["factory","tower","mortar"]):
+  supply_text+="\n"+(ammo_feedback.issue if inspected.get("kind","")=="factory" else ammo_feedback.context)
  supply_status.text=supply_text
  supply_status.tooltip_text=supply_tooltip
  if portrait_kind!=last_portrait_kind:selection_portrait.texture=portrait_for(portrait_kind);last_portrait_kind=portrait_kind

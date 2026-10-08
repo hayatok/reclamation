@@ -1,0 +1,83 @@
+--- v041/main.gd
++++ prototype/main.gd
+@@ -2910,12 +2910,30 @@
+   if u.kind=="convoy":return u
+  return {}
+ 
++func convoy_departure_issue(include_loading_cost:bool=true)->String:
++ if settlement_age<2:return "本部で段階IIへの発展が必要です。"
++ if not get_site("generator").reclaimed:return "発電所の復旧が必要です。"
++ if not get_site("pump").reclaimed:return "貨物中継所の復旧が必要です。"
++ if not generator_on:return "発電所を起動してください。"
++ var workshop_exists=false
++ var workshop_complete=false
++ var workshop_powered=false
++ for building in buildings:
++  if building.kind!="vehicle_workshop" or building.hp<=0:continue
++  workshop_exists=true
++  if building.built>=1:
++   workshop_complete=true
++   if building.powered:workshop_powered=true
++ if not workshop_exists:return "作業員で車両工房を建設してください。"
++ if not workshop_complete:return "車両工房を完成させてください。"
++ if not workshop_powered:return "車両工房への送電が必要です。"
++ if include_loading_cost and resources<80:return "輸送物資の積込みに廃材80が必要。"
++ return ""
++
+ func launch_convoy():
+  if ended or active_card or mission.mode!="convoy" or convoy_started:return
+- if settlement_age<3 or not generator_on or not get_site("pump").reclaimed:
+-  notify("発電所と貨物中継所を復旧し、発電を開始してください。")
+-  return
+- if resources<80:notify("輸送物資の積込みに廃材80が必要。") ;return
++ var issue=convoy_departure_issue()
++ if not issue.is_empty():notify(issue,4);return
+  resources-=80
+  convoy_started=true
+  convoy_index=1
+@@ -2999,9 +3017,8 @@
+ 
+ func show_route_choice():
+  if ended or active_card or convoy_started or is_instance_valid(route_panel):return
+- if settlement_age<3 or not generator_on or not get_site("pump").reclaimed:
+-  notify("発電所と貨物中継所を復旧し、車列を整備しよう。",4)
+-  return
++ var issue=convoy_departure_issue(false)
++ if not issue.is_empty():notify(issue,4);return
+  route_previous_pause=paused;paused=true
+  route_panel=PanelContainer.new();root_ui.add_child(route_panel)
+  route_panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+@@ -3011,6 +3028,7 @@
+  var col=VBoxContainer.new();route_panel.add_child(col);col.add_theme_constant_override("separation",16)
+  col.add_child(label("水と薬を、東の避難所へ",26,AMBER))
+  col.add_child(label("護衛の配置と輸送路を決めて出発。廃材80を積み込む。",16))
++ if settlement_age==2:col.add_child(label("段階IIで出発できます。重火器を整えるなら、本部で段階IIIへ。",15))
+  col.add_child(button("南側道路  /  短い道。拠点の防衛線から離れる。",func():choose_convoy_route(0),620))
+  col.add_child(button("拠点側迂回  /  長い道。銃座と補給圏を利用できる。",func():choose_convoy_route(1),620))
+  col.add_child(button("準備に戻る",close_route_choice,620))
+@@ -3527,6 +3545,15 @@
+   if gathered<20:return "作業員で資源を採取"
+   if production.population_cap()-production.population_used()<2:return "住居を建て、人口枠を増やす"
+   return "住居2・集積所・訓練所を整え\n本部で段階IIへ"
++ if mission.mode=="convoy" and settlement_age>=2:
++  if not get_site("generator").reclaimed:return "作業員で発電所を復旧"
++  var workshop=buildings.filter(func(b):return b.kind=="vehicle_workshop" and b.hp>0)
++  if workshop.is_empty():return "作業員で車両工房を建設"
++  if not workshop.any(func(b):return b.built>=1):return "車両工房を完成させる"
++  if not get_site("pump").reclaimed:return "作業員で貨物中継所を復旧"
++  if not generator_on:return "発電所を起動"
++  if not workshop.any(func(b):return b.built>=1 and b.powered):return "車両工房へ送電"
++  return "輸送路を選んで出発\n段階IIIで重火器も準備可" if settlement_age==2 else "輸送路を選んで出発"
+  if settlement_age==2:
+   if not get_site("generator").reclaimed:return "作業員で発電所を復旧"
+   if not generator_on:return "防衛を整え、発電所を起動"
+@@ -3541,7 +3568,8 @@
+ 
+ func site_rule(kind:String)->Dictionary:
+  if kind=="generator":return {"age":2,"cost":{"salvage":120,"parts":30},"time":60.0}
+- return {"age":3,"cost":{"salvage":250 if kind=="substation" else 300,"parts":100},"time":90.0}
++ var required_age=2 if mission.mode=="convoy" and kind=="pump" else 3
++ return {"age":required_age,"cost":{"salvage":250 if kind=="substation" else 300,"parts":100},"time":90.0}
+ 
+ func work_site(unit:Dictionary,dt:float):
+  var site=unit.target

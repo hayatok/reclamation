@@ -1,0 +1,80 @@
+[
+  {
+    "name": "steady_supply_is_quiet",
+    "phases": [
+      {"seconds": 18, "base": 2, "factory": 8, "spent": 6, "expect": "quiet", "supply_total": 120, "spend_total": 72}
+    ]
+  },
+  {
+    "name": "warmup_and_sustained_deficit",
+    "phases": [
+      {"seconds": 11, "base": 2, "factory": 8, "spent": 14, "expect": "quiet"},
+      {"seconds": 1, "base": 2, "factory": 8, "spent": 14, "expect": "quiet"},
+      {"seconds": 1, "base": 2, "factory": 8, "spent": 14, "expect": "deficit", "supply_total": 120, "spend_total": 168}
+    ]
+  },
+  {
+    "name": "single_burst_is_not_sustained",
+    "phases": [
+      {"seconds": 11, "base": 2, "spent": 0, "expect": "quiet"},
+      {"seconds": 1, "base": 2, "spent": 80, "expect": "quiet"},
+      {"seconds": 1, "base": 2, "spent": 0, "expect": "quiet"},
+      {"seconds": 12, "base": 2, "spent": 0, "expect": "quiet"}
+    ]
+  },
+  {
+    "name": "real_supply_recovery_clears_old_deficit",
+    "phases": [
+      {"seconds": 13, "base": 2, "factory": 8, "spent": 14, "expect": "deficit"},
+      {"seconds": 1, "base": 2, "factory": 18, "spent": 14, "expect": "deficit"},
+      {"seconds": 1, "base": 2, "factory": 18, "spent": 14, "expect": "quiet"},
+      {"seconds": 15, "base": 2, "factory": 18, "spent": 14, "expect": "quiet"}
+    ]
+  },
+  {
+    "name": "combat_ends_clears_without_requiring_stock_to_fill",
+    "phases": [
+      {"seconds": 13, "base": 2, "spent": 14, "expect": "deficit"},
+      {"seconds": 2, "base": 2, "spent": 0, "expect": "deficit"},
+      {"seconds": 1, "base": 2, "spent": 0, "expect": "quiet"}
+    ]
+  },
+  {
+    "name": "reserve_fire_does_not_masquerade_as_balanced_demand",
+    "phases": [
+      {"seconds": 2, "base": 2, "spent": 2, "reserve": 3, "expect": "quiet"},
+      {"seconds": 1, "base": 2, "spent": 2, "reserve": 3, "expect": "reserve"},
+      {"seconds": 10, "base": 2, "spent": 2, "reserve": 3, "expect": "reserve"},
+      {"seconds": 2, "base": 2, "factory": 8, "spent": 6, "expect": "reserve"},
+      {"seconds": 1, "base": 2, "factory": 8, "spent": 6, "expect": "quiet"}
+    ]
+  },
+  {
+    "name": "exact_discounts_and_small_imbalance_threshold",
+    "phases": [
+      {"seconds": 16, "base": 2, "spent": 1.8, "expect": "quiet"},
+      {"seconds": 16, "base": 2, "spent": 2.1, "expect": "quiet"},
+      {"seconds": 16, "base": 2, "spent": 2.3, "expect": "deficit"}
+    ]
+  },
+  {
+    "name": "cap_credits_only_actual_amount",
+    "phases": [
+      {"seconds": 12, "base": 0.25, "factory": 0, "spent": 0, "expect": "quiet", "supply_total": 3, "spend_total": 0}
+    ]
+  },
+  {
+    "name": "hysteresis_does_not_reenter_from_old_window_after_recovery",
+    "phases": [
+      {"seconds": 13, "base": 2, "factory": 8, "spent": 14, "expect": "deficit"},
+      {"seconds": 3, "base": 2, "factory": 8, "spent": 10, "expect": "quiet"},
+      {"seconds": 10, "base": 2, "factory": 8, "spent": 10, "expect": "quiet"}
+    ]
+  },
+  {
+    "name": "bounded_long_run",
+    "phases": [
+      {"seconds": 240, "base": 2, "factory": 8, "spent": 14, "expect": "deficit", "supply_total": 120, "spend_total": 168}
+    ]
+  }
+]
