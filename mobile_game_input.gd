@@ -32,6 +32,7 @@ func sync()->void:
 func set_mode(value:int)->void:_dispatch(controller.set_mode(value));sync()
 func set_append(value:bool)->void:_dispatch(controller.set_append(value));sync()
 func cancel(reason:String="cancel",forget:bool=false)->void:
+ host.escort_targeting=false
  _dispatch(controller.cancel(reason,forget));map_finger=-1;map_moved=false
 func cancel_command()->void:
  cancel();host.cancel_targeting_mode()
@@ -83,6 +84,8 @@ func _camera()->void:
 func _tap(screen:Vector2,mode:int,append:bool)->void:
  if modal():return
  var ground=host.ground_at(screen)
+ if host.escort_targeting:
+  host.choose_escort_target(ground,screen);return
  if not host.build_mode.is_empty():
   host.place_building(ground,append);return
  if mode==Touch.Mode.ORDER or host.attack_move:
@@ -111,6 +114,8 @@ func _tap(screen:Vector2,mode:int,append:bool)->void:
 func _map_tap(screen:Vector2,mode:int,append:bool)->void:
  var p=MissionMap.map_to_world(host.map_config,screen-host.minimap.global_position,host.minimap.size)
  if not p.is_finite():return
+ if host.escort_targeting:
+  host.camera_focus=MissionMap.clamp_camera(host.map_config,p);_camera();return
  if mode==Touch.Mode.ORDER or host.attack_move:
   var destination=MissionMap.clamp_command(host.map_config,p)
   var attack=host.attack_move

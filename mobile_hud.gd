@@ -292,8 +292,8 @@ func _update_mode()->void:
  order_button.text="命令✓" if touch_mode==2 else "命令"
  append_button.text="追加✓" if append_orders else "追加"
  var building:bool=not host.build_mode.is_empty()
- cancel_button.disabled=touch_mode==0 and not append_orders and not building and not host.attack_move
- mode_text.text="範囲をドラッグ" if touch_mode==1 else "指示先をタップ" if touch_mode==2 or host.attack_move else "配置先をタップ" if building else host.selection_info.text.replace("\n"," · ")
+ cancel_button.disabled=touch_mode==0 and not append_orders and not building and not host.attack_move and not host.escort_targeting
+ mode_text.text="護衛先の味方をタップ" if host.escort_targeting else "範囲をドラッグ" if touch_mode==1 else "指示先をタップ" if touch_mode==2 or host.attack_move else "配置先をタップ" if building else host.selection_info.text.replace("\n"," · ")
  if append_orders:mode_text.text+=(" · " if not mode_text.text.is_empty() else "")+("連続建設" if building else "追加予約")
  # Rebuild the small rect list because attack alerts can appear after layout.
  ui_rects=[top.get_global_rect(),dock.get_global_rect(),goal.get_global_rect()]

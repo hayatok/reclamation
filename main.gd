@@ -26,7 +26,7 @@ const AtomicSave=preload("res://atomic_save.gd")
 const WorkerOrders=preload("res://worker_orders.gd")
 const ControlGroups=preload("res://control_groups.gd")
 const CONTROL_GROUP_DOUBLE_TAP_MS:int=350
-const CONTROLS_HELP="左クリック・ドラッグ: 選択 / 右クリック: 移動・作業・攻撃\nShift+右クリック: 作業予約 / Shift+配置: 連続建設\nCtrl+1–9: 登録 / 1–9: 呼出 / 同じ番号を2連打: 視点移動\nC 全戦闘員 / V 全作業員 / H 本部 / . 待機作業員\n矢印: 視点移動 / ホイール: 拡大縮小 / Space: 一時停止\n生産施設で右クリック: 集合地点 / 本部から資源指定: 採取\nEsc・右クリック: 配置取消 / Backspace: 最後の生産予約を取消"
+const CONTROLS_HELP="左クリック・ドラッグ: 選択 / 右クリック: 移動・作業・攻撃\nShift+右クリック: 作業予約 / Shift+配置: 連続建設\n護衛: 部隊命令の「護衛」から味方を指定 / 味方を右クリックでも追尾\nCtrl+1–9: 登録 / 1–9: 呼出 / 同じ番号を2連打: 視点移動\nC 全戦闘員 / V 全作業員 / H 本部 / . 待機作業員\n矢印: 視点移動 / ホイール: 拡大縮小 / Space: 一時停止\n生産施設で右クリック: 集合地点 / 本部から資源指定: 採取\nEsc・右クリック: 配置取消 / Backspace: 最後の生産予約を取消"
 var control_groups=ControlGroups.new()
 var last_control_group:int=0
 var last_control_group_msec:int=0
@@ -218,6 +218,7 @@ var showcase_start_ms:int=0
 var showcase_impact_captured:bool=false
 var showcase_frame_ms:Array=[]
 var attack_move:bool=false
+var escort_targeting:bool=false
 var nav=AStarGrid2D.new()
 var first_activation:bool=false
 var incoming_surge:bool=false
@@ -787,6 +788,7 @@ func handle_minimap_input(event:InputEvent)->void:
  if event.button_index==MOUSE_BUTTON_LEFT:
   camera_focus=MissionMap.clamp_camera(map_config,map_point)
   return
+ if escort_targeting:cancel_targeting_mode();return
  if not build_mode.is_empty():
   build_mode="";ghost.visible=false
   return
@@ -891,6 +893,7 @@ func set_build(kind:String):
  if active_card or ended or not selected.any(func(unit):return unit.kind=="worker"):return
  var allowed=GameRules.can_build(kind,settlement_age,buildings)
  if not allowed.ok:notify(allowed.reason,3);return
+ escort_targeting=false
  build_mode=kind
  ghost.visible=true
  var radius=float(GameRules.building(kind).radius)
@@ -898,7 +901,7 @@ func set_build(kind:String):
  notify("左クリックで建設 / Escで取消",3)
 
 func cancel_targeting_mode():
- build_mode="";attack_move=false;ghost.visible=false;dragging=false
+ build_mode="";attack_move=false;escort_targeting=false;ghost.visible=false;dragging=false
 
 func select_guards():select_kind("guard")
 func select_workers():select_kind("worker")
@@ -925,7 +928,7 @@ func recall_control_group(slot:int,now_msec:int=-1,center_immediately:bool=false
  if now_msec<0:now_msec=Time.get_ticks_msec()
  var center=center_immediately or (last_control_group==slot and now_msec>=last_control_group_msec and now_msec-last_control_group_msec<=CONTROL_GROUP_DOUBLE_TAP_MS)
  selected=group.units;inspected=group.building;inspected_resource={};inspected_site={}
- build_mode="";attack_move=false;ghost.visible=false;dragging=false
+ build_mode="";attack_move=false;escort_targeting=false;ghost.visible=false;dragging=false
  update_selection()
  if center:
   var point=Vector3.ZERO
@@ -938,6 +941,7 @@ func recall_control_group(slot:int,now_msec:int=-1,center_immediately:bool=false
   last_control_group=slot;last_control_group_msec=now_msec
 
 func update_selection():
+ escort_targeting=false
  reset_control_group_tap()
  for u in units:u.ring.visible=u in selected
  context_signature=""
@@ -1036,7 +1040,7 @@ func _unhandled_input(event):
    return
   if ended:return
   if event.keycode==KEY_ESCAPE:
-   build_mode="";attack_move=false;ghost.visible=false
+   cancel_targeting_mode()
    return
   if event.keycode==KEY_SPACE:toggle_pause();return
   if event.keycode>=KEY_1 and event.keycode<=KEY_9:
@@ -1066,16 +1070,19 @@ func _unhandled_input(event):
     if event.shift_pressed:request_dismantle()
    KEY_BACKSPACE:cancel_recruit()
  if active_card or ended or title_open:return
+ if is_instance_valid(route_panel) or is_instance_valid(options_panel) or is_instance_valid(dismantle_panel):return
  if event is InputEventMouseButton:
   if event.button_index==MOUSE_BUTTON_WHEEL_UP:camera.size=maxf(26,camera.size-3)
   if event.button_index==MOUSE_BUTTON_WHEEL_DOWN:camera.size=minf(85,camera.size+3)
   if event.button_index==MOUSE_BUTTON_RIGHT and event.pressed:
+   if escort_targeting:cancel_targeting_mode();return
    if not build_mode.is_empty():
     build_mode=""
     ghost.visible=false
    else: command_at(ground_at(event.position),event.position,event.shift_pressed)
   if event.button_index==MOUSE_BUTTON_LEFT:
    if event.pressed:
+    if escort_targeting:choose_escort_target(ground_at(event.position),event.position);return
     if not build_mode.is_empty():place_building(ground_at(event.position),event.shift_pressed);return
     dragging=true
     drag_start=event.position
@@ -1085,6 +1092,7 @@ func _unhandled_input(event):
     drag_overlay.queue_redraw()
 
 func select_rect(a:Vector2,b:Vector2,append:bool=false):
+ escort_targeting=false
  inspected={};inspected_site={};inspected_resource={}
  var rect=Rect2(a,b-a).abs()
  if not append:selected.clear()
@@ -1850,6 +1858,7 @@ func open_growth_choices()->bool:
     if card.get("family","")==preferred_family:found=true
    family_misses=0 if found else family_misses+1
  active_card=true
+ escort_targeting=false
  dragging=false;build_mode="";ghost.visible=false
  pending_card_delay=0
  display_cards()
@@ -1986,6 +1995,7 @@ func choose_upgrade(index:int):
 
 func finish(won:bool):
  if ended:return
+ escort_targeting=false
  if not won:defeat_recap.capture_losses(units,buildings,elapsed)
  ended=true
  result_won=won
@@ -2683,6 +2693,7 @@ func load_checkpoint()->bool:
  return true
 
 func show_options():
+ escort_targeting=false
  if title_open or active_card or ended or is_instance_valid(options_panel):return
  options_previous_pause=paused
  paused=true
@@ -2837,6 +2848,7 @@ func command_icon_button(kind:String,title:String,cost:String,callback:Callable)
 
 
 func selected_order_text()->String:
+ if escort_targeting:return "護衛先を指定 / 取消" if mobile_enabled else "護衛対象をクリック / Escで取消"
  if attack_move:return "攻撃移動: 指示待ち"
  if not build_mode.is_empty():return "建設: 配置待ち"
  if selected.is_empty():return "未選択"
@@ -3338,6 +3350,7 @@ func select_idle_worker():
  camera_focus=MissionMap.clamp_camera(map_config,selected[0].node.position);update_selection()
 
 func stop_selected():
+ escort_targeting=false
  for unit in selected:
   if unit.kind=="convoy":continue
   friendly_navigation.invalidate_order(unit)
@@ -3350,6 +3363,7 @@ func filter_selection(kind:String):
  update_selection()
 
 func begin_attack_move():
+ escort_targeting=false
  if not selected.any(func(unit):return unit.kind in ["guard","grenade","siegecart"]):return
  attack_move=true
  notify("右クリックで攻撃移動の目的地を指定",3)
@@ -3385,6 +3399,7 @@ func refresh_context_commands(force:bool=false):
     command_heading.text="部隊命令"
     if selected.any(func(unit):return unit.kind in ["guard","grenade","siegecart"]):add_context_action("attack","攻撃移動","右クリックで指示",begin_attack_move)
     add_context_action("select","停止","命令を解除",stop_selected)
+    add_context_action("truck","護衛","味方を指定して追尾",begin_escort)
   elif not inspected.is_empty():
    var building=inspected
    command_heading.text="生産・発展" if building.kind=="hq" else "部隊生産" if not GameRules.unit_kinds_for(building.kind).is_empty() else "施設操作"
@@ -3417,7 +3432,7 @@ func refresh_context_commands(force:bool=false):
     blocked=check.get("reason","")
     short_blocked=check.get("short_reason","")
   action.button.tooltip_text=action.get("detail","")
-  CommandDeck.set_command_state(action.button,blocked,build_mode==action.kind or (attack_move and action.kind=="attack"),short_blocked)
+  CommandDeck.set_command_state(action.button,blocked,build_mode==action.kind or (attack_move and action.kind=="attack") or (escort_targeting and action.kind=="truck"),short_blocked)
   CommandDeck.set_command_affordability(action.button,stockpile,action.cost)
   if not blocked.is_empty():action.button.tooltip_text=blocked+"  /  "+action.get("detail","")
  update_queue_display()
@@ -3430,6 +3445,8 @@ func refresh_context_commands(force:bool=false):
     if detail_text.begins_with("必要施設:"):detail_text="発展 "+compact_cost(GameRules.age(settlement_age+1).cost)+" / "+detail_text
   if not mobile_enabled and detail_text.is_empty() and current_supply_feedback.get("active",false) and (selected.any(func(unit):return unit.kind in ["guard","grenade","siegecart"]) or inspected.get("kind","") in ["factory","tower","mortar"]):
    detail_text=current_supply_feedback.context
+  if escort_targeting:detail_text=selected_order_text()
+  elif detail_text.is_empty():detail_text=selected_escort_summary()
   command_detail.text=detail_text
 
 func build_availability(kind:String)->Dictionary:
@@ -3752,12 +3769,15 @@ func _mobile_layout(initial:bool=false)->void:
  mobile_safe_insets=layout.get("safe_insets",Vector4.ZERO)
  if is_instance_valid(mobile_hud):mobile_hud.set_safe_insets(mobile_safe_insets)
 func _mobile_reset(reason:String)->void:
+ escort_targeting=false
  mobile_gui_guard.cancel_interaction()
  if is_instance_valid(mobile_hud):mobile_hud.cancel_scroll_drag()
  if mobile_input!=null:mobile_input.cancel(reason,reason in ["blur","hidden","pagehide","focus_lost","visibilitychange"])
 func touch_set_mode(mode:int)->void:
+ escort_targeting=false
  if mobile_input!=null:mobile_input.set_mode(mode)
 func touch_set_append(append:bool)->void:
+ escort_targeting=false
  if mobile_input!=null:mobile_input.set_append(append)
 func touch_cancel()->void:
  if mobile_input!=null:mobile_input.cancel_command()
@@ -3812,3 +3832,43 @@ func compact_route(route:Array)->Array:
   if a.cross(b).length_squared()>.00000001 or a.dot(b)<=0:result.append(route[i])
  result.append(route.back())
  return result
+
+func begin_escort()->void:
+ if selected.is_empty() or ended or active_card:return
+ cancel_targeting_mode()
+ if mobile_input!=null:
+  mobile_input.cancel("escort_command")
+  mobile_input.set_mode(MobileGameInput.Touch.Mode.CONTEXT)
+  mobile_input.set_append(false)
+ escort_targeting=true
+ notify("護衛する味方を指定してください",3)
+ update_ui()
+
+func choose_escort_target(point:Vector3,screen:Vector2=Vector2.INF)->bool:
+ if not escort_targeting:return false
+ var target:Dictionary={}
+ var nearest=28.0 if screen.is_finite() else 2.2
+ for ally in units:
+  if ally.hp<=0:continue
+  var distance=camera.unproject_position(ally.node.position+Vector3(0,.8,0)).distance_to(screen) if screen.is_finite() else ally.node.position.distance_to(point)
+  if distance<nearest:nearest=distance;target=ally
+ if target.is_empty():notify("護衛する味方を指定してください",2);return false
+ var followers=selected.filter(func(unit):return unit.hp>0 and unit.kind!="worker" and EscortOrders.can_follow(unit,target))
+ if followers.is_empty():notify("別の味方を指定してください",2);return false
+ for index in followers.size():
+  var unit=followers[index]
+  friendly_navigation.invalidate_order(unit)
+  EscortOrders.assign(unit,target,index)
+ escort_targeting=false
+ pulse(target.node.position,CYAN,2.2,.55)
+ notify("護衛："+str(GameRules.unit(target.kind).title),3)
+ tone("order")
+ update_selection()
+ return true
+
+func selected_escort_summary()->String:
+ var followers=selected.filter(func(unit):return unit.get("task","")=="escort" and unit.get("target")!=null and is_instance_valid(unit.target.get("node")))
+ if followers.is_empty():return ""
+ var target=followers[0].target
+ if followers.any(func(unit):return unit.target!=target):return "護衛中 %d"%followers.size()
+ return "護衛中 %d / %s"%[followers.size(),GameRules.unit(target.kind).title]
