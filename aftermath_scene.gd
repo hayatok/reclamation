@@ -66,6 +66,13 @@ func setup(index: int, world_positions: Dictionary = {}) -> void:
 			focal_point = position + Vector3(-.3, 0, 1.1)
 			_build_water()
 		1:
+			if world_positions.has("frontier"):
+				position = _ground(world_positions.frontier, Vector3.ZERO)
+				focal_point = position
+				camera_focus = position
+				camera_size = 38.0
+				complete = true
+				return
 			_has_convoy = is_instance_valid(world_positions.get("convoy_node")) and world_positions.get("convoy_node") is Node3D
 			position = _ground(world_positions.get("convoy", world_positions.get("arrival")), DEFAULT_ARRIVAL)
 			focal_point = position + Vector3(-.4, 0, -1.1)

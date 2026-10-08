@@ -318,7 +318,7 @@ func _show_objectives()->void:
  _body_text(body,_touch_words(host.guide.text),17)
  _body_text(body,host.objective.text+"\n"+host.status.text+"\n"+host.core_bar.tooltip_text,14)
  _button("発電所へ",func():_close_popup();host.assign_site("generator"),body)
- _button(host.mission.facility+"へ",func():_close_popup();host.assign_site("pump"),body)
+ if host.mission.mode!="assault":_button(host.mission.facility+"へ",func():_close_popup();host.assign_site("pump"),body)
  if not host.generator_button.disabled:_button(host.generator_button.text,func():host.toggle_generator();_close_popup(),body)
  if host.mission_action_button.visible:_button(host.mission_action_button.text,func():_close_popup();host.mission_action(),body)
  if host.convoy_pause_button.visible:_button(host.convoy_pause_button.text,func():host.toggle_convoy_stop();_close_popup(),body)

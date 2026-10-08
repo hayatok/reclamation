@@ -13,13 +13,15 @@ const BASE:Array = [
  {"id":"outer_parts","kind":"parts","pos":Vector3(-20,0,-15),"stock":1200.0},
 ]
 static func for_mission(index:int)->Array:
- var result=BASE.duplicate(true)
- if index!=1:return result
- for deposit in result:
-  match deposit.id:
-   "home_parts":deposit.stock=300.0
-   "east_parts":deposit.pos=Vector3(11,0,-11)
-   "outer_parts":
-    deposit.pos=Vector3(-22,0,12)
-    deposit.stock=1500.0
- return result
+ if index!=1:return BASE.duplicate(true)
+ return [
+  {"id":"home_food","kind":"food","pos":Vector3(-72,0,51),"stock":1200.0},
+  {"id":"home_salvage","kind":"salvage","pos":Vector3(-56,0,51),"stock":1800.0},
+  {"id":"home_parts","kind":"parts","pos":Vector3(-75,0,42),"stock":600.0},
+  {"id":"north_food","kind":"food","pos":Vector3(-52,0,-14),"stock":1600.0},
+  {"id":"north_salvage","kind":"salvage","pos":Vector3(-58,0,-24),"stock":2200.0},
+  {"id":"north_parts","kind":"parts","pos":Vector3(-38,0,-18),"stock":1000.0},
+  {"id":"east_food","kind":"food","pos":Vector3(24,0,30),"stock":2000.0},
+  {"id":"east_salvage","kind":"salvage","pos":Vector3(42,0,30),"stock":2600.0},
+  {"id":"east_parts","kind":"parts","pos":Vector3(30,0,12),"stock":1200.0},
+ ]

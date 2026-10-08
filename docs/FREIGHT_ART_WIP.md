@@ -1,3 +1,5 @@
+> The small-map resource placement below is a superseded experiment. Current M2 frontier integration is described in FRONTIER_WIP.md. Original freight art remains in use.
+
 # 貨物ヤードのアート・資源配置試作
 
 未公開の統合checkpointです。v0.42を基に、第2作戦の旧コンテナ列を、壊れた屋根・曲がった側面を持つ貨物残骸へ変更しました。貨物中継所も、荷と巻上機が見える民間のガントリーとして制作しました。既存の8遮蔽物と中継所の位置・ナビゲーション境界は変えていません。現在の作業候補には、以下の未採用の資源配置案も含みます。

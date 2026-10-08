@@ -1,4 +1,5 @@
 extends RefCounted
+const MissionMap=preload("res://mission_map.gd")
 ## Touch-to-existing-command adapter. The simulation remains authoritative.
 const Touch=preload("res://mobile_touch_controller.gd")
 var host:Node
@@ -77,7 +78,7 @@ func _dispatch(actions:Array)->void:
    Touch.Action.Kind.TAP:_tap(action.position,action.mode,action.append)
  if is_instance_valid(hud):hud.set_touch_state(controller.mode,controller.append)
 func _camera()->void:
- host.camera_focus.x=clampf(host.camera_focus.x,-18,18);host.camera_focus.z=clampf(host.camera_focus.z,-18,18)
+ host.camera_focus=MissionMap.clamp_camera(host.map_config,host.camera_focus)
  host.camera.position=host.camera_focus+Vector3(37,48,43);host.camera.look_at(host.camera_focus)
 func _tap(screen:Vector2,mode:int,append:bool)->void:
  if modal():return
@@ -100,21 +101,22 @@ func _tap(screen:Vector2,mode:int,append:bool)->void:
   var resource=host.resource_at(ground)
   if not resource.is_empty():host.command_at(ground,screen,append);return
   for site in host.sites:
-   if site.node.position.distance_to(ground)<3 and not site.get("reclaimed",false):
+   if host.frontier_position_known(site.node.position) and site.node.position.distance_to(ground)<3 and not site.get("reclaimed",false):
     host.command_at(ground,screen,append);return
  for site in host.sites:
-  if site.node.position.distance_to(ground)<3:
+  if host.frontier_position_known(site.node.position) and site.node.position.distance_to(ground)<3:
    host.select_rect(screen,screen,false);return
  if not host.selected.is_empty():host.command_at(ground,screen,append)
  else:host.select_rect(screen,screen,false)
 func _map_tap(screen:Vector2,mode:int,append:bool)->void:
- var p=(screen-host.minimap.global_position)/host.minimap.size*64-Vector2(32,32)
+ var p=MissionMap.map_to_world(host.map_config,screen-host.minimap.global_position,host.minimap.size)
+ if not p.is_finite():return
  if mode==Touch.Mode.ORDER or host.attack_move:
-  var destination=Vector3(clampf(p.x,-28,28),0,clampf(p.y,-28,28))
+  var destination=MissionMap.clamp_command(host.map_config,p)
   var attack=host.attack_move
   if host.command_at(destination,Vector2.INF,append):
    host.minimap_order_point=Vector2(destination.x,destination.z);host.minimap_order_time=.65
    host.minimap_order_color=host.RED if attack else host.CYAN
    _dispatch(controller.set_mode(Touch.Mode.CONTEXT))
- else:host.camera_focus=Vector3(p.x,0,p.y);_camera()
+ else:host.camera_focus=MissionMap.clamp_camera(host.map_config,p);_camera()
  host.minimap.queue_redraw()

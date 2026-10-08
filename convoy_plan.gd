@@ -11,6 +11,6 @@ static func encounter(stage:int,choice:int)->Dictionary:
  ]
  return entries[clampi(stage,0,2)].duplicate(true)
 static func opening(mission:int)->String:
- return ["『水が尽きる前に、あのポンプを動かそう。』","『水と薬を積め。東の避難所が、まだ待っている。』","『向こうの明かりが消える前に、最後の送電をつなぐ。』"][mission]
+ return ["『水が尽きる前に、あのポンプを動かそう。』","『運河の先へ道を開こう。群れの出どころを探すんだ。』","『向こうの明かりが消える前に、最後の送電をつなぐ。』"][mission]
 static func ending(mission:int)->String:
- return ["錆びた蛇口から水が出た。今夜は、ここで眠れる。","水と薬を受け取る手が、車列を囲んだ。次の朝へ運べた。","暗い窓に、一つずつ明かりが戻る。この街には、まだ人がいる。"] [mission]
+ return ["錆びた蛇口から水が出た。今夜は、ここで眠れる。","感染源が崩れ、港への道が開いた。ここから、街を取り戻していく。","暗い窓に、一つずつ明かりが戻る。この街には、まだ人がいる。"] [mission]

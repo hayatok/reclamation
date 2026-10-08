@@ -277,6 +277,8 @@ func _nearest_resource(worker: Dictionary, kind: String) -> Dictionary:
 	if _host.has_method("worker_retarget_radius"):
 		distance = pow(maxf(0,float(_host.call("worker_retarget_radius",worker,kind))),2)
 	for resource: Dictionary in _host.get("resource_nodes"):
+		if _host.has_method("frontier_position_known") and not _host.frontier_position_known(_position(resource)):
+			continue
 		if str(resource.get("resource", "")) != kind or not _resource_available(resource):
 			continue
 		var candidate := _position(worker).distance_squared_to(_position(resource))

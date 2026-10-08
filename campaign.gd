@@ -3,7 +3,7 @@ const AtomicSave=preload("res://atomic_save.gd")
 
 const MISSIONS = [
  {"title":"01  都市に灯を","subtitle":"FIRST LIGHT","description":"水のない避難所。発電所と揚水場を取り戻し、押し寄せる感染者から守る。","mode":"restore","hold":120.0,"salvage":0.0,"pressure":1.0,"initial":180.0,"core":900.0,"gen":Vector3(14,0,-5),"pump":Vector3(-14,0,-7),"facility":"揚水場","objective":"揚水を維持","tint":Color("c5b78e")},
- {"title":"02  命を運ぶ道","subtitle":"LAST CONVOY","description":"廃材から輸送車を動かし、避難所へ物資を届ける。車列を護衛して感染街区を抜けろ。","mode":"convoy","hold":0.0,"salvage":0.0,"pressure":1.15,"initial":220.0,"core":1000.0,"gen":Vector3(16,0,-10),"pump":Vector3(-17,0,0),"facility":"貨物中継所","objective":"輸送隊を護衛","tint":Color("d2a148")},
+ {"title":"02  感染港を拓く","subtitle":"BEYOND THE CANAL","description":"運河の先は未踏の感染街区。資源地へ進出し、群れを生む感染源を探して破壊する。","mode":"assault","hold":0.0,"salvage":0.0,"pressure":1.15,"initial":220.0,"core":1000.0,"gen":Vector3(-42,0,32),"pump":Vector3(62,0,-48),"facility":"感染源","objective":"感染源を探して破壊","tint":Color("d2a148")},
  {"title":"03  最後の送電","subtitle":"THE DEAD TIDE","description":"三つの設備をつなぎ、初期送電を60秒維持する。迫る破砕体を撃破して送電を確立しよう。","mode":"finale","hold":60.0,"salvage":0.0,"pressure":1.35,"initial":240.0,"core":1200.0,"gen":Vector3(12,0,-14),"pump":Vector3(-16,0,-14),"facility":"中央送電所","objective":"最終送電","tint":Color("b29a72")}
 ]
 

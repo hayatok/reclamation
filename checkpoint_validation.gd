@@ -1,4 +1,7 @@
 extends RefCounted
+const MissionMap=preload("res://mission_map.gd")
+const FrontierMission=preload("res://frontier_mission.gd")
+const FrontierVisibility=preload("res://frontier_visibility.gd")
 ## Exact schema for the reconstructed settlement + deferred-growth build.
 ## Validation is pure: the loader must call this before touching live objects.
 const Rules=preload("res://settlement_rules.gd")
@@ -62,8 +65,11 @@ static func fields(value:Dictionary,numbers:Array=[],booleans:Array=[])->bool:
 static func validate(value:Variant)->bool:
  if not value is Dictionary:return false
  var d:Dictionary=value
- if not integer(d.get("version"),3,3) or not integer(d.get("mission"),0,2):return false
- if d.has("camera") and not _camera(d.camera):return false
+ if not integer(d.get("mission"),0,2):return false
+ var frontier_mission:bool=int(d.mission)==MissionMap.FRONTIER_MISSION
+ var expected_version:int=4 if frontier_mission else 3
+ if not integer(d.get("version"),expected_version,expected_version):return false
+ if d.has("camera") and not _camera(d.camera,int(d.mission)):return false
  if not integer(d.get("settlement_age"),1,3) or not integer(d.get("tech_level"),1,3):return false
  if not costs(d.get("stockpile"),true):return false
  if not fields(d,["resources","gathered","xp","elapsed","wave_clock","hold","noise","ammo","build_boost","victory_boost","research_time"],["generator","first_activation","surge","paused","active_card","research_active","convoy_started","boss_spawned","boss_defeated","convoy_halted"]):return false
@@ -79,6 +85,9 @@ static func validate(value:Variant)->bool:
  if not d.get("preferred_family") is String or (d.preferred_family!="" and not Catalog.FAMILIES.has(d.preferred_family)):return false
  for key in ["units","enemies","buildings","sites","resource_nodes","shells","blast_queue","selected","pending_upgrade_levels","cards","recruit_queue"]:
   if not array(d.get(key)):return false
+ # Validate both independent snapshots and their shared discovery facts before
+ # unit targets are resolved, and before a caller may replace any live objects.
+ if frontier_mission and not _frontier(d):return false
  # recruit_queue is unused in the current source. No speculative legacy shape.
  if not d.recruit_queue.is_empty():return false
  if not _growth(d):return false
@@ -96,6 +105,7 @@ static func validate(value:Variant)->bool:
  var mission_mode:String=["restore","convoy","finale"][int(d.mission)]
  for s in d.sites:
   if not s is Dictionary or not s.get("kind") in ["generator","pump","substation","scrap"] or not vector(s.get("pos")):return false
+  if frontier_mission and s.kind!="generator":return false
   if not fields(s,["progress","stock"],["reclaimed","paid"]):return false
   if not number(s.progress,0,1) or s.stock<0:return false
   if s.reclaimed and s.progress!=1:return false
@@ -104,8 +114,12 @@ static func validate(value:Variant)->bool:
   if s.kind!="scrap":
    if sites_seen.has(s.kind):return false
    sites_seen[s.kind]=true
- if not sites_seen.has("generator") or not sites_seen.has("pump"):return false
+ if frontier_mission:
+  if d.sites.size()!=1 or not sites_seen.has("generator"):return false
+ elif not sites_seen.has("generator") or not sites_seen.has("pump"):return false
  if int(d.mission)==2 and not sites_seen.has("substation"):return false
+ if frontier_mission and not d.frontier.nest.dead:
+  site_footprints.append(Navigation.footprint_rect(FrontierMission.NEST_POSITION,FrontierMission.NEST_HALF_EXTENTS))
  var owners={}
  for r in d.resource_nodes:
   if not r is Dictionary or not r.get("resource") is String or not r.get("resource") in Rules.RESOURCE_KINDS or not vector(r.get("pos")):return false
@@ -154,10 +168,30 @@ static func validate(value:Variant)->bool:
   if not integer(d.convoy_pending.get("stage"),0,2) or not number(d.convoy_pending.get("clock")):return false
  return true
 
-static func _camera(value:Variant)->bool:
+static func _frontier(d:Dictionary)->bool:
+ if not FrontierMission.validate_snapshot(d.get("frontier"),d.enemies.size()):return false
+ var config:Dictionary=MissionMap.for_mission(int(d.mission))
+ var visibility:Variant=d.get("frontier_visibility")
+ if not FrontierVisibility.validate(visibility,config.playable_bounds,4.0):return false
+ # structure_discovered() is exactly membership in restored memories. Inspect
+ # the validated snapshot directly; no fog instance, texture, restore or scene
+ # mutation belongs in checkpoint validation.
+ var memories:Dictionary=visibility.structures
+ var discovered:bool=memories.has(FrontierMission.NEST_ID)
+ if d.frontier.nest.known!=discovered:return false
+ if discovered:
+  var memory:Dictionary=memories[FrontierMission.NEST_ID]
+  if memory.kind!="nest":return false
+  var position:Array=memory.pos
+  var expected:Vector3=FrontierMission.NEST_POSITION
+  if position[0]!=expected.x or position[1]!=expected.y or position[2]!=expected.z:return false
+ return true
+
+static func _camera(value:Variant,mission_index:int=0)->bool:
  if not value is Dictionary or not vector(value.get("focus")):return false
  var focus:Array=value.focus
- return number(focus[0],-18,18) and number(focus[1],0,0) and number(focus[2],-18,18) and number(value.get("size"),26,85)
+ var config=MissionMap.for_mission(mission_index)
+ return MissionMap.contains_camera(config,Vector3(focus[0],focus[1],focus[2])) and number(value.get("size"),config.camera_min_size,config.camera_max_size)
 
 static func _control_groups(d:Dictionary)->bool:
  # Optional for checkpoints made before numbered groups were introduced.
@@ -240,10 +274,15 @@ static func _unit(u:Variant,d:Dictionary,own_index:int)->bool:
  if not vector(u.get("pos")) or not vector(u.get("goal")):return false
  if not fields(u,["hp","maxhp","cd","work","yaw","escort_repath"]):return false
  if u.hp<=0 or u.maxhp<u.hp or not integer(u.get("shots")) or not integer(u.get("escort_slot")):return false
- if not u.get("target_type") in ["","site","build","enemy","unit","resource"]:return false
+ if not u.get("target_type") in ["","site","build","enemy","unit","resource","structure"]:return false
+ var structure_target:bool=u.target_type=="structure"
+ if structure_target:
+  if int(d.mission)!=MissionMap.FRONTIER_MISSION or u.task!="focus_fire":return false
+  if not d.frontier.nest.known or d.frontier.nest.dead or d.frontier.nest.hp<=0:return false
  var expected={"site":"site","build":"build","repair":"build","focus_fire":"enemy","escort":"unit","gather":"resource"}.get(u.task,"")
+ if structure_target:expected="structure"
  if u.target_type!="" and u.target_type!=expected:return false
- var sizes={"":0,"site":d.sites.size(),"build":d.buildings.size(),"enemy":d.enemies.size(),"unit":d.units.size(),"resource":d.resource_nodes.size()}
+ var sizes={"":0,"site":d.sites.size(),"build":d.buildings.size(),"enemy":d.enemies.size(),"unit":d.units.size(),"resource":d.resource_nodes.size(),"structure":1}
  if not index(u.get("target_index"),sizes[u.target_type],u.target_type==""):return false
  if u.task in ["site","build","repair","focus_fire","escort"] and u.target_type!=expected:return false
  if u.task in ["site","build","repair","gather"] and u.kind!="worker":return false

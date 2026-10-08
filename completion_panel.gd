@@ -14,7 +14,7 @@ func setup(game:Node):
  panel.add_theme_stylebox_override("panel",host.style(Color("20261ff2"),Color("756f51")))
  var column=VBoxContainer.new();panel.add_child(column);column.add_theme_constant_override("separation",12)
  var heading=HBoxContainer.new();heading.add_theme_constant_override("separation",24);column.add_child(heading)
- var titles=["水が戻った。","物資は届いた。","街に灯が戻った。"]
+ var titles=["水が戻った。","港への道が開いた。","街に灯が戻った。"]
  var title=host.label(titles[host.campaign_state.current],32,host.PALE);title.size_flags_horizontal=Control.SIZE_EXPAND_FILL;heading.add_child(title)
  var stats=host.label("作戦 %02d 達成  /  %02d:%02d  /  撃破 %d  /  Lv.%d"%[host.campaign_state.current+1,int(host.elapsed)/60,int(host.elapsed)%60,host.kills,host.level],17,host.AMBER)
  stats.vertical_alignment=VERTICAL_ALIGNMENT_CENTER;heading.add_child(stats)

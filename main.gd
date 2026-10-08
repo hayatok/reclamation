@@ -50,6 +50,17 @@ const BattleVisibility=preload("res://battle_visibility.gd")
 const ConvoyPlan=preload("res://convoy_plan.gd")
 const GameRules=preload("res://settlement_rules.gd")
 const MissionResourceLayout=preload("res://mission_resource_layout.gd")
+const MissionMap=preload("res://mission_map.gd")
+const FrontierWorld=preload("res://frontier_world.gd")
+const FrontierMission=preload("res://frontier_mission.gd")
+const FrontierVisibility=preload("res://frontier_visibility.gd")
+const FrontierFogOverlay=preload("res://frontier_fog_overlay.gd")
+const FrontierMinimap=preload("res://frontier_minimap.gd")
+var frontier_minimap=FrontierMinimap.new()
+var frontier:RefCounted
+var frontier_visibility:RefCounted
+var frontier_fog:MeshInstance3D
+var map_config:Dictionary=MissionMap.for_mission(0)
 const StructureVisuals=preload("res://structure_visuals.gd")
 const ConstructionVisuals=preload("res://construction_visuals.gd")
 const AudioSystem=preload("res://reclamation_audio.gd")
@@ -265,6 +276,7 @@ func _ready():
   desktop_surface_scale.setup(get_window())
  for data in UpgradeCatalog.all():catalog_by_id[data.id]=data
  mission=campaign_state.config()
+ map_config=MissionMap.for_mission(campaign_state.current)
  stockpile=GameRules.STARTING_STOCKPILE.duplicate(true)
  production=load("res://settlement_production.gd").new()
  production.setup(self)
@@ -284,42 +296,56 @@ func _ready():
  font=load("res://assets/ReclamationUIJP-Regular.otf")
  command_font=load("res://assets/Command.ttf")
  command_font.fallbacks=[font]
- nav.region=Rect2i(-31,-31,63,63)
+ nav.region=map_config.nav_region
  nav.cell_size=Vector2.ONE
  nav.diagonal_mode=AStarGrid2D.DIAGONAL_MODE_ONLY_IF_NO_OBSTACLES
  nav.update()
- var art=load("res://world_art.gd")
+ var art=FrontierWorld if map_config.frontier else load("res://world_art.gd")
  if art:
   var world=Node3D.new()
   world.set_script(art)
   add_child(world)
   world.rotation.y=0
   district_art=world
- terrain_blocks=TacticalMap.blockers_for(campaign_state.current)
- var terrain=TacticalMap.new()
- add_child(terrain)
- terrain.setup(campaign_state.current)
- var ruin_layer=EnvironmentOverlay.new()
- add_child(ruin_layer)
- ruin_layer.setup(campaign_state.current)
+ if map_config.frontier:
+  terrain_blocks=FrontierWorld.blockers()
+ else:
+  terrain_blocks=TacticalMap.blockers_for(campaign_state.current)
+  var terrain=TacticalMap.new()
+  add_child(terrain)
+  terrain.setup(campaign_state.current)
+  var ruin_layer=EnvironmentOverlay.new()
+  add_child(ruin_layer)
+  ruin_layer.setup(campaign_state.current)
  camera=Camera3D.new()
  add_child(camera)
  camera.projection=Camera3D.PROJECTION_ORTHOGONAL
- camera.size=54
- camera.position=Vector3(37,48,43)
- camera.look_at(Vector3.ZERO)
+ camera.size=map_config.camera_default_size
+ camera_focus=map_config.camera_default_focus
+ camera.position=camera_focus+Vector3(37,48,43)
+ camera.look_at(camera_focus)
  camera.current=true
- var core=make_building("hq",Vector3(0,0,8),true)
+ var core=make_building("hq",map_config.home,true)
  core.maxhp=mission.core
  core.hp=mission.core
- make_site("generator",mission.gen)
- make_site("pump",mission.pump)
+ make_site("generator",map_config.generator if map_config.frontier else mission.gen)
+ if not map_config.frontier:make_site("pump",mission.pump)
  for deposit in MissionResourceLayout.for_mission(campaign_state.current):
   make_resource(deposit.kind,deposit.pos,deposit.stock)
  if mission.mode=="finale":make_site("substation",Vector3(17,0,14))
- for i in 2:make_unit("guard",Vector3(-1+i*2,0,3))
+ var opening_offset:Vector3=map_config.home-Vector3(0,0,8)
+ for i in 2:make_unit("guard",opening_offset+Vector3(-1+i*2,0,3))
  # The HQ padded navigation footprint includes z=12; start workers outside it.
- for i in 6:make_unit("worker",Vector3(-3+(i%3)*1.4,0,13+floori(i/3.0)*1.4))
+ for i in 6:make_unit("worker",opening_offset+Vector3(-3+(i%3)*1.4,0,13+floori(i/3.0)*1.4))
+ if map_config.frontier:
+  frontier=FrontierMission.new()
+  frontier.reset(self,not campaign_state.resume)
+  frontier_visibility=FrontierVisibility.new()
+  frontier_visibility.configure(map_config.playable_bounds,campaign_state.current)
+  frontier_fog=FrontierFogOverlay.new()
+  frontier_fog.setup(camera,frontier_visibility)
+  refresh_frontier_visibility(0,true)
+  rebuild_navigation()
  make_ui()
  make_audio()
  battle_fx=BattleFX.new()
@@ -585,12 +611,13 @@ func make_ui():
  var pump_focus=button(pump_caption,func():assign_site("pump"),110)
  pump_focus.tooltip_text=mission.facility+"を選択・表示。復旧は作業員で右クリック。\n段階III / "+GameRules.cost_text(site_rule("pump").cost)
  site_actions.add_child(pump_focus)
+ pump_focus.visible=frontier==null
  generator_button=button("発電  ON / OFF  [F]",toggle_generator,228)
  generator_button.visible=false
- generator_button.tooltip_text="初回起動: 12秒以内に増援。稼働中は襲撃間隔が短くなる。"
+ generator_button.tooltip_text="送電範囲の施設へ電力を供給します。" if frontier!=null else "初回起動: 12秒以内に増援。稼働中は襲撃間隔が短くなる。"
  mission_column.add_child(generator_button)
  mission_action_button=button("",mission_action,228)
- mission_action_button.visible=mission.mode!="restore"
+ mission_action_button.visible=mission.mode in ["convoy","finale"]
  mission_column.add_child(mission_action_button)
  convoy_pause_button=button("車列を停車",toggle_convoy_stop,228)
  convoy_pause_button.visible=false
@@ -755,14 +782,15 @@ func handle_minimap_input(event:InputEvent)->void:
  for overlay in [options_panel,route_panel,dismantle_panel,choice_panel]:
   if is_instance_valid(overlay):return
  if minimap.size.x<=0 or minimap.size.y<=0 or not Rect2(Vector2.ZERO,minimap.size).has_point(event.position):return
- var map_pos=event.position/minimap.size*64-Vector2(32,32)
+ var map_point=MissionMap.map_to_world(map_config,event.position,minimap.size)
+ if not map_point.is_finite():return
  if event.button_index==MOUSE_BUTTON_LEFT:
-  camera_focus=Vector3(clampf(map_pos.x,-18,18),0,clampf(map_pos.y,-18,18))
+  camera_focus=MissionMap.clamp_camera(map_config,map_point)
   return
  if not build_mode.is_empty():
   build_mode="";ghost.visible=false
   return
- var destination=Vector3(clampf(map_pos.x,-28,28),0,clampf(map_pos.y,-28,28))
+ var destination=MissionMap.clamp_command(map_config,map_point)
  var attack_order=attack_move
  if command_at(destination,Vector2.INF,event.shift_pressed):
   minimap_order_point=Vector2(destination.x,destination.z)
@@ -771,6 +799,9 @@ func handle_minimap_input(event:InputEvent)->void:
   minimap.queue_redraw()
 
 func draw_minimap():
+ if frontier_visibility!=null:
+  frontier_minimap.draw(self)
+  return
  var size=minimap.size
  minimap.draw_rect(Rect2(Vector2.ZERO,size),Color("111811"))
  for i in range(1,4):
@@ -845,7 +876,7 @@ func update_building_attack_alert():
 func focus_building_attack():
  if building_attack_alerts.current.is_empty() or building_attack_button.disabled:return
  var p=building_attack_alerts.current.position
- camera_focus=Vector3(clampf(p.x,-18,18),0,clampf(p.z,-18,18))
+ camera_focus=MissionMap.clamp_camera(map_config,p)
 
 func notify(txt:String,duration:float=4):
  center_notice.text=txt
@@ -902,7 +933,7 @@ func recall_control_group(slot:int,now_msec:int=-1,center_immediately:bool=false
   else:
    for unit in selected:point+=unit.node.position
    point/=selected.size()
-  camera_focus=Vector3(clampf(point.x,-18,18),0,clampf(point.z,-18,18))
+  camera_focus=MissionMap.clamp_camera(map_config,point)
  else:
   last_control_group=slot;last_control_group_msec=now_msec
 
@@ -926,7 +957,8 @@ func cancel_recruit():
 func assign_site(kind:String):
  var site=get_site(kind)
  if site.is_empty():return
- camera_focus=site.node.position
+ if not frontier_position_known(site.node.position):return
+ camera_focus=MissionMap.clamp_camera(map_config,site.node.position)
  inspected={};inspected_resource={};selected.clear();inspected_site=site
  update_selection()
 
@@ -941,9 +973,9 @@ func toggle_generator():
  generator_on=not generator_on
  if generator_on and not first_activation:
   first_activation=true
-  incoming_surge=true
-  wave_clock=minf(wave_clock,12)
- notify("発電所 起動：塔が強化 / 騒音で群れを誘引" if generator_on else "発電所 停止：騒音低下 / 揚水停止",5)
+  incoming_surge=frontier==null
+  if frontier==null:wave_clock=minf(wave_clock,12)
+ notify(("発電所 起動：送電範囲の施設へ供給" if generator_on else "発電所 停止：施設への送電停止") if frontier!=null else ("発電所 起動：塔が強化 / 騒音で群れを誘引" if generator_on else "発電所 停止：騒音低下 / 揚水停止"),5)
  tone("power")
 
 func ground_at(screen:Vector2)->Vector3:
@@ -1075,7 +1107,7 @@ func select_rect(a:Vector2,b:Vector2,append:bool=false):
     inspected_resource=resource_at(ground)
     if inspected_resource.is_empty():
      for site in sites:
-      if site.node.position.distance_to(ground)<3:inspected_site=site;break
+      if frontier_position_known(site.node.position) and site.node.position.distance_to(ground)<3:inspected_site=site;break
  else:
   for unit in units:
    if unit.kind=="convoy":continue
@@ -1088,11 +1120,10 @@ func command_at(p:Vector3,screen:Vector2=Vector2.INF,append_orders:bool=false)->
    set_rally(inspected,p)
    return true
   return false
- p.x=clampf(p.x,-28,28)
- p.z=clampf(p.z,-28,28)
+ p=MissionMap.clamp_command(map_config,p)
  var enemy_target:Variant=null
  var nearest=28.0 if screen!=Vector2.INF else 2.6
- for enemy in enemies:
+ for enemy in combat_targets():
   if enemy.dead:continue
   var separation=camera.unproject_position(enemy.node.position+Vector3(0,.9*enemy.node.scale.y,0)).distance_to(screen) if screen!=Vector2.INF else enemy.node.position.distance_to(p)
   if separation<nearest:nearest=separation;enemy_target=enemy
@@ -1108,7 +1139,7 @@ func command_at(p:Vector3,screen:Vector2=Vector2.INF,append_orders:bool=false)->
   if fighters>0:
    attack_move=false
    pulse(enemy_target.node.position,RED,2.2,.5)
-   notify("集中攻撃："+("破砕体" if enemy_target.get("boss",false) else "重装感染者" if enemy_target.get("armored",false) else "感染者"),3)
+   notify("集中攻撃："+("感染源" if enemy_target.get("enemy_structure",false) else "破砕体" if enemy_target.get("boss",false) else "重装感染者" if enemy_target.get("armored",false) else "感染者"),3)
    tone("order")
    return true
  var friendly_target:Variant=null
@@ -1123,7 +1154,7 @@ func command_at(p:Vector3,screen:Vector2=Vector2.INF,append_orders:bool=false)->
  for b in buildings:
   if (b.built<1 or b.hp<b.maxhp) and b.node.position.distance_to(p)<b.radius+1:b_target=b
  for s in sites:
-  if s.node.position.distance_to(p)<3:s_target=s
+  if frontier_position_known(s.node.position) and s.node.position.distance_to(p)<3:s_target=s
  var resource_target=resource_at(p)
  if append_orders:
   var workers=selected.filter(func(unit):return unit.kind=="worker" and unit.hp>0)
@@ -1192,7 +1223,9 @@ func placement_issue(kind:String,p:Vector3)->String:
  var allowed=build_availability(kind)
  if not allowed.ok:return allowed.reason
  var radius:float=GameRules.building(kind).radius
- if absf(p.x)+radius>29 or absf(p.z)+radius>29:return "作戦区域の外です"
+ if not MissionMap.building_fits(map_config,p,radius):return "作戦区域の外です"
+ if frontier_visibility!=null and not frontier_visibility.is_visible(p):return "建設場所を部隊で確認してください"
+ if frontier!=null and not frontier.nest.dead and p.distance_to(frontier.nest.node.position)<radius+frontier.nest.radius+.5:return "遮蔽物に重なっています"
  for block in terrain_blocks:
   if absf(p.x-block.pos.x)<block.size.x*.5+radius+.25 and absf(p.z-block.pos.z)<block.size.z*.5+radius+.25:return "遮蔽物に重なっています"
  for building in buildings:
@@ -1296,8 +1329,7 @@ func _process(delta):
  if Input.is_physical_key_pressed(KEY_DOWN):pan+=Vector3(1,0,1)
  if not ended:
   camera_focus+=pan*dt*16
-  camera_focus.x=clampf(camera_focus.x,-18,18)
-  camera_focus.z=clampf(camera_focus.z,-18,18)
+  camera_focus=MissionMap.clamp_camera(map_config,camera_focus)
  camera.position=camera_focus+Vector3(37,48,43)
  camera.look_at(camera_focus)
  update_effects(dt)
@@ -1308,7 +1340,7 @@ func _process(delta):
  var actor_frames=render_actors()
  resolve_shell_muzzles(actor_frames)
  update_worker_route_preview()
- battle_visibility.update_visibility(camera,units,[] if aftermath_settled else enemies,[] if aftermath_settled else shells,delta)
+ battle_visibility.update_visibility(camera,units,[] if aftermath_settled else enemies.filter(func(e):return frontier_visibility==null or frontier_visibility.is_visible(e.node.position)),[] if aftermath_settled else shells,delta)
  battle_fx.update(dt,camera,buildings,actor_frames)
  if pending_card_delay>0:
   pending_card_delay-=dt
@@ -1350,7 +1382,7 @@ func render_actors()->Dictionary:
  var alpha=clampf(simulation_clock.remainder/SimulationClock.STEP,0,1) if running else 1.0
  var rendered=render_interpolation.frame(alpha)
  var rendered_time=maxf(0.0,elapsed-SimulationClock.STEP*(1.0-alpha)) if running else elapsed
- horde_renderer.update_horde([] if aftermath_settled else enemies+corpses,rendered_time,rendered)
+ horde_renderer.update_horde([] if aftermath_settled else visible_horde(),rendered_time,rendered)
  horde_renderer.update_friends(units,rendered)
  return rendered
 
@@ -1363,18 +1395,21 @@ func simulate_world(dt:float):
  friendly_navigation.begin_frame(dt,units)
  enemy_navigation.begin_step(nav)
  elapsed+=dt
+ if frontier!=null:dispatch_frontier_cues(frontier.tick(self,dt))
+ refresh_frontier_visibility(dt)
  update_economy(dt)
  threat_voice_clock-=dt
  audio_system.set_power(generator_on)
- audio_system.set_threat(clampf(float(enemies.size())/160,0,1))
- if threat_voice_clock<=0 and not enemies.is_empty():
-  audio_system.play_event("infected_growl" if enemies.size()>60 else "infected_moan",enemies[0].node.position)
+ var audible_enemies=enemies if frontier_visibility==null else enemies.filter(func(e):return frontier_visibility.is_visible(e.node.position))
+ audio_system.set_threat(clampf(float(audible_enemies.size())/160,0,1))
+ if threat_voice_clock<=0 and not audible_enemies.is_empty():
+  audio_system.play_event("infected_growl" if audible_enemies.size()>60 else "infected_moan",audible_enemies[0].node.position)
   threat_voice_clock=visual_rng.randf_range(5,10)
  noise=move_toward(noise,clampf(8+units.size()*.55+settlement_age*3+(40 if generator_on else 0)+active_producers()*2.5,0,100),dt*3)
  wave_clock-=dt
  combo_clock-=dt
  if combo_clock<=0:combo=0
- if wave_clock<=0:
+ if wave_clock<=0 and frontier==null:
   wave+=1
   spawn_wave()
   wave_clock=(95.0 if settlement_age==1 else maxf(40,64-noise*.23) if settlement_age==2 else maxf(25,43-noise*.16))
@@ -1407,7 +1442,9 @@ func simulate_world(dt:float):
    elif u.task=="site" and (not WorkerOrders.alive(u.target) or u.target not in sites or u.target.get("reclaimed",false)):
     WorkerOrders.finish(self,u)
    economy.update_worker(u,dt)
-  if u.task=="escort":EscortOrders.update(u,units,dt)
+  if u.task=="escort":EscortOrders.update(u,units,dt,map_config.command_bounds)
+  if u.task=="focus_fire" and frontier_visibility!=null and u.target!=null and not u.target.get("enemy_structure",false) and not frontier_visibility.is_visible(u.target.node.position):
+   u.task="move";u.target=null;u.route.clear();u.planned=Vector3.INF
   if u.task=="focus_fire":
    if u.target==null or u.target.get("dead",false) or not is_instance_valid(u.target.get("node")):
     u.task="idle";u.target=null;u.goal=u.node.position;u.route.clear();u.planned=Vector3.INF
@@ -1493,7 +1530,7 @@ func simulate_world(dt:float):
      b.cd=(3.2 if b.kind=="mortar" else .48)/(1+bonus("rate","attack_speed_add"))
  crowd_steering.prepare(enemies)
  for e in enemies.duplicate():
-  if e.dead:continue
+  if e.dead or (frontier!=null and not frontier.enemy_can_act(e)):continue
   var target:Variant=buildings[0] if not buildings.is_empty() else null
   var best=INF
   for b in buildings:
@@ -1557,13 +1594,13 @@ func simulate_world(dt:float):
 func auto_fire_target(p:Vector3,radius:float,kind:String)->Variant:
  if kind in ["grenade","siegecart","mortar"]:
   var blast_radius=(3.0 if kind=="grenade" else 4.1)*(1+bonus("blast_radius","blast_radius_add"))
-  return heavy_targeting.select_target(enemies,p,radius,blast_radius)
+  return heavy_targeting.select_target(combat_targets(),p,radius,blast_radius)
  return nearest_enemy(p,radius)
 
 func nearest_enemy(p:Vector3,radius:float,excluded:Array=[])->Variant:
  var best=radius*radius
  var found:Variant=null
- for e in enemies:
+ for e in combat_targets():
   if e.dead or e in excluded:continue
   var d=p.distance_squared_to(e.node.position)
   if d<best:best=d;found=e
@@ -1680,6 +1717,15 @@ func salvo(origin:Vector3,target_pos:Vector3,damage:float):
 
 func hit(e:Dictionary,damage:float,direct:bool,generation:int=0,electric:bool=false,critical:bool=false,visual_origin:Vector3=Vector3.INF,visual_kind:StringName=&""):
  if e.dead:return
+ if frontier!=null and frontier.contains_target(e):
+  var result:Dictionary=frontier.apply_damage(e,damage)
+  if result.applied:
+   audio_system.play_event("impact_armor",e.node.position)
+   if not low_fx:impact_spark(e.node.position+Vector3(0,1.5,0),"armored")
+  if result.destroyed:rebuild_navigation()
+  dispatch_frontier_cues(frontier.take_cues())
+  return
+ if frontier!=null and damage>0:frontier.notify_enemy_damaged(self,e)
  var dealt=damage
  if e.get("armored",false):dealt*=minf(1,.65+.12*upgrades.get("pierce",0))
  if electric and e.get("charged_until",0)>elapsed:dealt*=1.25
@@ -1743,6 +1789,7 @@ func drain_blast_queue():
   if processed==0:tone("blast")
   for other in enemies.duplicate():
    if not other.dead and other.node.position.distance_to(event.pos)<event.radius:hit(other,event.damage,false,event.generation,false,false,event.pos,&"explosive")
+  if frontier!=null:apply_frontier_blast(event.pos,event.radius,event.damage)
   processed+=1
 
 func wave_side(number:int)->int:
@@ -1954,9 +2001,10 @@ func finish(won:bool):
   for child in root_ui.get_children():
    if child is CanvasItem:child.hide()
   aftermath_scene=AftermathScene.new();add_child(aftermath_scene)
-  var anchors={"pump":get_site("pump").node.global_position,"hq":buildings[0].node.global_position,"occupied_positions":units.map(func(u):return u.node.global_position),"building_positions":buildings.map(func(b):return b.node.global_position)}
+  var anchors={"pump":frontier.nest.node.global_position if frontier!=null else get_site("pump").node.global_position,"hq":buildings[0].node.global_position,"occupied_positions":units.map(func(u):return u.node.global_position),"building_positions":buildings.map(func(b):return b.node.global_position)}
   var delivered=convoy_unit()
   if not delivered.is_empty():anchors["convoy_node"]=delivered.node;anchors["convoy"]=delivered.node.global_position
+  if frontier!=null:anchors["frontier"]=frontier.nest.node.global_position
   aftermath_scene.setup(campaign_state.current,anchors)
   aftermath_scene.hide();aftermath_scene.set_process(false)
   modal=CompletionPanel.new();root_ui.add_child(modal);modal.setup(self)
@@ -2122,6 +2170,7 @@ func run_tests():
  # Bounded scene integration fixtures, not a full campaign or timing replay.
  campaign_state.current=0
  mission=campaign_state.config()
+ map_config=MissionMap.for_mission(campaign_state.current)
  assert(not title_open and not ended and not active_card,"Self-test starts in the live first mission")
  assert(settlement_age==1 and units.size()==8,"Opening fixture has six workers and two defenders")
  assert(production.population_used()==8 and production.population_cap()==10,"Opening population is 8/10")
@@ -2221,7 +2270,7 @@ func capture_frame():
 
 func rebuild_navigation():
  enemy_approach_cells.clear()
- if not nav.is_in_boundsv(Vector2i.ZERO):return
+ if not nav.region.has_area():return
  nav.fill_solid_region(nav.region,false)
  for block in terrain_blocks:
   var p=block.pos
@@ -2241,12 +2290,21 @@ func rebuild_navigation():
   if not site.has("nav_half_extents"):continue
   var footprint=FriendlyNavigation.work_footprint(site)
   nav.fill_solid_region(footprint.intersection(nav.region),true)
+ if frontier!=null and not frontier.nest.dead:
+  var nest=frontier.nest
+  var center:Vector3=nest.node.position
+  var half:Vector2=nest.nav_half_extents
+  var low=Vector2i(floori(center.x-half.x-.3),floori(center.z-half.y-.3))
+  var high=Vector2i(ceili(center.x+half.x+.3),ceili(center.z+half.y+.3))
+  nav.fill_solid_region(Rect2i(low,high-low+Vector2i.ONE).intersection(nav.region),true)
  friendly_navigation.navigation_changed()
  enemy_navigation.navigation_changed()
  for e in enemies:e.path_cd=0;e.route.clear()
 
 func open_cell(p:Vector3,approach:Vector3=Vector3.INF)->Vector2i:
- var cell=Vector2i(clampi(roundi(p.x),-30,30),clampi(roundi(p.z),-30,30))
+ p=MissionMap.clamp_playable(map_config,p)
+ var cell=MissionMap.clamp_nav_cell(nav,Vector2i(roundi(p.x),roundi(p.z)))
+ if not nav.is_in_boundsv(cell):return cell
  if not nav.is_point_solid(cell):return cell
  for r in range(1,12):
   var candidates=[]
@@ -2428,7 +2486,7 @@ func save_checkpoint(announce:bool=true)->Error:
 
 func checkpoint_data()->Dictionary:
  var living_enemies=enemies.filter(func(enemy):return not enemy.dead)
- var data={"version":3,"run_seed":str(run_seed),"visual_rng":str(visual_rng.state),"stockpile":stockpile.duplicate(),"settlement_age":settlement_age,"resource_nodes":[],"preferred_family":preferred_family,"family_misses":family_misses,"blast_queue":[],"ammo":ammo,"rerolls":rerolls,"build_boost":build_boost,"victory_boost":victory_boost,"recruit_queue":recruit_queue.duplicate(true),"mission":campaign_state.current,"resources":resources,"gathered":gathered,"kills":kills,"xp":xp,"level":level,"pending_upgrade_levels":pending_upgrade_levels.duplicate(),"upgrades":upgrades.duplicate(),"elapsed":elapsed,"wave_clock":wave_clock,"wave":wave,"hold":hold_time,"noise":noise,"generator":generator_on,"first_activation":first_activation,"surge":incoming_surge,"paused":paused,"active_card":active_card,"rng":str(rng.state),"card_rng":str(card_rng.state),"cards":[],"units":[],"enemies":[],"buildings":[],"sites":[],"selected":[]}
+ var data={"version":4 if frontier!=null else 3,"run_seed":str(run_seed),"visual_rng":str(visual_rng.state),"stockpile":stockpile.duplicate(),"settlement_age":settlement_age,"resource_nodes":[],"preferred_family":preferred_family,"family_misses":family_misses,"blast_queue":[],"ammo":ammo,"rerolls":rerolls,"build_boost":build_boost,"victory_boost":victory_boost,"recruit_queue":recruit_queue.duplicate(true),"mission":campaign_state.current,"resources":resources,"gathered":gathered,"kills":kills,"xp":xp,"level":level,"pending_upgrade_levels":pending_upgrade_levels.duplicate(),"upgrades":upgrades.duplicate(),"elapsed":elapsed,"wave_clock":wave_clock,"wave":wave,"hold":hold_time,"noise":noise,"generator":generator_on,"first_activation":first_activation,"surge":incoming_surge,"paused":paused,"active_card":active_card,"rng":str(rng.state),"card_rng":str(card_rng.state),"cards":[],"units":[],"enemies":[],"buildings":[],"sites":[],"selected":[]}
  data.merge({"tech_level":tech_level,"research_active":research_active,"research_time":research_time,"convoy_started":convoy_started,"convoy_index":convoy_index,"boss_spawned":boss_spawned,"boss_defeated":boss_defeated,"convoy_route_choice":convoy_route_choice,"convoy_halted":convoy_halted,"convoy_encounter_stage":convoy_encounter_stage,"convoy_pending":{},"shells":[]})
  if not convoy_pending.is_empty():data.convoy_pending={"stage":convoy_pending.stage,"clock":convoy_pending.clock}
  for shell in shells:
@@ -2447,7 +2505,9 @@ func checkpoint_data()->Dictionary:
   if u.target!=null:
    if u.task=="site":target_type="site";target_index=sites.find(u.target)
    if u.task in ["build","repair"]:target_type="build";target_index=buildings.find(u.target)
-   if u.task=="focus_fire":target_type="enemy";target_index=living_enemies.find(u.target)
+   if u.task=="focus_fire":
+    if frontier!=null and frontier.can_target(u.target):target_type="structure";target_index=0
+    else:target_type="enemy";target_index=living_enemies.find(u.target)
    if u.task=="escort":target_type="unit";target_index=units.find(u.target)
    if u.task=="gather":target_type="resource";target_index=resource_nodes.find(u.target)
   if target_index<0:target_type=""
@@ -2469,10 +2529,13 @@ func checkpoint_data()->Dictionary:
   if u in selected:data.selected.append(units.find(u))
  for e in living_enemies:
   if not e.dead:data.enemies.append({"pos":vec_data(e.node.position),"hp":e.hp,"speed":e.speed,"cd":e.cd,"armored":e.get("armored",false),"charged_until":e.get("charged_until",0),"convoy_hunter":e.get("convoy_hunter",false),"boss":e.get("boss",false),"windup":e.get("windup",0),"attack_pos":vec_data(e.get("attack_pos",e.node.position))})
+ if frontier!=null:
+  data["frontier"]=frontier.snapshot(living_enemies)
+  data["frontier_visibility"]=frontier_visibility.snapshot()
  data["control_groups"]=control_groups.snapshot(units,buildings)
  data["defeat_recap"]=defeat_recap.snapshot()
  # Selection shortcuts can set focus before the next frame clamps the view.
- data["camera"]={"focus":vec_data(Vector3(clampf(camera_focus.x,-18,18),0,clampf(camera_focus.z,-18,18))),"size":clampf(camera.size,26,85)}
+ data["camera"]={"focus":vec_data(MissionMap.clamp_camera(map_config,camera_focus)),"size":clampf(camera.size,26,85)}
  return data
 
 func load_checkpoint()->bool:
@@ -2558,8 +2621,12 @@ func load_checkpoint()->bool:
   e.convoy_hunter=raw.get("convoy_hunter",false)
   e.windup=raw.get("windup",0)
   e.attack_pos=from_data(raw.get("attack_pos",raw.pos))
+ if frontier!=null:
+  frontier.restore(self,d.frontier,enemies)
+  frontier_visibility.restore(d.frontier_visibility)
  for i in d.units.size():
   var raw=d.units[i]
+  if raw.target_type=="structure":units[i].target=frontier.nest
   if raw.target_type=="enemy" and raw.target_index>=0 and raw.target_index<enemies.size():units[i].target=enemies[int(raw.target_index)]
   if raw.target_type=="unit" and raw.target_index>=0 and raw.target_index<units.size():units[i].target=units[int(raw.target_index)]
  for unit in units:
@@ -2598,7 +2665,7 @@ func load_checkpoint()->bool:
  update_selection()
  # Checkpoints without a saved view use the original camera defaults. Restore
  # synchronously so Continue opens here before the first process frame.
- var view:Dictionary=d.get("camera",{"focus":[0,0,0],"size":54})
+ var view:Dictionary=d.get("camera",{"focus":vec_data(map_config.camera_default_focus),"size":map_config.camera_default_size})
  camera_focus=from_data(view.focus)
  camera.size=float(view.size)
  camera.position=camera_focus+Vector3(37,48,43)
@@ -2609,6 +2676,7 @@ func load_checkpoint()->bool:
  recompute_power()
  simulation_clock.reset()
  render_interpolation.reset(units,enemies,corpses)
+ refresh_frontier_visibility(0,true)
  notify("直前の保存から再開しました。" if recovered else "前回の作戦を再開しました。",3)
  rebuild_navigation()
  return true
@@ -2664,7 +2732,7 @@ func production_multiplier()->float:
  return construction_multiplier()+(.25*upgrades.get("economy",0) if victory_boost>0 else 0)
 
 func in_supply(p:Vector3)->bool:
- if p.distance_to(Vector3(0,0,8))<12:return true
+ if p.distance_to(map_config.home)<12:return true
  for b in buildings:
   if b.kind=="relay" and b.powered and p.distance_to(b.node.position)<14:return true
  for u in units:
@@ -2905,6 +2973,7 @@ func detonate_shell(shell:Dictionary):
   if distance<shell.radius:
    var multiplier=1.0 if e==primary else .65
    hit(e,shell.damage*multiplier,e==primary,0,false,shell.critical,p,&"explosive")
+ if frontier!=null:apply_frontier_blast(p,shell.radius,shell.damage*(1.0 if primary==frontier.nest else .65))
  if upgrades.get("chain",0)>0 and primary!=null:
   var last=p
   var used=[primary]
@@ -2964,6 +3033,11 @@ func convoy_progress()->float:
 
 func update_mission(dt:float):
  if ended:return
+ if frontier!=null:
+  if frontier.victory_pending():
+   frontier.consume_destruction_reward()
+   finish(true)
+  return
  if mission.mode=="convoy":
   update_convoy_encounters(dt)
   if convoy_started:
@@ -3150,7 +3224,7 @@ func resource_color(kind:String)->Color:return {"food":Color("afbd76"),"salvage"
 func resource_at(p:Vector3)->Dictionary:
  var nearest:Dictionary={};var distance:float=INF
  for resource in resource_nodes:
-  if not is_instance_valid(resource.node):continue
+  if not is_instance_valid(resource.node) or not frontier_position_known(resource.node.position):continue
   var d:float=resource.node.position.distance_to(p)
   if d<float(resource.radius)+1.1 and d<distance:nearest=resource;distance=d
  return nearest
@@ -3234,6 +3308,7 @@ func compact_cost(cost:Dictionary)->String:
  return " ".join(parts)
 
 func set_rally(building:Dictionary,p:Vector3):
+ p=MissionMap.clamp_command(map_config,p)
  if GameRules.unit_kinds_for(building.kind).is_empty():return
  building.rally=p;building.rally_target=resource_at(p) if building.kind=="hq" else null
  if building.rally_target is Dictionary and building.rally_target.is_empty():building.rally_target=null
@@ -3245,7 +3320,7 @@ func select_headquarters():
  for building in buildings:
   if building.kind=="hq":
    selected.clear();inspected=building;inspected_site={};inspected_resource={}
-   camera_focus=building.node.position;update_selection();return
+   camera_focus=MissionMap.clamp_camera(map_config,building.node.position);update_selection();return
 
 func worker_needs_attention(unit:Dictionary)->bool:
  if unit.kind!="worker":return false
@@ -3259,7 +3334,7 @@ func select_idle_worker():
  if idle.is_empty():return
  last_idle_worker=(last_idle_worker+1)%idle.size()
  selected=[idle[last_idle_worker]];inspected={};inspected_site={};inspected_resource={}
- camera_focus=selected[0].node.position;update_selection()
+ camera_focus=MissionMap.clamp_camera(map_config,selected[0].node.position);update_selection()
 
 func stop_selected():
  for unit in selected:
@@ -3463,7 +3538,7 @@ func update_ui():
  var progress_lines:Array[String]=[]
  if gen.reclaimed:progress_lines.append("発電中" if generator_on else "発電停止")
  elif gen.progress>0:progress_lines.append("発電所 復旧 %d%%"%int(gen.progress*100))
- if not pump.reclaimed and pump.progress>0:progress_lines.append(mission.facility+" 復旧 %d%%"%int(pump.progress*100))
+ if not pump.is_empty() and not pump.reclaimed and pump.progress>0:progress_lines.append(mission.facility+" 復旧 %d%%"%int(pump.progress*100))
  if mission.mode=="convoy":
   if convoy_started:progress_lines.append("輸送 %d%%"%int(convoy_progress()*100))
   mission_action_button.text="輸送隊へ" if convoy_started else "輸送路を選ぶ"
@@ -3476,6 +3551,8 @@ func update_ui():
   if hold_time>0 or (settlement_age>=3 and pump.reclaimed and sub.reclaimed):progress_lines.append("初期送電 %d/%d秒"%[int(hold_time),int(mission.hold)])
   if boss_spawned:progress_lines.append("破砕体 "+("撃破" if boss_defeated else "接近"))
   mission_action_button.text="変電所へ"
+ elif frontier!=null:
+  if frontier.nest.known:progress_lines.append("感染源を破壊")
  elif hold_time>0 or (settlement_age>=3 and pump.reclaimed):progress_lines.append("揚水 %d/%d秒"%[int(hold_time),int(mission.hold)])
  objective.text="\n".join(progress_lines);objective.visible=not progress_lines.is_empty()
  pause_button.text="再開" if paused else "一時停止"
@@ -3486,6 +3563,8 @@ func update_ui():
  generator_button.disabled=not gen.reclaimed
  var warning_text="次の襲撃 %d秒  /  騒音 %d"%[int(maxf(0,wave_clock)),int(noise)]
  if buildings.any(func(building):return building.kind=="relay" and building.powered):warning_text+=" / 次は"+wave_direction_text(wave+1)
+ if frontier!=null:
+  warning_text="未踏の街区を偵察" if not frontier.nest.known else "感染源を攻撃・破壊"
  status.text=warning_text
  RTSHud.set_label_color(status,AMBER if wave_clock<=20 else Color("aca994"))
  context_button.visible=false
@@ -3548,18 +3627,22 @@ func update_ui():
  var cursor=get_viewport().get_mouse_position()
  for site in sites:
   var hover=camera.unproject_position(site.node.position+Vector3(0,1,0)).distance_to(cursor)<34
-  site.label.visible=not ended and (hover or inspected_site==site or selected.any(func(unit):return unit.target==site and unit.task=="site"))
+  site.label.visible=not ended and frontier_position_known(site.node.position) and (hover or inspected_site==site or selected.any(func(unit):return unit.target==site and unit.task=="site"))
  for resource in resource_nodes:
   if not is_instance_valid(resource.node):continue
   resource.label.text=GameRules.RESOURCE_TITLES[resource.resource]+(" / 菜園" if resource.renewable else " %d"%int(resource.stock))
-  resource.label.visible=not ended and (inspected_resource==resource or camera.unproject_position(resource.node.position+Vector3(0,1,0)).distance_to(cursor)<30)
-  if resource.source_building.is_empty():resource.node.visible=resource.stock>0
+  resource.label.visible=not ended and frontier_position_known(resource.node.position) and (inspected_resource==resource or camera.unproject_position(resource.node.position+Vector3(0,1,0)).distance_to(cursor)<30)
+  if resource.source_building.is_empty():resource.node.visible=resource.stock>0 and frontier_position_known(resource.node.position)
  for building in buildings:
   var hover=camera.unproject_position(building.node.position+Vector3(0,1.2,0)).distance_to(cursor)<30
   for child in building.node.get_children():
    if child is Label3D and child.has_meta("tactical_label"):child.visible=not ended and (hover or inspected==building)
 
 func tutorial_instruction()->String:
+ if frontier!=null:
+  if gathered<20:return "作業員で資源を採取"
+  if settlement_age==1:return "内政を育て、部隊で運河の先を偵察"
+  return "感染源を破壊する" if frontier.nest.known else "資源地へ進出し、感染源を探す"
  if mission.mode=="convoy" and convoy_started:return "輸送隊を護衛"
  if settlement_age==1:
   if gathered<20:return "作業員で資源を採取"
@@ -3637,7 +3720,8 @@ func update_worker_route_preview():
  var worker=selected[0]
  if worker.kind!="worker" or worker.hp<=0 or not is_instance_valid(worker.node) or worker.node.is_queued_for_deletion() or friendly_navigation.current_status(worker)!=FriendlyNavigation.MOVING:
   worker_route_preview.clear_preview();return
- worker_route_preview.set_selected_worker_route(worker.node.get_instance_id(),worker.node.global_position,worker.route,{"world_position":worker.get("nav_endpoint",Vector3.INF)},true)
+ var display_route=compact_route(worker.route) if frontier!=null else worker.route
+ worker_route_preview.set_selected_worker_route(worker.node.get_instance_id(),worker.node.global_position,display_route,{"world_position":worker.get("nav_endpoint",Vector3.INF)},true)
 
 func worker_destination_text(worker:Dictionary)->String:
  if worker.task!="gather":return ""
@@ -3676,3 +3760,51 @@ func touch_cancel()->void:
  if mobile_input!=null:mobile_input.cancel_command()
 func _exit_tree()->void:
  mobile_browser.teardown()
+
+# Frontier visibility is presentation/target eligibility; awake enemies remain simulated.
+func frontier_position_known(position:Vector3)->bool:
+ return frontier_visibility==null or frontier_visibility.is_explored(position)
+
+func refresh_frontier_visibility(dt:float,force:bool=false)->void:
+ if frontier_visibility==null:return
+ frontier_visibility.update_sources(units,buildings,dt,force)
+ if frontier!=null:
+  var discovered=frontier.discover_if_visible(frontier_visibility.is_visible)
+  frontier_visibility.observe_structure("frontier_nest",frontier.nest.node.position,"nest")
+  if discovered and is_instance_valid(audio_system):notify("感染源を発見。部隊と補給を整えて破壊せよ。",6)
+ if is_instance_valid(frontier_fog):frontier_fog.sync_now()
+
+func combat_targets()->Array:
+ if frontier_visibility==null:return enemies
+ var result=enemies.filter(func(enemy):return not enemy.dead and frontier_visibility.is_visible(enemy.node.position))
+ if frontier!=null:result.append_array(frontier.targetable_structures())
+ return result
+
+func visible_horde()->Array:
+ if frontier_visibility==null:return enemies+corpses
+ return (enemies+corpses).filter(func(actor):return frontier_visibility.is_visible(actor.node.position))
+
+func dispatch_frontier_cues(cues:Array)->void:
+ for cue in cues:
+  match cue.type:
+   "nest_alarm":notify("感染源が反応。入口から大群が出る！",5)
+   "nest_destroyed":
+    audio_system.play_event("ruin_collapse",cue.position,1.4)
+    explosion_visual(cue.position,6,true)
+   "nest_raid":notify("感染源から群れが出た。",4)
+
+func apply_frontier_blast(position:Vector3,radius:float,damage:float)->void:
+ var result:Dictionary=frontier.apply_blast(position,radius,damage)
+ if result.destroyed:rebuild_navigation()
+ dispatch_frontier_cues(frontier.take_cues())
+
+func compact_route(route:Array)->Array:
+ if route.size()<3:return route
+ var result:Array=[route[0]]
+ for i in range(1,route.size()-1):
+  var a:Vector3=route[i]-route[i-1]
+  var b:Vector3=route[i+1]-route[i]
+  # Remove only collinear, forward-going grid points. Every corner is retained.
+  if a.cross(b).length_squared()>.00000001 or a.dot(b)<=0:result.append(route[i])
+ result.append(route.back())
+ return result
