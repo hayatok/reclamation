@@ -1,0 +1,31 @@
+{
+  "baseline_version": "0.39.0",
+  "earned_fixture": "earned_critical_factory.json",
+  "stages": [
+    "chosen",
+    "opened",
+    "postponed",
+    "reopened",
+    "rerolled",
+    "resumed"
+  ],
+  "all_checkpoint_fields_equal": true,
+  "native_desktop_viewport": [
+    1178,
+    736
+  ],
+  "native_synthetic_mobile_viewport": [
+    844,
+    390
+  ],
+  "native_clicked_artwork": "range",
+  "applied_rank": 1,
+  "mobile_creates_desktop_illustrations": false,
+  "ids": 27,
+  "not_verified": [
+    "human first-time comprehension",
+    "real phone browser",
+    "actual WebGPU/device performance"
+  ],
+  "extra_artwork": "Static cached SVG overlays reuse existing shared portraits; gameplay progression families unchanged"
+}

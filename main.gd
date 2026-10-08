@@ -79,6 +79,7 @@ const ActorVisuals=preload("res://actor_visuals.gd")
 const SurvivorMotion=preload("res://survivor_motion.gd")
 const WeaponMuzzles=preload("res://weapon_muzzles.gd")
 const UpgradeCatalog=preload("res://upgrade_catalog.gd")
+const UpgradeDiagram=preload("res://upgrade_diagram.gd")
 const BUILD_COSTS={"tower":65,"wall":18,"factory":75,"relay":40,"mortar":120,"yard":80}
 const UNIT_COSTS={"guard":45,"worker":30,"truck":80,"grenade":75}
 
@@ -1826,6 +1827,9 @@ func display_cards():
  root_ui.add_child(choice_panel)
  choice_panel.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
  choice_panel.add_theme_stylebox_override("panel",style(Color("10130fee"),Color("10130f")))
+ if mobile_enabled:
+  if is_instance_valid(mobile_hud):mobile_hud._adapt_cards(choice_panel)
+  return
  var center=CenterContainer.new()
  choice_panel.add_child(center)
  var content=VBoxContainer.new()
@@ -1890,7 +1894,7 @@ func display_cards():
  _desktop_modal_layout()
 
 func equipment_diagram(id:String)->Control:
- return CommandDeck.equipment(UpgradeCatalog.family_for(id))
+ return UpgradeDiagram.create(id)
 
 func choose_upgrade(index:int):
  if not active_card or pending_upgrade_levels.is_empty() or index<0 or index>=cards.size():return
