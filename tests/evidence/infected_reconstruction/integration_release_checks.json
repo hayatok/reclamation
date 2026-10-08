@@ -1,0 +1,46 @@
+{
+  "engine": "4.6.3.stable.official.7d41c59c4",
+  "scope": "Fresh verification of new reconstruction, not inherited lost candidate evidence",
+  "ordinary_native": {
+    "method": "actual cloud native mouse/keyboard, fresh first operation",
+    "observed": [
+      "HQ worker order charges50 food",
+      "worker completes, population8 to9",
+      "single worker selection opens worker-only construction panel",
+      "right-click food starts gather and delivery",
+      "food rose170 to210 after actual delivery",
+      "construction placement canceled with Escape",
+      "placement over resource working area rejected without charging salvage",
+      "checkpoint saved at ordinary session end"
+    ],
+    "not_completed": [
+      "house construction in this timed session",
+      "whole campaign replay"
+    ]
+  },
+  "synthetic_touch": {
+    "checks": 21,
+    "failures": 0,
+    "real_phone": false
+  },
+  "actor_shots": {
+    "shots": 128,
+    "failures": 0,
+    "max_origin_error_m": 5.3312016e-07
+  },
+  "pack_smoke": {
+    "near_atlas_width": 1024,
+    "far_atlas_width": 1024,
+    "initial_units": 8,
+    "infected_active": true,
+    "full_font_excluded": true,
+    "issue_fixed": "Remove stale near-atlas export exclusion for the newly reconstructed embedded-texture asset"
+  },
+  "limits": [
+    "real browser/phone/Mac play unverified",
+    "real GPU performance unverified",
+    "audio listening unverified",
+    "sparse animation frames do not prove precise foot contact or subjective feel",
+    "headless rapid shutdown retains generic ObjectDB leak warning"
+  ]
+}

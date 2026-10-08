@@ -1,0 +1,11 @@
+{
+  "elapsed": 521.850000000073,
+  "enemies": 43,
+  "far": 47,
+  "frame_mean_ms": 102.17437,
+  "frame_p95_ms": 123.248,
+  "kills": 315,
+  "near": 0,
+  "renderer": "llvmpipe (LLVM 19.1.7, 256 bits)",
+  "scope": "fixed-step native 69-enemy earned save; frame cost includes simulation and rendering; not target GPU"
+}

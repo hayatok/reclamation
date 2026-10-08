@@ -1,0 +1,48 @@
+{
+	"configure_usec": 389250,
+	"configured": true,
+	"elapsed_usec": 1696268,
+	"engine_version": {
+		"build": "official",
+		"hash": "7d41c59c457bd5a245092b4e7eb2d833e3b3f8c3",
+		"hex": 263683,
+		"major": 4,
+		"minor": 6,
+		"patch": 3,
+		"status": "stable",
+		"string": "4.6.3-stable (official)",
+		"timestamp": 0
+	},
+	"failures": [],
+	"lods": {
+		"far": {
+			"deliberate_vertex_permutation_checked": true,
+			"max_y_m": 1.67026698589325,
+			"min_y_m": 0.0,
+			"pair_surface_packed_bytes": 3144576,
+			"paired_target_max_error_m": 0.0,
+			"poses": 32,
+			"poses_reordered_relative_to_first": 0,
+			"retained_imported_lods": 32,
+			"source_surface_packed_bytes": 1171968,
+			"stress_test_normal_repack_max_error": 0.000108496555185411,
+			"total_imported_vertices": 49920,
+			"total_triangles": 16640
+		},
+		"near": {
+			"deliberate_vertex_permutation_checked": true,
+			"max_y_m": 1.66357982158661,
+			"min_y_m": 0.0,
+			"pair_surface_packed_bytes": 19861824,
+			"paired_target_max_error_m": 0.0,
+			"poses": 32,
+			"poses_reordered_relative_to_first": 0,
+			"retained_imported_lods": 0,
+			"source_surface_packed_bytes": 7463616,
+			"stress_test_normal_repack_max_error": 0.00011816685582744,
+			"total_imported_vertices": 320352,
+			"total_triangles": 106784
+		}
+	},
+	"passed": true
+}

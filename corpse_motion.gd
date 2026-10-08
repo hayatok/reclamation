@@ -26,14 +26,12 @@ static func sample(cause: StringName, direction: Vector3, age: float) -> Diction
 	match cause:
 		EXPLOSIVE:
 			# A bounded 58 cm push, with an 11 cm grounded arc.
-			# All travel stops at .50s; the existing fall lands by .64s.
 			offset = away * MAX_TRAVEL * _ease_out(age / 0.50)
 			offset.y = MAX_LIFT * _pulse(age, 0.10, 0.50)
 			angle = MAX_TILT * _pulse(age, 0.08, 0.43)
 			progress = clampf(age / 0.64, 0.0, 1.0)
 		ELECTRIC:
 			# A short held silhouette, then a quicker collapse in place.
-			# One bounded tension pulse; no buzzing, randomness or lateral launch.
 			var tension: float = _pulse(age, 0.055, 0.17)
 			offset = away * -0.018 * tension
 			offset.y = 0.012 * tension
