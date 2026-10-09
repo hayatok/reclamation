@@ -1,0 +1,82 @@
+{
+  "generator": "Godot 4.6.3 headless",
+  "models": {
+    "food": {
+      "bounds_max": [
+        1.02500009536743,
+        1.69000005722046,
+        0.806999981403351
+      ],
+      "bounds_min": [
+        -1.05999994277954,
+        0.0,
+        -0.810123860836029
+      ],
+      "cache_reused": true,
+      "degenerate_triangles": 0,
+      "indexed_vertices": 2064,
+      "max_ground_radius": 1.30332267284393,
+      "max_y": 1.69000005722046,
+      "min_y": 0.0,
+      "surfaces": 1,
+      "triangles": 772,
+      "valid": true
+    },
+    "parts": {
+      "bounds_max": [
+        1.02250015735626,
+        1.70200002193451,
+        0.888016760349274
+      ],
+      "bounds_min": [
+        -1.00499999523163,
+        0.0,
+        -0.696999967098236
+      ],
+      "cache_reused": true,
+      "degenerate_triangles": 0,
+      "indexed_vertices": 2971,
+      "max_ground_radius": 1.2431892156601,
+      "max_y": 1.70200002193451,
+      "min_y": 0.0,
+      "surfaces": 1,
+      "triangles": 1488,
+      "valid": true
+    },
+    "salvage": {
+      "bounds_max": [
+        1.17848968505859,
+        1.70000004768372,
+        1.02105319499969
+      ],
+      "bounds_min": [
+        -1.14927983283997,
+        0.0,
+        -0.720000028610229
+      ],
+      "cache_reused": true,
+      "degenerate_triangles": 0,
+      "indexed_vertices": 1252,
+      "max_ground_radius": 1.31652271747589,
+      "max_y": 1.70000004768372,
+      "min_y": 0.0,
+      "surfaces": 1,
+      "triangles": 542,
+      "valid": true
+    }
+  },
+  "passed": true,
+  "source": "resource_visuals.gd",
+  "source_sha256": "9676a5005daa5235d59aa3da73c84c6a16073c249a58e01249f5b6ef794ecbe2",
+  "contract": {
+    "ground_radius_limit_m": 1.4,
+    "height_limit_m": 1.8,
+    "ground_y_m": 0.0,
+    "triangle_limit_per_kind": 2000,
+    "label_height_m": 2.0,
+    "worker_approach_radius_m": 2.25,
+    "gameplay_changes": false,
+    "random_calls": false,
+    "native_scene_visual_check": "Required separately; geometry check does not render the game."
+  }
+}
