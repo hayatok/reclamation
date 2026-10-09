@@ -48,6 +48,8 @@ const CommandDeck=preload("res://command_deck.gd")
 const EnvironmentOverlay=preload("res://environment_overlay.gd")
 const BattleFX=preload("res://battle_fx.gd")
 const BattleVisibility=preload("res://battle_visibility.gd")
+const TransmissionDefense=preload("res://transmission_defense.gd")
+var transmission_defense=TransmissionDefense.new()
 const ConvoyPlan=preload("res://convoy_plan.gd")
 const GameRules=preload("res://settlement_rules.gd")
 const MissionResourceLayout=preload("res://mission_resource_layout.gd")
@@ -1430,6 +1432,8 @@ func simulate_world(dt:float):
   audio_system.play_event("infected_growl" if audible_enemies.size()>60 else "infected_moan",audible_enemies[0].node.position)
   threat_voice_clock=visual_rng.randf_range(5,10)
  noise=move_toward(noise,clampf(8+units.size()*.55+settlement_age*3+(40 if generator_on else 0)+active_producers()*2.5,0,100),dt*3)
+ plan_transmission_defense()
+ transmission_defense.advance_warning(dt)
  wave_clock-=dt
  combo_clock-=dt
  if combo_clock<=0:combo=0
@@ -1566,6 +1570,11 @@ func simulate_world(dt:float):
   if e.get("convoy_hunter",false):
    var cargo=convoy_unit()
    if not cargo.is_empty():target=cargo;best=e.node.position.distance_to(cargo.node.position)-1.8
+  if e.get("transmission_raider",false) and transmission_defense.dispatched:
+   var anchor=get_site(transmission_defense.target_kind)
+   if not anchor.is_empty() and best>5.0:
+    target={"node":anchor.node,"radius":2.2,"transmission_anchor":true}
+    best=e.node.position.distance_to(anchor.node.position)-2.2
   if target==null:continue
   if e.get("boss",false) and e.windup>0:
    e.windup-=dt
@@ -1587,7 +1596,7 @@ func simulate_world(dt:float):
     e.node.position+=movement
     if movement.length_squared()>.000001:e.node.rotation.y=atan2(-movement.x,-movement.z)
    elif best<EnemyNavigation.EMPTY_ROUTE_ATTACK_REACH:can_attack=true
-  if can_attack:
+  if can_attack and not target.get("transmission_anchor",false):
    e.cd-=dt
    if e.cd<=0:
     if e.get("boss",false):
@@ -1835,13 +1844,16 @@ func spawn_wave():
  if incoming_surge:count+=30;incoming_surge=false
  count=mini(int(count*mission.pressure),280)
  var side=wave_side(wave)
+ var facility_raid=mission.mode=="finale" and transmission_defense.activate_wave(wave)
  for i in count:
   var spawn_side=(side+(1 if i%3==0 else 0))%3 if campaign_state.current==2 and wave>=3 else side
   var p=Vector3(-28+rng.randf_range(-1,1),0,rng.randf_range(-20,15)) if spawn_side==0 else (Vector3(rng.randf_range(-24,24),0,-28+rng.randf_range(-1,1)) if spawn_side==1 else Vector3(28+rng.randf_range(-1,1),0,rng.randf_range(-20,15)))
   var armored=settlement_age>=3 and generator_on and wave>=4 and i%(10 if campaign_state.current==2 else 16)==0
   var fast=settlement_age>=2 and wave>=2 and i%(3 if campaign_state.current==1 else 5)==0 and not armored
   spawn_enemy(p,fast,armored)
- notify("襲撃 %02d  /  %sから %d体接近"%[wave,wave_direction_text(wave),count],6)
+  if facility_raid:enemies.back()["transmission_raider"]=true
+ if facility_raid:notify(transmission_target_name()+"へ襲撃。周囲を守り送電を維持",6)
+ else:notify("襲撃 %02d  /  %sから %d体接近"%[wave,wave_direction_text(wave),count],6)
  tone("warning")
 
 func xp_needed()->float:return 60+float(level-1)*35
@@ -2521,6 +2533,7 @@ func checkpoint_data()->Dictionary:
  var living_enemies=enemies.filter(func(enemy):return not enemy.dead)
  var data={"version":4 if frontier!=null else 3,"run_seed":str(run_seed),"visual_rng":str(visual_rng.state),"stockpile":stockpile.duplicate(),"settlement_age":settlement_age,"resource_nodes":[],"preferred_family":preferred_family,"family_misses":family_misses,"blast_queue":[],"ammo":ammo,"rerolls":rerolls,"build_boost":build_boost,"victory_boost":victory_boost,"recruit_queue":recruit_queue.duplicate(true),"mission":campaign_state.current,"resources":resources,"gathered":gathered,"kills":kills,"xp":xp,"level":level,"pending_upgrade_levels":pending_upgrade_levels.duplicate(),"upgrades":upgrades.duplicate(),"elapsed":elapsed,"wave_clock":wave_clock,"wave":wave,"hold":hold_time,"noise":noise,"generator":generator_on,"first_activation":first_activation,"surge":incoming_surge,"paused":paused,"active_card":active_card,"rng":str(rng.state),"card_rng":str(card_rng.state),"cards":[],"units":[],"enemies":[],"buildings":[],"sites":[],"selected":[]}
  data.merge({"tech_level":tech_level,"research_active":research_active,"research_time":research_time,"convoy_started":convoy_started,"convoy_index":convoy_index,"boss_spawned":boss_spawned,"boss_defeated":boss_defeated,"convoy_route_choice":convoy_route_choice,"convoy_halted":convoy_halted,"convoy_encounter_stage":convoy_encounter_stage,"convoy_pending":{},"shells":[]})
+ if mission.mode=="finale":data["transmission_defense"]=transmission_defense.snapshot()
  if not convoy_pending.is_empty():data.convoy_pending={"stage":convoy_pending.stage,"clock":convoy_pending.clock}
  for shell in shells:
   var visual_from:Vector3=shell.get("visual_from",shell.from)
@@ -2562,6 +2575,8 @@ func checkpoint_data()->Dictionary:
   if u in selected:data.selected.append(units.find(u))
  for e in living_enemies:
   if not e.dead:data.enemies.append({"pos":vec_data(e.node.position),"hp":e.hp,"speed":e.speed,"cd":e.cd,"armored":e.get("armored",false),"charged_until":e.get("charged_until",0),"convoy_hunter":e.get("convoy_hunter",false),"boss":e.get("boss",false),"windup":e.get("windup",0),"attack_pos":vec_data(e.get("attack_pos",e.node.position))})
+ if mission.mode=="finale":
+  for i in living_enemies.size():data.enemies[i]["transmission_raider"]=living_enemies[i].get("transmission_raider",false)
  if frontier!=null:
   data["frontier"]=frontier.snapshot(living_enemies)
   data["frontier_visibility"]=frontier_visibility.snapshot()
@@ -2654,6 +2669,7 @@ func load_checkpoint()->bool:
   for key in ["hp","speed","cd"]:e[key]=raw[key]
   e.charged_until=raw.get("charged_until",0)
   e.convoy_hunter=raw.get("convoy_hunter",false)
+  e.transmission_raider=raw.get("transmission_raider",false)
   e.windup=raw.get("windup",0)
   e.attack_pos=from_data(raw.get("attack_pos",raw.pos))
  if frontier!=null:
@@ -2667,6 +2683,8 @@ func load_checkpoint()->bool:
  for unit in units:
   if unit.task=="escort" and (unit.target==null or not EscortOrders.can_follow(unit,unit.target)):
    unit.task="idle";unit.target=null;unit.goal=unit.node.position
+ transmission_defense.reset()
+ if d.has("transmission_defense"):transmission_defense.restore(d.transmission_defense)
  convoy_route_choice=int(d.get("convoy_route_choice",0));convoy_halted=d.get("convoy_halted",false);convoy_encounter_stage=int(d.get("convoy_encounter_stage",0));convoy_pending=d.get("convoy_pending",{})
  tech_level=int(d.get("tech_level",1));research_active=d.get("research_active",false);research_time=d.get("research_time",0)
  convoy_started=d.get("convoy_started",false);convoy_index=int(d.get("convoy_index",0));boss_spawned=d.get("boss_spawned",false);boss_defeated=d.get("boss_defeated",false)
@@ -3090,15 +3108,32 @@ func update_mission(dt:float):
   return
  var restored=settlement_age>=3 and generator_on and get_site("pump").reclaimed
  if mission.mode=="finale":restored=restored and get_site("substation").get("reclaimed",false)
- if restored:
+ if restored and not transmission_blocked():
   hold_time=minf(mission.hold,hold_time+dt)
   if mission.mode=="finale" and hold_time>=55 and not boss_spawned:
    boss_spawned=true
    spawn_enemy(Vector3(-25,0,-18),false,true,true)
-   wave_clock=minf(wave_clock,4)
+   var earliest_wave=4.0
+   if transmission_defense.planned and not transmission_defense.dispatched:earliest_wave=maxf(earliest_wave,transmission_defense.warning_remaining)
+   wave_clock=minf(wave_clock,earliest_wave)
    notify("破砕体 接近。防壁を砕く一撃に注意！",8)
    audio_system.play_event("infected_growl",Vector3(-25,0,-18),1.4)
   if hold_time>=mission.hold and (mission.mode!="finale" or boss_defeated):finish(true)
+
+func transmission_target_name()->String:
+ return "変電所" if transmission_defense.target_kind=="substation" else "中央送電所"
+
+func transmission_blocked()->bool:
+ if mission.mode!="finale" or not transmission_defense.dispatched:return false
+ var site=get_site(transmission_defense.target_kind)
+ return not site.is_empty() and transmission_defense.is_blocked(enemies,site.node.position)
+
+func plan_transmission_defense():
+ if mission.mode!="finale":return
+ var ready=settlement_age>=3 and generator_on and get_site("pump").get("reclaimed",false) and get_site("substation").get("reclaimed",false)
+ if transmission_defense.plan_if_ready(ready,wave+1,wave_clock,wave_side(wave+1)):
+  notify(transmission_target_name()+"へ襲撃予告。施設周囲の敵が送電を妨げる",7)
+  tone("warning")
 
 func boss_impact(enemy:Dictionary):
  enemy["attack_at"]=elapsed
@@ -3122,7 +3157,9 @@ func mission_action():
   else:
    var convoy=convoy_unit()
    if not convoy.is_empty():camera_focus=convoy.node.position
- elif mission.mode=="finale":assign_site("substation")
+ elif mission.mode=="finale":
+  if transmission_defense.planned:camera_focus=get_site(transmission_defense.target_kind).node.position
+  else:assign_site("substation")
 
 func capture_impact():
  await RenderingServer.frame_post_draw
@@ -3596,8 +3633,9 @@ func update_ui():
   var sub=get_site("substation")
   if not sub.reclaimed and sub.progress>0:progress_lines.append("変電所 復旧 %d%%"%int(sub.progress*100))
   if hold_time>0 or (settlement_age>=3 and pump.reclaimed and sub.reclaimed):progress_lines.append("初期送電 %d/%d秒"%[int(hold_time),int(mission.hold)])
+  if transmission_blocked() and not progress_lines.is_empty():progress_lines[-1]+=" / 中断"
   if boss_spawned:progress_lines.append("破砕体 "+("撃破" if boss_defeated else "接近"))
-  mission_action_button.text="変電所へ"
+  mission_action_button.text="防衛対象へ" if transmission_defense.planned else "変電所へ"
  elif frontier!=null:
   if frontier.nest.known and frontier_visibility.is_visible(frontier.nest.node.position):progress_lines.append("感染源 耐久 %d%%"%ceili(frontier.nest.hp/frontier.nest.maxhp*100))
   if frontier.alarm_remaining>0:progress_lines.append("群れ出現 %.1f秒"%frontier.alarm_remaining)
@@ -3613,6 +3651,9 @@ func update_ui():
  if buildings.any(func(building):return building.kind=="relay" and building.powered):warning_text+=" / 次は"+wave_direction_text(wave+1)
  if frontier!=null:
   warning_text="未踏の街区を偵察" if not frontier.nest.known else ""
+ if mission.mode=="finale" and transmission_defense.planned:
+  if not transmission_defense.dispatched:warning_text="%sへ襲撃 / %d秒"%[transmission_target_name(),ceili(maxf(0,wave_clock))]
+  elif transmission_blocked():warning_text=transmission_target_name()+"周囲の敵を排除"
  status.text=warning_text
  status.visible=not warning_text.is_empty()
  RTSHud.set_label_color(status,AMBER if wave_clock<=20 else Color("aca994"))
