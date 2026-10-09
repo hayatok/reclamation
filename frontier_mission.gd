@@ -82,11 +82,9 @@ func dispose() -> void:
 func discover_if_visible(is_visible: Callable) -> bool:
 	if nest.is_empty() or not is_visible.is_valid(): return false
 	var in_sight: bool = bool(is_visible.call(NEST_POSITION))
-	nest.node.visible = in_sight
-	if not in_sight: return false
-	var newly_known: bool = not nest.known
-	nest.known = true
-	nest.node.visible = true
+	var newly_known: bool = in_sight and not nest.known
+	if in_sight: nest.known = true
+	NestVisual.set_observed(nest.node, nest.known, in_sight)
 	return newly_known
 
 ## This is the only collection that should join host combat target candidates.

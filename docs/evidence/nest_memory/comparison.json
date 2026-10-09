@@ -1,0 +1,8 @@
+{
+  "draw_after": 200.0,
+  "draw_before": 196.0,
+  "in_sight": false,
+  "known": true,
+  "method": "Controlled previous visibility vs corrected visibility on same actual scout-loss save",
+  "state_equal": true
+}

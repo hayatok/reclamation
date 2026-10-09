@@ -33,16 +33,30 @@ static func create() -> Node3D:
 	return root
 
 static func set_state(root: Node3D, dead: bool, alarm: bool) -> void:
-	var active_alarm := alarm and not dead
-	if bool(root.get_meta("frontier_art_dead", false)) != dead:
-		root.get_node("Intact").visible = not dead
-		root.get_node("Rubble").visible = dead
-		root.set_meta("frontier_art_dead", dead)
-	if bool(root.get_meta("frontier_art_alarm", false)) == active_alarm:
-		return
-	root.set_meta("frontier_art_alarm", active_alarm)
+	root.set_meta("frontier_art_dead", dead)
+	root.set_meta("frontier_art_alarm", alarm and not dead)
+	_apply_observation(root)
+
+## A known static structure remains as remembered terrain when scouts leave.
+## Live alarm/damage state is never used to update that remembered appearance.
+static func set_observed(root: Node3D, known: bool, in_sight: bool) -> void:
+	root.visible = known or in_sight
+	root.set_meta("frontier_art_in_sight", in_sight)
+	_apply_observation(root)
+
+static func _apply_observation(root: Node3D) -> void:
+	var in_sight := bool(root.get_meta("frontier_art_in_sight", true))
+	var dead := bool(root.get_meta("frontier_art_dead", false))
+	if in_sight: root.set_meta("frontier_art_remembered_dead", dead)
+	var displayed_dead := dead if in_sight else bool(root.get_meta("frontier_art_remembered_dead", false))
+	var active_alarm := in_sight and not displayed_dead and bool(root.get_meta("frontier_art_alarm", false))
+	var display_state := int(displayed_dead) * 2 + int(active_alarm)
+	if int(root.get_meta("frontier_art_display", -1)) == display_state: return
+	root.set_meta("frontier_art_display", display_state)
+	root.get_node("Intact").visible = not displayed_dead
+	root.get_node("Rubble").visible = displayed_dead
 	var core: ShaderMaterial = root.get_meta("frontier_core_material")
-	# The UV2 mask is authored only on the interior recess. No flashing or lights.
+	# Only the authored interior can glow, and only in current friendly sight.
 	core.set_shader_parameter("alarm", 1.0 if active_alarm else 0.0)
 
 static func _ensure_materials() -> void:
