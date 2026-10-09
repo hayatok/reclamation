@@ -3644,6 +3644,9 @@ func update_ui():
   selection_text=rule.title
   if inspected.kind=="factory":selection_text+="\n"+factory_status(inspected)
   elif rule.power>0:selection_text+="\n"+("給電中" if inspected.powered else "未給電")
+  if not mobile_enabled and queue_caption.text.is_empty():
+   if inspected.kind=="factory":command_heading.text=factory_status(inspected)
+   elif rule.power>0:command_heading.text="給電中" if inspected.powered else "未給電"
   supply_text="耐久 %d / %d"%[int(hp_sum),int(max_sum)]
   selection_tooltip={"hq":"作業員の生産・段階の発展","barracks":"生存者・爆薬手を訓練","vehicle_workshop":"補給車・移動迫撃車を生産","house":"人口上限 +5","depot":"3資源の搬入先","garden":"作業員が食料を耕作","factory":"電力で弾薬を補給","relay":"送電範囲を延長","yard":"近くの採取・修理を支援","tower":"自動迎撃","mortar":"範囲砲撃","wall":"感染者の進行を遮る"}.get(inspected.kind,"")
   if inspected.kind in ["house","depot","garden","relay","yard","tower","mortar","wall"]:supply_text+="\n"+selection_tooltip

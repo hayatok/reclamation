@@ -1,0 +1,10 @@
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+PASS earned full-ammo factory shows its state
+PASS display refresh preserves all saved state
+PASS ordinary factory toggle displays manual stop
+PASS unpowered factory state is visible
+PASS controlled resource shortage displays exact status
+PASS construction progress takes precedence
+PASS HQ category remains intact
+FACTORY_HEADING_RESULT failures=0
