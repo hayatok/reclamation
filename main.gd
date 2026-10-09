@@ -86,6 +86,8 @@ const CombatSpacing=preload("res://combat_spacing.gd")
 var combat_spacing=CombatSpacing.new()
 const WorkerRoutePreview=preload("res://worker_route_preview.gd")
 var worker_route_preview:Node3D
+const WeaponRangePreview=preload("res://selected_weapon_range.gd")
+var weapon_range_preview:Node3D
 const CrowdSteering=preload("res://crowd_steering.gd")
 var crowd_steering=CrowdSteering.new()
 const EnemyNavigation=preload("res://enemy_navigation.gd")
@@ -357,6 +359,7 @@ func _ready():
  add_child(horde_renderer)
  horde_renderer.setup()
  worker_route_preview=WorkerRoutePreview.new();add_child(worker_route_preview)
+ weapon_range_preview=WeaponRangePreview.new();add_child(weapon_range_preview)
  horde_renderer.low_detail=performance_mode
  render_interpolation.reset(units,enemies,corpses)
  battle_visibility=BattleVisibility.new()
@@ -1364,6 +1367,7 @@ func _process(delta):
  var actor_frames=render_actors()
  resolve_shell_muzzles(actor_frames)
  update_worker_route_preview()
+ update_weapon_range_preview(actor_frames)
  battle_visibility.update_visibility(camera,units,[] if aftermath_settled else enemies.filter(func(e):return frontier_visibility==null or frontier_visibility.is_visible(e.node.position)),[] if aftermath_settled else shells,delta)
  battle_fx.update(dt,camera,buildings,actor_frames)
  if pending_card_delay>0:
@@ -3649,6 +3653,8 @@ func update_ui():
   if not mobile_enabled:command_heading.text=selected_order_text()
   selection_tooltip="・".join(names)
   supply_text="耐久 %d / %d"%[int(hp_sum),int(max_sum)]
+  if selected.size()==1 and selected[0].kind in ["guard","grenade","siegecart"]:
+   supply_text+="  射程 %.1fm"%selected_weapon_range(selected[0])
   if selected.size()==1 and selected[0].kind=="worker":
    var destination=worker_destination_text(selected[0])
    if not destination.is_empty():supply_tooltip=destination
@@ -3796,6 +3802,22 @@ func update_worker_route_preview():
   worker_route_preview.clear_preview();return
  var display_route=compact_route(worker.route) if frontier!=null else worker.route
  worker_route_preview.set_selected_worker_route(worker.node.get_instance_id(),worker.node.global_position,display_route,{"world_position":worker.get("nav_endpoint",Vector3.INF)},true)
+
+func selected_weapon_range(unit:Dictionary)->float:
+ if not unit.get("kind","") in ["guard","grenade","siegecart"]:return 0.0
+ return float(GameRules.unit(unit.kind).range)*(1+bonus("range","range_add"))
+
+func update_weapon_range_preview(rendered:Dictionary={}):
+ if not is_instance_valid(weapon_range_preview):return
+ if title_open or ended or active_card or is_instance_valid(options_panel) or is_instance_valid(route_panel) or is_instance_valid(dismantle_panel) or selected.size()!=1:
+  weapon_range_preview.set_range(Vector3.ZERO,0.0,false);return
+ var unit:Dictionary=selected[0]
+ var radius=selected_weapon_range(unit)
+ if radius<=0 or unit.hp<=0 or not is_instance_valid(unit.node) or unit.node.is_queued_for_deletion():
+  weapon_range_preview.set_range(Vector3.ZERO,0.0,false);return
+ var state:Dictionary=rendered.get(unit.node.get_instance_id(),{})
+ var position:Vector3=state.get("world",unit.node.global_transform).origin
+ weapon_range_preview.set_range(position,radius,true)
 
 func worker_destination_text(worker:Dictionary)->String:
  if worker.task!="gather":return ""

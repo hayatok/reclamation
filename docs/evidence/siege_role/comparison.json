@@ -1,0 +1,558 @@
+[
+  {
+    "ended": true,
+    "expedition_hp": 1128.0,
+    "expedition_living": 9,
+    "first_nest_damage_seconds": 29.699999999973,
+    "first_siege_nest_shell_seconds": 42.5999999999613,
+    "hq_hp": 1000.0,
+    "initial_rng": "6939912874496389712",
+    "initial_upgrades": {
+      "armor": 1.0,
+      "chain": 1.0,
+      "damage": 1.0,
+      "multi": 1.0,
+      "rate": 1.0,
+      "salvage": 1.0,
+      "salvo": 1.0
+    },
+    "kills": 316,
+    "minimum_ammo": 302.3,
+    "mode": "existing_departure",
+    "nest_hp": 0.0,
+    "seconds": 53.9499999999509,
+    "siege_nest_shells": 4,
+    "siege_position": [
+      43.5641937255859,
+      0.0,
+      -36.0
+    ],
+    "siege_volleys": 5.0,
+    "trace": [
+      {
+        "ammo": 400.0,
+        "expedition_living": 9,
+        "kills": 193,
+        "nest_hp": 6000.0,
+        "seconds": 0.0499999999999545,
+        "shots": 0.0,
+        "siege_hp": 288.0,
+        "siege_position": [
+          -58.8174476623535,
+          0.0,
+          -8.0
+        ]
+      },
+      {
+        "ammo": 395.7,
+        "expedition_living": 9,
+        "kills": 194,
+        "nest_hp": 6000.0,
+        "seconds": 5.04999999999541,
+        "shots": 0.0,
+        "siege_hp": 288.0,
+        "siege_position": [
+          -47.6284332275391,
+          0.0,
+          -12.3715677261353
+        ]
+      },
+      {
+        "ammo": 400.0,
+        "expedition_living": 9,
+        "kills": 220,
+        "nest_hp": 6000.0,
+        "seconds": 10.0499999999909,
+        "shots": 1.0,
+        "siege_hp": 288.0,
+        "siege_position": [
+          -38.3689117431641,
+          0.0,
+          -21.6310882568359
+        ]
+      },
+      {
+        "ammo": 400.0,
+        "expedition_living": 9,
+        "kills": 220,
+        "nest_hp": 6000.0,
+        "seconds": 15.0499999999863,
+        "shots": 1.0,
+        "siege_hp": 288.0,
+        "siege_position": [
+          -26.6786155700684,
+          0.0,
+          -26.0
+        ]
+      },
+      {
+        "ammo": 400.0,
+        "expedition_living": 9,
+        "kills": 220,
+        "nest_hp": 6000.0,
+        "seconds": 20.0499999999818,
+        "shots": 1.0,
+        "siege_hp": 288.0,
+        "siege_position": [
+          -13.1785926818848,
+          0.0,
+          -26.0
+        ]
+      },
+      {
+        "ammo": 399.0,
+        "expedition_living": 9,
+        "kills": 227,
+        "nest_hp": 6000.0,
+        "seconds": 25.0499999999772,
+        "shots": 1.0,
+        "siege_hp": 288.0,
+        "siege_position": [
+          -0.0927941501140594,
+          0.0,
+          -27.0
+        ]
+      },
+      {
+        "ammo": 399.3,
+        "expedition_living": 9,
+        "kills": 256,
+        "nest_hp": 5935.2,
+        "seconds": 30.0499999999727,
+        "shots": 1.0,
+        "siege_hp": 288.0,
+        "siege_position": [
+          13.4072217941284,
+          0.0,
+          -27.0
+        ]
+      },
+      {
+        "ammo": 384.3,
+        "expedition_living": 9,
+        "kills": 275,
+        "nest_hp": 5283.83999999999,
+        "seconds": 35.0499999999681,
+        "shots": 1.0,
+        "siege_hp": 288.0,
+        "siege_position": [
+          26.4930210113525,
+          0.0,
+          -28.0
+        ]
+      },
+      {
+        "ammo": 368.3,
+        "expedition_living": 9,
+        "kills": 316,
+        "nest_hp": 4626.43199999999,
+        "seconds": 40.0499999999636,
+        "shots": 1.0,
+        "siege_hp": 288.0,
+        "siege_position": [
+          37.9218826293945,
+          0.0,
+          -33.0
+        ]
+      },
+      {
+        "ammo": 342.3,
+        "expedition_living": 9,
+        "kills": 316,
+        "nest_hp": 3054.43199999998,
+        "seconds": 45.049999999959,
+        "shots": 2.0,
+        "siege_hp": 288.0,
+        "siege_position": [
+          43.5641937255859,
+          0.0,
+          -36.0
+        ]
+      },
+      {
+        "ammo": 320.3,
+        "expedition_living": 9,
+        "kills": 316,
+        "nest_hp": 1254.43199999999,
+        "seconds": 50.0499999999545,
+        "shots": 4.0,
+        "siege_hp": 288.0,
+        "siege_position": [
+          43.5641937255859,
+          0.0,
+          -36.0
+        ]
+      }
+    ],
+    "won": true
+  },
+  {
+    "ended": false,
+    "expedition_hp": 1128.0,
+    "expedition_living": 9,
+    "first_nest_damage_seconds": 52.6999999999521,
+    "first_siege_nest_shell_seconds": 51.3499999999533,
+    "hq_hp": 1000.0,
+    "initial_rng": "6939912874496389712",
+    "initial_upgrades": {
+      "armor": 1.0,
+      "chain": 1.0,
+      "damage": 1.0,
+      "multi": 1.0,
+      "rate": 1.0,
+      "salvage": 1.0,
+      "salvo": 1.0
+    },
+    "kills": 352,
+    "minimum_ammo": 395.5,
+    "mode": "escort_siege",
+    "nest_hp": 2743.99200000001,
+    "seconds": 119.999999999891,
+    "siege_nest_shells": 28,
+    "siege_position": [
+      43.6685905456543,
+      0.0,
+      -36.0
+    ],
+    "siege_volleys": 28.0,
+    "trace": [
+      {
+        "ammo": 400.0,
+        "expedition_living": 9,
+        "kills": 193,
+        "nest_hp": 6000.0,
+        "seconds": 0.0499999999999545,
+        "shots": 0.0,
+        "siege_hp": 288.0,
+        "siege_position": [
+          -58.8174476623535,
+          0.0,
+          -8.0
+        ]
+      },
+      {
+        "ammo": 400.0,
+        "expedition_living": 9,
+        "kills": 193,
+        "nest_hp": 6000.0,
+        "seconds": 5.04999999999541,
+        "shots": 0.0,
+        "siege_hp": 288.0,
+        "siege_position": [
+          -47.6284332275391,
+          0.0,
+          -12.3715677261353
+        ]
+      },
+      {
+        "ammo": 400.0,
+        "expedition_living": 9,
+        "kills": 220,
+        "nest_hp": 6000.0,
+        "seconds": 10.0499999999909,
+        "shots": 2.0,
+        "siege_hp": 288.0,
+        "siege_position": [
+          -44.2356834411621,
+          0.0,
+          -15.7643165588379
+        ]
+      },
+      {
+        "ammo": 400.0,
+        "expedition_living": 9,
+        "kills": 220,
+        "nest_hp": 6000.0,
+        "seconds": 15.0499999999863,
+        "shots": 2.0,
+        "siege_hp": 288.0,
+        "siege_position": [
+          -34.6897850036621,
+          0.0,
+          -25.3102149963379
+        ]
+      },
+      {
+        "ammo": 400.0,
+        "expedition_living": 9,
+        "kills": 220,
+        "nest_hp": 6000.0,
+        "seconds": 20.0499999999818,
+        "shots": 2.0,
+        "siege_hp": 288.0,
+        "siege_position": [
+          -21.475513458252,
+          0.0,
+          -26.0
+        ]
+      },
+      {
+        "ammo": 400.0,
+        "expedition_living": 9,
+        "kills": 220,
+        "nest_hp": 6000.0,
+        "seconds": 25.0499999999772,
+        "shots": 2.0,
+        "siege_hp": 288.0,
+        "siege_position": [
+          -7.97549057006836,
+          0.0,
+          -26.0
+        ]
+      },
+      {
+        "ammo": 400.0,
+        "expedition_living": 9,
+        "kills": 220,
+        "nest_hp": 6000.0,
+        "seconds": 30.0499999999727,
+        "shots": 2.0,
+        "siege_hp": 288.0,
+        "siege_position": [
+          5.11030054092407,
+          0.0,
+          -27.0
+        ]
+      },
+      {
+        "ammo": 400.0,
+        "expedition_living": 9,
+        "kills": 229,
+        "nest_hp": 6000.0,
+        "seconds": 35.0499999999681,
+        "shots": 3.0,
+        "siege_hp": 288.0,
+        "siege_position": [
+          14.9966106414795,
+          0.0,
+          -27.0
+        ]
+      },
+      {
+        "ammo": 400.0,
+        "expedition_living": 9,
+        "kills": 238,
+        "nest_hp": 6000.0,
+        "seconds": 40.0499999999636,
+        "shots": 5.0,
+        "siege_hp": 288.0,
+        "siege_position": [
+          17.4266147613525,
+          0.0,
+          -27.0
+        ]
+      },
+      {
+        "ammo": 400.0,
+        "expedition_living": 9,
+        "kills": 256,
+        "nest_hp": 6000.0,
+        "seconds": 45.049999999959,
+        "shots": 5.0,
+        "siege_hp": 288.0,
+        "siege_position": [
+          29.3947010040283,
+          0.0,
+          -29.3947010040283
+        ]
+      },
+      {
+        "ammo": 400.0,
+        "expedition_living": 9,
+        "kills": 256,
+        "nest_hp": 6000.0,
+        "seconds": 50.0499999999545,
+        "shots": 5.0,
+        "siege_hp": 288.0,
+        "siege_position": [
+          40.697940826416,
+          0.0,
+          -34.697940826416
+        ]
+      },
+      {
+        "ammo": 400.0,
+        "expedition_living": 9,
+        "kills": 256,
+        "nest_hp": 5746.56,
+        "seconds": 55.0499999999499,
+        "shots": 7.0,
+        "siege_hp": 288.0,
+        "siege_position": [
+          43.6685905456543,
+          0.0,
+          -36.0
+        ]
+      },
+      {
+        "ammo": 400.0,
+        "expedition_living": 9,
+        "kills": 282,
+        "nest_hp": 5507.808,
+        "seconds": 60.0499999999454,
+        "shots": 8.0,
+        "siege_hp": 288.0,
+        "siege_position": [
+          43.6685905456543,
+          0.0,
+          -36.0
+        ]
+      },
+      {
+        "ammo": 400.0,
+        "expedition_living": 9,
+        "kills": 316,
+        "nest_hp": 5240.664,
+        "seconds": 65.0499999999408,
+        "shots": 10.0,
+        "siege_hp": 288.0,
+        "siege_position": [
+          43.6685905456543,
+          0.0,
+          -36.0
+        ]
+      },
+      {
+        "ammo": 400.0,
+        "expedition_living": 9,
+        "kills": 316,
+        "nest_hp": 5125.464,
+        "seconds": 70.0499999999363,
+        "shots": 12.0,
+        "siege_hp": 288.0,
+        "siege_position": [
+          43.6685905456543,
+          0.0,
+          -36.0
+        ]
+      },
+      {
+        "ammo": 400.0,
+        "expedition_living": 9,
+        "kills": 316,
+        "nest_hp": 4756.824,
+        "seconds": 75.0499999999317,
+        "shots": 13.0,
+        "siege_hp": 288.0,
+        "siege_position": [
+          43.6685905456543,
+          0.0,
+          -36.0
+        ]
+      },
+      {
+        "ammo": 400.0,
+        "expedition_living": 9,
+        "kills": 316,
+        "nest_hp": 4526.424,
+        "seconds": 80.0499999999272,
+        "shots": 15.0,
+        "siege_hp": 288.0,
+        "siege_position": [
+          43.6685905456543,
+          0.0,
+          -36.0
+        ]
+      },
+      {
+        "ammo": 400.0,
+        "expedition_living": 9,
+        "kills": 316,
+        "nest_hp": 4411.224,
+        "seconds": 85.0499999999226,
+        "shots": 17.0,
+        "siege_hp": 288.0,
+        "siege_position": [
+          43.6685905456543,
+          0.0,
+          -36.0
+        ]
+      },
+      {
+        "ammo": 400.0,
+        "expedition_living": 9,
+        "kills": 316,
+        "nest_hp": 4042.584,
+        "seconds": 90.0499999999181,
+        "shots": 18.0,
+        "siege_hp": 288.0,
+        "siege_position": [
+          43.6685905456543,
+          0.0,
+          -36.0
+        ]
+      },
+      {
+        "ammo": 400.0,
+        "expedition_living": 9,
+        "kills": 352,
+        "nest_hp": 3803.832,
+        "seconds": 95.0499999999136,
+        "shots": 20.0,
+        "siege_hp": 288.0,
+        "siege_position": [
+          43.6685905456543,
+          0.0,
+          -36.0
+        ]
+      },
+      {
+        "ammo": 400.0,
+        "expedition_living": 9,
+        "kills": 352,
+        "nest_hp": 3688.632,
+        "seconds": 100.049999999909,
+        "shots": 22.0,
+        "siege_hp": 288.0,
+        "siege_position": [
+          43.6685905456543,
+          0.0,
+          -36.0
+        ]
+      },
+      {
+        "ammo": 400.0,
+        "expedition_living": 9,
+        "kills": 352,
+        "nest_hp": 3458.232,
+        "seconds": 105.049999999904,
+        "shots": 23.0,
+        "siege_hp": 288.0,
+        "siege_position": [
+          43.6685905456543,
+          0.0,
+          -36.0
+        ]
+      },
+      {
+        "ammo": 400.0,
+        "expedition_living": 9,
+        "kills": 352,
+        "nest_hp": 3089.592,
+        "seconds": 110.0499999999,
+        "shots": 25.0,
+        "siege_hp": 288.0,
+        "siege_position": [
+          43.6685905456543,
+          0.0,
+          -36.0
+        ]
+      },
+      {
+        "ammo": 400.0,
+        "expedition_living": 9,
+        "kills": 352,
+        "nest_hp": 2974.392,
+        "seconds": 115.049999999895,
+        "shots": 27.0,
+        "siege_hp": 288.0,
+        "siege_position": [
+          43.6685905456543,
+          0.0,
+          -36.0
+        ]
+      }
+    ],
+    "won": false
+  }
+]
