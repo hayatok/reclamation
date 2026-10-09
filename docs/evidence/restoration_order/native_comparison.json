@@ -1,0 +1,9 @@
+{
+  "units_exactly_equal": true,
+  "elapsed_before": 307.30000000003565,
+  "elapsed_after": 307.30000000003565,
+  "native_action": "Box select three gathering workers, right-click locked generator, save via F6",
+  "visible_result": "この設備の復旧は段階2から and 採取中",
+  "source_fixture": "tests/fixtures/native_age_research_in_progress.json",
+  "limits": "Native cloud desktop; not real phone/browser validation"
+}

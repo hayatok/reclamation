@@ -1188,11 +1188,17 @@ func command_at(p:Vector3,screen:Vector2=Vector2.INF,append_orders:bool=false)->
    WorkerOrders.submit(self,workers[i],{"task":task,"target":target,"goal":p+Vector3((i%4-1.5)*1.1,0,floori(i/4.0)*1.1)},true)
   context_signature="";pulse(p,CYAN,1.5,.55);tone("order")
   return true
+ # Reject unavailable restoration before replacing any worker's current job.
+ # Mixed selections may still move their fighters to the clicked site.
+ var restoration_blocked:bool=s_target!=null and not s_target.reclaimed and settlement_age<int(site_rule(s_target.kind).age)
+ if restoration_blocked and selected.any(func(unit):return unit.kind=="worker"):
+  notify("この設備の復旧は段階%dから"%site_rule(s_target.kind).age,3)
  var escort_count:int=0
  var issued_orders:int=0
  for i in selected.size():
   var u=selected[i]
   if u.kind=="convoy":continue
+  if u.kind=="worker" and restoration_blocked:continue
   # A rejected escort cycle is not an accepted replacement order.
   if u.kind=="worker" and friendly_target!=null and resource_target.is_empty() and s_target==null and b_target==null and not EscortOrders.can_follow(u,friendly_target):continue
   friendly_navigation.invalidate_order(u)
@@ -1221,6 +1227,7 @@ func command_at(p:Vector3,screen:Vector2=Vector2.INF,append_orders:bool=false)->
    u.task="build" if b_target.built<1 else "repair"
    u.target=b_target
    u.goal=b_target.node.position+Vector3(0,0,2)
+ if issued_orders==0:return false
  attack_move=false
  if escort_count>0:
   pulse(friendly_target.node.position,CYAN,2.2,.55)
