@@ -3627,6 +3627,9 @@ func update_ui():
    if not title in names:names.append(title)
   var selection_title=names[0] if names.size()==1 else "混成部隊"
   selection_text=selection_title+(" ×%d"%selected.size() if selected.size()>1 else "")+"\n"+selected_order_text()
+  # The desktop dock has a one-line identity label. Keep the live order
+  # visible in its existing command heading, alongside the queue below.
+  if not mobile_enabled:command_heading.text=selected_order_text()
   selection_tooltip="・".join(names)
   supply_text="耐久 %d / %d"%[int(hp_sum),int(max_sum)]
   if selected.size()==1 and selected[0].kind=="worker":

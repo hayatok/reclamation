@@ -1,0 +1,11 @@
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+PASS paused restoration order is visible for two workers
+PASS UI refresh preserves gameplay and RNG
+PASS blocked order overrides ordinary group activity
+PASS work-space wait is visible
+PASS HQ restores its context heading
+PASS producer queue keeps its existing priority
+PASS combat selection restores live order
+PASS empty selection hides stale status
+DESKTOP_ORDER_RESULT failures=0

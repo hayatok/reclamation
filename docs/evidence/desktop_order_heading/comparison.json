@@ -1,0 +1,13 @@
+{
+  "same_complete_gameplay_state": true,
+  "before_heading": "建設  /  住居・経済",
+  "after_heading": "復旧中",
+  "viewport": [
+    1180,
+    737
+  ],
+  "paused": true,
+  "source_fixture": "tests/fixtures/frontier_depot_earned_before_repair.json",
+  "orders": "Select existing workers 2 and 3, issue ordinary restoration command at (-50,0,-8).",
+  "limits": "Native software renderer; no browser or phone test."
+}
