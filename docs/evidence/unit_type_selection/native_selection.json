@@ -1,0 +1,187 @@
+[
+  {
+    "mode": "desktop",
+    "capture": "state_00.json",
+    "selected": [
+      "guard",
+      "guard",
+      "guard",
+      "guard",
+      "guard",
+      "guard",
+      "guard",
+      "guard",
+      "guard",
+      "guard",
+      "guard",
+      "guard",
+      "grenade",
+      "grenade",
+      "siegecart"
+    ],
+    "game_state_equal_ignoring_selection": true
+  },
+  {
+    "mode": "desktop",
+    "capture": "state_01.json",
+    "selected": [
+      "guard",
+      "guard",
+      "guard",
+      "guard",
+      "guard",
+      "guard",
+      "guard",
+      "guard",
+      "guard",
+      "guard",
+      "guard",
+      "guard",
+      "grenade",
+      "grenade",
+      "siegecart"
+    ],
+    "game_state_equal_ignoring_selection": true
+  },
+  {
+    "mode": "desktop",
+    "capture": "state_02.json",
+    "selected": [
+      "grenade",
+      "grenade"
+    ],
+    "game_state_equal_ignoring_selection": true
+  },
+  {
+    "mode": "desktop",
+    "capture": "state_03.json",
+    "selected": [
+      "guard"
+    ],
+    "game_state_equal_ignoring_selection": true
+  },
+  {
+    "mode": "desktop",
+    "capture": "state_04.json",
+    "selected": [
+      "guard",
+      "grenade"
+    ],
+    "game_state_equal_ignoring_selection": true
+  },
+  {
+    "mode": "desktop",
+    "capture": "state_05.json",
+    "selected": [
+      "guard",
+      "grenade",
+      "grenade"
+    ],
+    "game_state_equal_ignoring_selection": true
+  },
+  {
+    "mode": "mobile",
+    "capture": "state_00.json",
+    "selected": [
+      "guard",
+      "guard",
+      "guard",
+      "guard",
+      "guard",
+      "guard",
+      "guard",
+      "guard",
+      "guard",
+      "guard",
+      "guard",
+      "guard",
+      "grenade",
+      "grenade",
+      "siegecart"
+    ],
+    "game_state_equal_ignoring_selection": true
+  },
+  {
+    "mode": "mobile",
+    "capture": "state_01.json",
+    "selected": [
+      "guard",
+      "guard",
+      "guard",
+      "guard",
+      "guard",
+      "guard",
+      "guard",
+      "guard",
+      "guard",
+      "guard",
+      "guard",
+      "guard",
+      "grenade",
+      "grenade",
+      "siegecart"
+    ],
+    "game_state_equal_ignoring_selection": true
+  },
+  {
+    "mode": "mobile",
+    "capture": "state_02.json",
+    "selected": [
+      "grenade",
+      "grenade"
+    ],
+    "game_state_equal_ignoring_selection": true
+  },
+  {
+    "mode": "portrait",
+    "capture": "state_00.json",
+    "selected": [
+      "guard",
+      "guard",
+      "guard",
+      "guard",
+      "guard",
+      "guard",
+      "guard",
+      "guard",
+      "guard",
+      "guard",
+      "guard",
+      "guard",
+      "grenade",
+      "grenade",
+      "siegecart"
+    ],
+    "game_state_equal_ignoring_selection": true
+  },
+  {
+    "mode": "portrait",
+    "capture": "state_01.json",
+    "selected": [
+      "guard",
+      "guard",
+      "guard",
+      "guard",
+      "guard",
+      "guard",
+      "guard",
+      "guard",
+      "guard",
+      "guard",
+      "guard",
+      "guard",
+      "grenade",
+      "grenade",
+      "siegecart"
+    ],
+    "game_state_equal_ignoring_selection": true
+  },
+  {
+    "mode": "portrait",
+    "capture": "state_02.json",
+    "selected": [
+      "siegecart"
+    ],
+    "game_state_equal_ignoring_selection": true
+  }
+]

@@ -334,6 +334,16 @@ func _show_selection(replace_current:bool=false)->void:
   shortcut.size_flags_horizontal=Control.SIZE_EXPAND_FILL
  var waiting=host.units.filter(func(unit):return host.worker_needs_attention(unit)).size()
  if waiting>0:_button("待機 %d人を選択"%waiting,func():_close_popup();host.select_idle_worker(true),body)
+ var kinds=host.selection_kind_counts()
+ if kinds.size()>1:
+  _body_text(body,"選択中の種類",15)
+  var type_grid=GridContainer.new();type_grid.columns=2;body.add_child(type_grid)
+  type_grid.add_theme_constant_override("h_separation",6)
+  type_grid.add_theme_constant_override("v_separation",6)
+  for group in kinds:
+   var kind:String=group.kind
+   var type_button=_button("%s ×%d"%[group.title,group.count],func():_close_popup();host.filter_selected_kind(kind),type_grid)
+   type_button.size_flags_horizontal=Control.SIZE_EXPAND_FILL
  MobileGroups.add_to_selection(self,body)
  _body_text(body,_touch_words(host.selection_info.tooltip_text+"\n"+host.supply_status.text+"\n"+host.supply_status.tooltip_text),15)
  if host.current_supply_feedback.get("active",false) and host.inspected.get("kind","")!="factory" and not host.supply_status.text.contains(host.current_supply_feedback.context):

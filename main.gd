@@ -88,6 +88,7 @@ const WorkerRoutePreview=preload("res://worker_route_preview.gd")
 var worker_route_preview:Node3D
 const WeaponRangePreview=preload("res://selected_weapon_range.gd")
 var weapon_range_preview:Node3D
+const UnitTypeSelection=preload("res://unit_type_selection.gd")
 const CrowdSteering=preload("res://crowd_steering.gd")
 var crowd_steering=CrowdSteering.new()
 const EnemyNavigation=preload("res://enemy_navigation.gd")
@@ -1092,12 +1093,39 @@ func _unhandled_input(event):
    if event.pressed:
     if escort_targeting:choose_escort_target(ground_at(event.position),event.position);return
     if not build_mode.is_empty():place_building(ground_at(event.position),event.shift_pressed);return
+    if event.double_click and select_visible_unit_type(event.position,event.shift_pressed):return
     dragging=true
     drag_start=event.position
    elif dragging:
     dragging=false
     select_rect(drag_start,event.position,event.shift_pressed)
     drag_overlay.queue_redraw()
+
+func select_visible_unit_type(screen:Vector2,append:bool=false)->bool:
+ var anchor:Dictionary=UnitTypeSelection.point_unit(units,camera,screen)
+ if anchor.is_empty():return false
+ var matches:Array=UnitTypeSelection.same_kind_in_view(units,anchor,camera,get_viewport().get_visible_rect())
+ if matches.is_empty():return false
+ cancel_targeting_mode()
+ inspected={};inspected_site={};inspected_resource={}
+ if not append:selected.clear()
+ for unit in matches:
+  if not unit in selected:selected.append(unit)
+ update_selection()
+ return true
+
+func selection_kind_counts()->Array:
+ var groups:Array=UnitTypeSelection.groups(selected)
+ for group in groups:group["title"]=GameRules.unit(group.kind).get("title",group.kind)
+ return groups
+
+func filter_selected_kind(kind:String)->bool:
+ var matches:Array=UnitTypeSelection.of_kind(selected,kind)
+ if matches.is_empty():return false
+ cancel_targeting_mode()
+ selected=matches;inspected={};inspected_site={};inspected_resource={}
+ update_selection()
+ return true
 
 func select_rect(a:Vector2,b:Vector2,append:bool=false):
  escort_targeting=false

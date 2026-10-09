@@ -1,0 +1,5 @@
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+UNIT_TYPE_INTEGRATION_PASS: double-click exact type, release retains group, shift adds, card blocks, selected-only filter, orders/world unchanged, save/reload
+WARNING: ObjectDB instances leaked at exit (run with --verbose for details).
+   at: cleanup (core/object/object.cpp:2663)

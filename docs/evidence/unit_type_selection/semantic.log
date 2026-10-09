@@ -1,0 +1,29 @@
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+PASS point skips convoy, dead, queued, freed, invalid and camera-clipped candidates
+PASS point chooses closest living unit
+PASS point matches the existing selection center offset
+PASS point does not silently use the unit foot position
+PASS default 24-pixel radius retains the existing strict boundary
+PASS nonpositive pick radius returns no unit
+PASS missing camera returns no unit
+PASS empty-screen click returns no unit
+PASS same-kind view keeps exact guards and excludes offscreen, clipped and invalid units
+PASS grenadiers remain distinct from guards
+PASS siege carts remain distinct from guards
+PASS caller viewport limits same-kind selection
+PASS convoy and dead anchors produce no selection
+PASS missing camera yields an empty same-kind selection
+PASS mixed army reports exact 12 guards, 2 grenadiers and 1 cart
+PASS groups preserve first-selected kind order including noncombat units
+PASS groups omit unselectable and malformed entries
+PASS mobile filter contains only grenadiers already selected
+PASS filter does not add other same-kind world units
+PASS filter retains selected offscreen members without a camera query
+PASS filter uses exact kinds and handles absent kinds
+PASS filter excludes stale or dead selections
+PASS results retain actual dictionary identities
+PASS all queries preserve source arrays, unit jobs, orders, cargo and cooldowns
+PASS returned result arrays are independent of the current selection
+PASS camera clipping also works with perspective projection
+UNIT_TYPE_SELECTION_RESULT checks=26 failures=0
