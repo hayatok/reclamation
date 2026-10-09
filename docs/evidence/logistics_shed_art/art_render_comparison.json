@@ -1,0 +1,23 @@
+{
+  "before_repair": {
+    "before": {
+      "draw_calls": 189.0,
+      "primitives": 40131.0
+    },
+    "after": {
+      "draw_calls": 185.0,
+      "primitives": 37079.0
+    }
+  },
+  "delivery": {
+    "before": {
+      "draw_calls": 184.0,
+      "primitives": 39535.0
+    },
+    "after": {
+      "draw_calls": 184.0,
+      "primitives": 38727.0
+    }
+  },
+  "scope": "Paused earned scenes at camera50, 1180x737, 60 native rendered frames per scene; draw workload, not runtime gameplay FPS or target-device performance."
+}

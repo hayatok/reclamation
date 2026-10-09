@@ -1,0 +1,86 @@
+{
+  "assets": [
+    {
+      "file": "abandoned_depot.glb",
+      "bytes": 296788,
+      "sha256": "5a64aa9ccab67575bb7d779ee270caad93584ac66a42bb77accdad18435bf1f1",
+      "triangles": 2648,
+      "export_vertices": 5813,
+      "indexed": true,
+      "meshes": 1,
+      "primitives": 1,
+      "materials": 1,
+      "alpha_mode": "OPAQUE",
+      "bounds_min": [
+        -1.7999999523162842,
+        0.0,
+        -1.600000023841858
+      ],
+      "bounds_max": [
+        1.7999999523162842,
+        2.8673086166381836,
+        1.600000023841858
+      ],
+      "height_m": 2.8673086166381836,
+      "degenerate_triangles": 0,
+      "external_textures": [
+        {
+          "uri": "barracks_settlement_normal.png",
+          "bytes": 1004459,
+          "sha256": "143cc378dc9c0b40a3e2d0b12592b4c7382524d3e255bc5baa47a9c980cba4ab"
+        },
+        {
+          "uri": "barracks_settlement_albedo.png",
+          "bytes": 748145,
+          "sha256": "a2810e2ecdf6fc2db04e768450e25c4ba511bc4a631a8e7cf03efa79a76faba9"
+        },
+        {
+          "uri": "barracks_settlement_orm.png",
+          "bytes": 263862,
+          "sha256": "beabc9d53887a71e277e32597544bb6b317b578088443784eaad46fbe33bce07"
+        }
+      ]
+    },
+    {
+      "file": "depot.glb",
+      "bytes": 522820,
+      "sha256": "2da3c333a702a9f23ff8da6c13fed5192c685a0bd8829afe0604ceabe5937d64",
+      "triangles": 4848,
+      "export_vertices": 10247,
+      "indexed": true,
+      "meshes": 1,
+      "primitives": 1,
+      "materials": 1,
+      "alpha_mode": "OPAQUE",
+      "bounds_min": [
+        -1.7999999523162842,
+        0.0,
+        -1.600000023841858
+      ],
+      "bounds_max": [
+        1.7999999523162842,
+        2.8226001262664795,
+        1.600000023841858
+      ],
+      "height_m": 2.8226001262664795,
+      "degenerate_triangles": 0,
+      "external_textures": [
+        {
+          "uri": "barracks_settlement_normal.png",
+          "bytes": 1004459,
+          "sha256": "143cc378dc9c0b40a3e2d0b12592b4c7382524d3e255bc5baa47a9c980cba4ab"
+        },
+        {
+          "uri": "barracks_settlement_albedo.png",
+          "bytes": 748145,
+          "sha256": "a2810e2ecdf6fc2db04e768450e25c4ba511bc4a631a8e7cf03efa79a76faba9"
+        },
+        {
+          "uri": "barracks_settlement_orm.png",
+          "bytes": 263862,
+          "sha256": "beabc9d53887a71e277e32597544bb6b317b578088443784eaad46fbe33bce07"
+        }
+      ]
+    }
+  ]
+}
