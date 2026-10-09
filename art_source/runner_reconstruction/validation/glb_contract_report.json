@@ -1,0 +1,37 @@
+{
+  "passed": true,
+  "lods": {
+    "near": {
+      "poses": 28,
+      "triangles_per_pose": 1328,
+      "vertices_per_pose": 3984,
+      "uv2_grid_side": 64,
+      "all_corner_ids_unique_complete_and_stable": true,
+      "atlas_uv_and_embedded_image_preserved": true,
+      "fixed_topology": true,
+      "no_skeleton_or_animation": true,
+      "all_node_transforms_identity": true,
+      "floor_safe_endpoints_and_linear_blends": true,
+      "min_y_m": 0.0,
+      "max_y_m": 1.4724671840667725,
+      "bytes": 5462992,
+      "sha256": "116c26fc7206a16fb6d79033e03530f9b40634ebdb4193db67c87fec8bbaaadb"
+    },
+    "far": {
+      "poses": 28,
+      "triangles_per_pose": 312,
+      "vertices_per_pose": 936,
+      "uv2_grid_side": 31,
+      "all_corner_ids_unique_complete_and_stable": true,
+      "atlas_uv_and_embedded_image_preserved": true,
+      "fixed_topology": true,
+      "no_skeleton_or_animation": true,
+      "all_node_transforms_identity": true,
+      "floor_safe_endpoints_and_linear_blends": true,
+      "min_y_m": 0.0,
+      "max_y_m": 1.4888105392456055,
+      "bytes": 1892692,
+      "sha256": "f0354ef8136564a527f5be242251c45609631768c7957168bb1312a18797eedf"
+    }
+  }
+}

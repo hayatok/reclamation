@@ -1,0 +1,434 @@
+{
+  "status": "isolated_original_runner_candidate",
+  "generator": "source/build_runner_poses.py",
+  "model": "Original ruined-civilian runner; owned project atlas reused",
+  "runtime_bones": 0,
+  "editable_bones": 18,
+  "pose_count": 28,
+  "forward": "Godot -Z",
+  "units": "meters",
+  "source_atlas": "../infected_reconstruction/assets/infected_atlas.png",
+  "atlas_sha256": "15c19aee678132595e2ea135446feccde88c5580e3c331b29838a52bef72330c",
+  "blender_version": "4.3.2",
+  "run_stride_m": 1.72,
+  "run_speed_mps_unchanged": 2.7,
+  "stance_fraction": 0.3333333333333333,
+  "clips": {
+    "idle": {
+      "duration": 1.6,
+      "loop": true,
+      "poses": [
+        "idle_00",
+        "idle_01"
+      ]
+    },
+    "run": {
+      "duration": 0.637037037037037,
+      "loop": true,
+      "poses": [
+        "run_00",
+        "run_01",
+        "run_02",
+        "run_03",
+        "run_04",
+        "run_05",
+        "run_06",
+        "run_07",
+        "run_08",
+        "run_09",
+        "run_10",
+        "run_11"
+      ]
+    },
+    "attack": {
+      "duration": 0.8,
+      "loop": false,
+      "poses": [
+        "attack_00",
+        "attack_01",
+        "attack_02",
+        "attack_03",
+        "attack_04",
+        "attack_05"
+      ]
+    },
+    "death": {
+      "duration": 1.2,
+      "loop": false,
+      "poses": [
+        "death_00",
+        "death_01",
+        "death_02",
+        "death_03",
+        "death_04",
+        "death_05",
+        "death_06",
+        "death_07"
+      ]
+    }
+  },
+  "lods": {
+    "near": {
+      "triangles_per_pose": 1328,
+      "expected_imported_vertices_per_pose": 3984,
+      "uv2_grid_side": 64,
+      "topology_sha256": "c476cb5aed65bffa4ff3e6a80eeccd27cbc88aefe9a0a6b79f9009c4c9ebaba8",
+      "file": "../../assets/models/runner_baked_poses.glb",
+      "bytes": 5462992,
+      "sha256": "116c26fc7206a16fb6d79033e03530f9b40634ebdb4193db67c87fec8bbaaadb",
+      "samples": [
+        {
+          "name": "idle_00",
+          "min_height_m": 0.0,
+          "max_height_m": 1.4397671222686768,
+          "floor_correction_m": 4.6566128730773926e-09
+        },
+        {
+          "name": "idle_01",
+          "min_height_m": 0.0,
+          "max_height_m": 1.4397671222686768,
+          "floor_correction_m": 4.6566128730773926e-09
+        },
+        {
+          "name": "run_00",
+          "min_height_m": 0.0,
+          "max_height_m": 1.4397671222686768,
+          "floor_correction_m": 6.170012056827545e-09
+        },
+        {
+          "name": "run_01",
+          "min_height_m": 4.784669727087021e-08,
+          "max_height_m": 1.4479314088821411,
+          "floor_correction_m": 0.0
+        },
+        {
+          "name": "run_02",
+          "min_height_m": 1.6298145055770874e-08,
+          "max_height_m": 1.464281678199768,
+          "floor_correction_m": 0.0
+        },
+        {
+          "name": "run_03",
+          "min_height_m": 4.6566128730773926e-09,
+          "max_height_m": 1.4724671840667725,
+          "floor_correction_m": 0.0
+        },
+        {
+          "name": "run_04",
+          "min_height_m": 0.0,
+          "max_height_m": 1.464281678199768,
+          "floor_correction_m": 5.21540641784668e-08
+        },
+        {
+          "name": "run_05",
+          "min_height_m": 0.1082950234413147,
+          "max_height_m": 1.4479314088821411,
+          "floor_correction_m": 0.0
+        },
+        {
+          "name": "run_06",
+          "min_height_m": 1.618172973394394e-08,
+          "max_height_m": 1.4397671222686768,
+          "floor_correction_m": 0.0
+        },
+        {
+          "name": "run_07",
+          "min_height_m": 1.955777406692505e-08,
+          "max_height_m": 1.4479314088821411,
+          "floor_correction_m": 0.0
+        },
+        {
+          "name": "run_08",
+          "min_height_m": 6.868503987789154e-09,
+          "max_height_m": 1.464281439781189,
+          "floor_correction_m": 0.0
+        },
+        {
+          "name": "run_09",
+          "min_height_m": 0.0,
+          "max_height_m": 1.4724671840667725,
+          "floor_correction_m": 0.0
+        },
+        {
+          "name": "run_10",
+          "min_height_m": 0.0,
+          "max_height_m": 1.464281439781189,
+          "floor_correction_m": 1.4901161193847656e-08
+        },
+        {
+          "name": "run_11",
+          "min_height_m": 0.10829505324363708,
+          "max_height_m": 1.4479314088821411,
+          "floor_correction_m": 0.0
+        },
+        {
+          "name": "attack_00",
+          "min_height_m": 0.0,
+          "max_height_m": 1.2493818998336792,
+          "floor_correction_m": 4.6566128730773926e-09
+        },
+        {
+          "name": "attack_01",
+          "min_height_m": 0.0,
+          "max_height_m": 1.2738916873931885,
+          "floor_correction_m": 6.984919309616089e-10
+        },
+        {
+          "name": "attack_02",
+          "min_height_m": 5.820766091346741e-09,
+          "max_height_m": 1.322156548500061,
+          "floor_correction_m": 0.0
+        },
+        {
+          "name": "attack_03",
+          "min_height_m": 5.3551048040390015e-09,
+          "max_height_m": 1.3749027252197266,
+          "floor_correction_m": 0.0
+        },
+        {
+          "name": "attack_04",
+          "min_height_m": 2.7124769985675812e-08,
+          "max_height_m": 1.418051838874817,
+          "floor_correction_m": 0.0
+        },
+        {
+          "name": "attack_05",
+          "min_height_m": 0.0,
+          "max_height_m": 1.4397671222686768,
+          "floor_correction_m": 4.6566128730773926e-09
+        },
+        {
+          "name": "death_00",
+          "min_height_m": 0.0,
+          "max_height_m": 1.4397671222686768,
+          "floor_correction_m": 4.6566128730773926e-09
+        },
+        {
+          "name": "death_01",
+          "min_height_m": 0.0,
+          "max_height_m": 1.4203274250030518,
+          "floor_correction_m": 1.4901161193847656e-08
+        },
+        {
+          "name": "death_02",
+          "min_height_m": 0.0,
+          "max_height_m": 1.3348710536956787,
+          "floor_correction_m": 3.725290298461914e-08
+        },
+        {
+          "name": "death_03",
+          "min_height_m": 1.4901161193847656e-08,
+          "max_height_m": 1.2273679971694946,
+          "floor_correction_m": 0.0
+        },
+        {
+          "name": "death_04",
+          "min_height_m": 4.470348358154297e-08,
+          "max_height_m": 1.1387931108474731,
+          "floor_correction_m": 0.0
+        },
+        {
+          "name": "death_05",
+          "min_height_m": 0.0,
+          "max_height_m": 1.1416029930114746,
+          "floor_correction_m": 2.9802322387695312e-08
+        },
+        {
+          "name": "death_06",
+          "min_height_m": 7.450580596923828e-08,
+          "max_height_m": 1.1527827978134155,
+          "floor_correction_m": 0.0
+        },
+        {
+          "name": "death_07",
+          "min_height_m": 0.0,
+          "max_height_m": 1.1513192653656006,
+          "floor_correction_m": 0.0
+        }
+      ]
+    },
+    "far": {
+      "triangles_per_pose": 312,
+      "expected_imported_vertices_per_pose": 936,
+      "uv2_grid_side": 31,
+      "topology_sha256": "ff766888ef67efd730f6f47d217f7fe14e753107487541cc4384e1f85c312e37",
+      "file": "../../assets/models/runner_baked_poses_far.glb",
+      "bytes": 1892692,
+      "sha256": "f0354ef8136564a527f5be242251c45609631768c7957168bb1312a18797eedf",
+      "samples": [
+        {
+          "name": "idle_00",
+          "min_height_m": 0.0037381649017333984,
+          "max_height_m": 0.8124440312385559,
+          "floor_correction_m": 0.0
+        },
+        {
+          "name": "idle_01",
+          "min_height_m": 0.0016447148518636823,
+          "max_height_m": 1.22947359085083,
+          "floor_correction_m": 0.0
+        },
+        {
+          "name": "run_00",
+          "min_height_m": 0.0016445645596832037,
+          "max_height_m": 1.443494200706482,
+          "floor_correction_m": 0.0
+        },
+        {
+          "name": "run_01",
+          "min_height_m": 0.0016446064691990614,
+          "max_height_m": 1.4516586065292358,
+          "floor_correction_m": 0.0
+        },
+        {
+          "name": "run_02",
+          "min_height_m": 0.0016445750370621681,
+          "max_height_m": 1.4680088758468628,
+          "floor_correction_m": 0.0
+        },
+        {
+          "name": "run_03",
+          "min_height_m": 0.0016237720847129822,
+          "max_height_m": 1.4761943817138672,
+          "floor_correction_m": 0.0
+        },
+        {
+          "name": "run_04",
+          "min_height_m": 0.008643146604299545,
+          "max_height_m": 1.4680088758468628,
+          "floor_correction_m": 0.0
+        },
+        {
+          "name": "run_05",
+          "min_height_m": 0.11218548566102982,
+          "max_height_m": 1.4516586065292358,
+          "floor_correction_m": 0.0
+        },
+        {
+          "name": "run_06",
+          "min_height_m": 0.0017680239398032427,
+          "max_height_m": 1.4434943199157715,
+          "floor_correction_m": 0.0
+        },
+        {
+          "name": "run_07",
+          "min_height_m": 0.0017680216114968061,
+          "max_height_m": 1.4516584873199463,
+          "floor_correction_m": 0.0
+        },
+        {
+          "name": "run_08",
+          "min_height_m": 0.0017680118326097727,
+          "max_height_m": 1.4680085182189941,
+          "floor_correction_m": 0.0
+        },
+        {
+          "name": "run_09",
+          "min_height_m": 0.0,
+          "max_height_m": 1.4888105392456055,
+          "floor_correction_m": 0.012616310268640518
+        },
+        {
+          "name": "run_10",
+          "min_height_m": 0.0,
+          "max_height_m": 1.4752522706985474,
+          "floor_correction_m": 0.007243807893246412
+        },
+        {
+          "name": "run_11",
+          "min_height_m": 0.10993916541337967,
+          "max_height_m": 1.4516584873199463,
+          "floor_correction_m": 0.0
+        },
+        {
+          "name": "attack_00",
+          "min_height_m": 0.001644595991820097,
+          "max_height_m": 1.2376292943954468,
+          "floor_correction_m": 0.0
+        },
+        {
+          "name": "attack_01",
+          "min_height_m": 0.0016445968067273498,
+          "max_height_m": 1.2601932287216187,
+          "floor_correction_m": 0.0
+        },
+        {
+          "name": "attack_02",
+          "min_height_m": 0.0016445857472717762,
+          "max_height_m": 1.3059364557266235,
+          "floor_correction_m": 0.0
+        },
+        {
+          "name": "attack_03",
+          "min_height_m": 0.0016446062363684177,
+          "max_height_m": 1.3669744729995728,
+          "floor_correction_m": 0.0
+        },
+        {
+          "name": "attack_04",
+          "min_height_m": 0.0016445859801024199,
+          "max_height_m": 1.417846918106079,
+          "floor_correction_m": 0.0
+        },
+        {
+          "name": "attack_05",
+          "min_height_m": 0.001644595991820097,
+          "max_height_m": 1.4434943199157715,
+          "floor_correction_m": 0.0
+        },
+        {
+          "name": "death_00",
+          "min_height_m": 0.001644595991820097,
+          "max_height_m": 1.4434943199157715,
+          "floor_correction_m": 0.0
+        },
+        {
+          "name": "death_01",
+          "min_height_m": 0.0022201244719326496,
+          "max_height_m": 1.4156502485275269,
+          "floor_correction_m": 0.0
+        },
+        {
+          "name": "death_02",
+          "min_height_m": 0.012991338968276978,
+          "max_height_m": 1.3239222764968872,
+          "floor_correction_m": 0.0
+        },
+        {
+          "name": "death_03",
+          "min_height_m": 0.0,
+          "max_height_m": 1.2247850894927979,
+          "floor_correction_m": 0.00013756006956100464
+        },
+        {
+          "name": "death_04",
+          "min_height_m": 0.0,
+          "max_height_m": 1.1457263231277466,
+          "floor_correction_m": 0.006933227181434631
+        },
+        {
+          "name": "death_05",
+          "min_height_m": 0.0,
+          "max_height_m": 1.1360126733779907,
+          "floor_correction_m": 0.0022317469120025635
+        },
+        {
+          "name": "death_06",
+          "min_height_m": 0.0010645091533660889,
+          "max_height_m": 1.1453288793563843,
+          "floor_correction_m": 0.0
+        },
+        {
+          "name": "death_07",
+          "min_height_m": 0.0022634267807006836,
+          "max_height_m": 1.1440975666046143,
+          "floor_correction_m": 0.0
+        }
+      ]
+    }
+  },
+  "generator_sha256": "739d3dc2e2368f212a42e2962e7a84a8ec14e61149901bcb74d0ee29b55b0f48",
+  "motion_sha256": "81d26d03d26ee374e99f36bc6df8b69bea172cd8b734cddffdc815fd336c6b64",
+  "editable_rig_sha256": "137c94b9f0964ba801c416e4cfcf34f21278bf8e0b85e5f95403cefc1dc0e7b1",
+  "elapsed_seconds": 0.949
+}

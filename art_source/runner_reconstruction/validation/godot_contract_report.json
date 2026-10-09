@@ -1,0 +1,20 @@
+{
+  "passed": true,
+  "godot_version": "4.6.3.stable.official.7d41c59c4",
+  "scope": "Headless import and renderer contracts, not visual or browser performance acceptance",
+  "checks": [
+    "56 paired poses",
+    "independent normal-infected storage",
+    "live and corpse classification by speed and armored",
+    "no duplicate rigid runner rendering",
+    "distance driven gait",
+    "pause stability",
+    "immediate attack contact",
+    "saved-start CorpseMotion without double topple",
+    "no gameplay dictionary mutation"
+  ],
+  "source_glb_sha256": {
+    "near": "116c26fc7206a16fb6d79033e03530f9b40634ebdb4193db67c87fec8bbaaadb",
+    "far": "f0354ef8136564a527f5be242251c45609631768c7957168bb1312a18797eedf"
+  }
+}

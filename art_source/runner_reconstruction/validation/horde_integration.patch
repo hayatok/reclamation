@@ -1,0 +1,41 @@
+--- a/horde_renderer.gd
++++ b/horde_renderer.gd
+@@ -6,7 +6,9 @@
+ ## Eighteen geometry batches replace six MeshInstance3D nodes per live enemy.
+ 
+ const BakedInfected = preload("res://baked_infected_renderer.gd")
++const BakedRunner = preload("res://baked_runner_renderer.gd")
+ var baked:Node3D
++var baked_runner:Node3D
+ var low_detail:bool=false
+ const ActorVisuals = preload("res://actor_visuals.gd")
+ const KINDS: Array[String] = ["infected", "runner", "armored"]
+@@ -41,6 +43,8 @@
+ 	_initialized = true
+ 	baked=BakedInfected.new()
+ 	add_child(baked)
++	baked_runner=BakedRunner.new()
++	add_child(baked_runner)
+ 	for kind: String in KINDS:
+ 		var bucket := Bucket.new()
+ 		bucket.kind = kind
+@@ -67,7 +71,10 @@
+ 	if is_instance_valid(baked):
+ 		baked.force_far=low_detail
+ 		baked.update_crowd(enemies,elapsed,get_viewport().get_camera_3d(),rendered)
+-	visible_enemies = baked.visible_count if is_instance_valid(baked) else 0
++	if is_instance_valid(baked_runner):
++		baked_runner.force_far=low_detail
++		baked_runner.update_crowd(enemies,elapsed,get_viewport().get_camera_3d(),rendered)
++	visible_enemies = (baked.visible_count if is_instance_valid(baked) else 0) + (baked_runner.visible_count if is_instance_valid(baked_runner) else 0)
+ 	overflow_enemies = 0
+ 	for bucket: Bucket in _buckets:
+ 		bucket.members.clear()
+@@ -81,6 +88,7 @@
+ 			continue
+ 		var kind_index: int = 2 if enemy.get("armored", false) else (1 if float(enemy.get("speed", 1.65)) > 2.0 else 0)
+ 		if kind_index==0 and is_instance_valid(baked) and baked.active:continue
++		if kind_index==1 and is_instance_valid(baked_runner) and baked_runner.active:continue
+ 		var bucket: Bucket = _buckets[kind_index]
+ 		if bucket.members.size() < MAX_CAPACITY:
+ 			bucket.members.append(enemy)
