@@ -505,6 +505,10 @@ func _confirm_restart()->void:
  ,body)
 
 func _adapt_cards(panel:Control)->void:
+ # A resumed choice panel is created before this HUD in main._ready.
+ # Promote it once so both drawing and GUI hit testing stay modal.
+ if panel.get_parent()==get_parent() and panel.get_index()<get_index():
+  get_parent().move_child(panel,get_parent().get_child_count()-1)
  for child in panel.get_children():child.hide()
  var scroll=_new_scroll(panel)
  var body=VBoxContainer.new();scroll.add_child(body)

@@ -1,6 +1,10 @@
 # GitHub Pages publication
 
-A completed release publishes the browser build automatically. Source commits do not deploy unfinished versions.
+A published release updates the browser build automatically. Source checkpoints are saved much more frequently and do not deploy Pages.
+
+Save and verify small, coherent changes on the authorized development/recovery branch. Use an independent remote readback plus the complete source manifest to confirm preservation. Publish a release approximately every five meaningful development versions, or sooner when explicitly requested. Starting from public v0.43, the next ordinary publication target is around v0.48; avoid artificial version increments. A pending approval pauses its dependent write, not permission for an alternate upload route.
+
+If the execution environment changes, recover the newest verified remote commit to a new directory, check the exact file set and every SHA, and run a separate working copy. Local-only snapshots and lost evidence must not be described as remotely preserved or fully restored.
 
 1. Test and audit the source and builds. Keep the Pages workflow, helper and AGENTS.md in every source snapshot.
 2. Commit the source and create a draft versioned release.
