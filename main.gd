@@ -1239,7 +1239,7 @@ func command_at(p:Vector3,screen:Vector2=Vector2.INF,append_orders:bool=false)->
    issued_orders+=1
    continue
   if u.kind=="worker":
-   if b_target!=null or (s_target!=null and s_target.kind==FrontierDepot.KIND):economy.suspend_for_construction(u)
+   if b_target!=null or s_target!=null:economy.suspend_for_construction(u)
    else:economy.cancel_assignment(u)
   if friendly_target!=null and not (u.kind=="worker" and (s_target!=null or b_target!=null)):
    if EscortOrders.assign(u,friendly_target,escort_count):
@@ -1496,7 +1496,7 @@ func simulate_world(dt:float):
     if work_target==null or not is_instance_valid(work_target.get("node")) or work_target.node.is_queued_for_deletion() or work_target.get("hp",0)<=0 or (u.task=="build" and work_target.built>=1) or (u.task=="repair" and work_target.hp>=work_target.maxhp):
      finish_construction_order(u)
    elif u.task=="site" and (not WorkerOrders.alive(u.target) or u.target not in sites or u.target.get("reclaimed",false)):
-    WorkerOrders.finish(self,u)
+    WorkerOrders.finish(self,u,true)
    economy.update_worker(u,dt)
   if u.task=="escort":EscortOrders.update(u,units,dt,map_config.command_bounds)
   if u.task=="focus_fire" and frontier_visibility!=null and u.target!=null and not u.target.get("enemy_structure",false) and not frontier_visibility.is_visible(u.target.node.position):
@@ -3772,12 +3772,12 @@ func site_rule(kind:String)->Dictionary:
 
 func work_site(unit:Dictionary,dt:float):
  var site=unit.target
- if site==null or not is_instance_valid(site.get("node")):WorkerOrders.finish(self,unit);return
- if site.reclaimed:WorkerOrders.finish(self,unit);return
+ if not WorkerOrders.alive(site) or site not in sites:WorkerOrders.finish(self,unit,true);return
+ if site.reclaimed:WorkerOrders.finish(self,unit,true);return
  if site.has("nav_half_extents") and not friendly_navigation.is_work_arrived(unit,nav):return
  var rule=site_rule(site.kind)
  if settlement_age<int(rule.age):
-  WorkerOrders.finish(self,unit);notify("この設備の復旧は段階%dから"%rule.age,3);return
+  WorkerOrders.finish(self,unit,true);notify("この設備の復旧は段階%dから"%rule.age,3);return
  if not site.paid:
   if not spend_cost(rule.cost):
    unit.work-=dt
@@ -3793,7 +3793,7 @@ func work_site(unit:Dictionary,dt:float):
   if site.kind=="pump":rerolls+=1
   pulse(site.node.position,CYAN,5,1);tone("power")
   notify(site_title(site.kind)+"を復旧",5)
-  WorkerOrders.finish(self,unit);context_signature=""
+  WorkerOrders.finish(self,unit,true);context_signature=""
 
 func worker_retarget_radius(_worker:Dictionary,_kind:String)->float:return 14.0
 

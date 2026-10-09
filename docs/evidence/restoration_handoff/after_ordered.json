@@ -1,0 +1,11 @@
+{
+  "cargo": 0.0,
+  "economy_phase": "suspended",
+  "point": "(590.0001, 368.9999)",
+  "reclaimed": false,
+  "resource_kind": "food",
+  "return_assignment": "{ \"resource\": \"food\", \"target\": { \"node\": @Node3D@34:<Node3D#83298879302>, \"resource\": \"food\", \"stock\": 1200.0, \"renewable\": false, \"radius\": 1.4, \"label\": @Label3D@35:<Label3D#83382765378>, \"source_building\": {  } } }",
+  "selected": 1,
+  "stage": "ordered",
+  "task": "site"
+}

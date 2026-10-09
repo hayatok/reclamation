@@ -1,0 +1,125 @@
+Fontconfig error: No writable cache directories
+Fontconfig error: No writable cache directories
+Fontconfig error: No writable cache directories
+Fontconfig error: No writable cache directories
+Fontconfig error: No writable cache directories
+Fontconfig error: No writable cache directories
+Fontconfig error: No writable cache directories
+Fontconfig error: No writable cache directories
+Fontconfig error: No writable cache directories
+Fontconfig error: No writable cache directories
+Fontconfig error: No writable cache directories
+Fontconfig error: No writable cache directories
+Fontconfig error: No writable cache directories
+Fontconfig error: No writable cache directories
+Fontconfig error: No writable cache directories
+Fontconfig error: No writable cache directories
+Fontconfig error: No writable cache directories
+Fontconfig error: No writable cache directories
+Fontconfig error: No writable cache directories
+Fontconfig error: No writable cache directories
+Fontconfig error: No writable cache directories
+Fontconfig error: No writable cache directories
+Fontconfig error: No writable cache directories
+Fontconfig error: No writable cache directories
+Fontconfig error: No writable cache directories
+Fontconfig error: No writable cache directories
+Fontconfig error: No writable cache directories
+Fontconfig error: No writable cache directories
+Fontconfig error: No writable cache directories
+Fontconfig error: No writable cache directories
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+Fontconfig error: No writable cache directories
+Fontconfig error: No writable cache directories
+Fontconfig error: No writable cache directories
+Fontconfig error: No writable cache directories
+Fontconfig error: No writable cache directories
+Fontconfig error: No writable cache directories
+Fontconfig error: No writable cache directories
+Fontconfig error: No writable cache directories
+Fontconfig error: No writable cache directories
+Fontconfig error: No writable cache directories
+Fontconfig error: No writable cache directories
+Fontconfig error: No writable cache directories
+Fontconfig error: No writable cache directories
+Fontconfig error: No writable cache directories
+Fontconfig error: No writable cache directories
+Fontconfig error: No writable cache directories
+Fontconfig error: No writable cache directories
+Fontconfig error: No writable cache directories
+Fontconfig error: No writable cache directories
+Fontconfig error: No writable cache directories
+Fontconfig error: No writable cache directories
+Fontconfig error: No writable cache directories
+Fontconfig error: No writable cache directories
+Fontconfig error: No writable cache directories
+Fontconfig error: No writable cache directories
+Fontconfig error: No writable cache directories
+Fontconfig error: No writable cache directories
+Fontconfig error: No writable cache directories
+Fontconfig error: No writable cache directories
+Fontconfig error: No writable cache directories
+PASS generator accepts actual restoration command
+PASS generator suspends previous gathering
+PASS generator completion resumes exact original resource
+PASS generator retains mismatched carried load for delivery
+PASS generator charges restoration once without instant cargo credit
+PASS pump accepts actual restoration command
+PASS pump suspends previous gathering
+PASS pump completion resumes exact original resource
+PASS pump retains mismatched carried load for delivery
+PASS pump charges restoration once without instant cargo credit
+PASS substation accepts actual restoration command
+PASS substation suspends previous gathering
+PASS substation completion resumes exact original resource
+PASS substation retains mismatched carried load for delivery
+PASS substation charges restoration once without instant cargo credit
+PASS generator accepts actual restoration command
+PASS explicit gathering queues behind restoration
+PASS queued gather replaces automatic return
+PASS generator accepts actual restoration command
+PASS explicit movement queues behind restoration
+PASS queued move wins and preserves cargo
+PASS generator accepts actual restoration command
+PASS explicit construction queues behind restoration
+PASS queued construction wins while retaining original resource
+PASS restoration then construction returns after final explicit job
+PASS generator accepts actual restoration command
+PASS two workers accept one restoration
+PASS first worker reaches shared restoration
+PASS same simulation step returns both workers to their own resources
+PASS generator accepts actual restoration command
+PASS already-reclaimed direct work exit resumes gathering
+PASS generator accepts actual restoration command
+PASS replacement restoration keeps original fallback
+PASS replacement restoration returns with unchanged cargo
+PASS generator accepts actual restoration command
+PASS replacement building keeps original fallback
+PASS replacement building completes back into gathering
+PASS generator accepts actual restoration command
+PASS replacement gather owns the new assignment
+PASS generator accepts actual restoration command
+PASS replacement movement cancels fallback while retaining cargo
+PASS generator accepts actual restoration command
+PASS Stop cancels fallback without discarding cargo
+PASS age rejection preserves saved active work, cargo, queue and RNG
+PASS generator accepts actual restoration command
+PASS runtime age rejection fixture arrives legally
+PASS runtime age rejection resumes without work or another charge
+PASS generator accepts actual restoration command
+PASS null restoration target resumes original gathering
+PASS generator accepts actual restoration command
+PASS removed live site is rejected before direct restoration work
+PASS generator accepts actual restoration command
+PASS ordinary simulation releases removed restoration target
+PASS generator accepts actual restoration command
+PASS checkpoint fixture reaches paid restoration
+PASS checkpoint fixture queues future construction
+PASS active restoration, cargo, fallback and queue save atomically
+PASS active restoration checkpoint reloads
+PASS reload restores exact site and gather fallback references
+PASS reload retains old cargo and explicit queue without payment replay
+PASS reloaded restoration honors queued building without repayment
+PASS reloaded work chain resumes original assignment and carried-load delivery
+RESTORATION_HANDOFF_RESULT {"failed":[],"passed":62}

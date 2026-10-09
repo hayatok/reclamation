@@ -1,0 +1,11 @@
+{
+  "cargo": 0.0,
+  "economy_phase": "to_resource",
+  "point": "(590.0001, 368.9999)",
+  "reclaimed": false,
+  "resource_kind": "food",
+  "return_assignment": "{  }",
+  "selected": 1,
+  "stage": "initial",
+  "task": "gather"
+}
