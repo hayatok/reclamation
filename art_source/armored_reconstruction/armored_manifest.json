@@ -2,6 +2,7 @@
   "status": "isolated_original_armored_candidate",
   "generator": "source/build_heavy_poses.py",
   "model": "Original quarantined industrial worker; ordinary armored only, boss excluded",
+  "revision": "Broad protective shoulder envelope and prone death settle; geometry revised, other clip timing unchanged",
   "runtime_bones": 0,
   "editable_bones": 18,
   "pose_count": 32,
@@ -76,13 +77,13 @@
   },
   "lods": {
     "near": {
-      "triangles_per_pose": 1050,
-      "expected_imported_vertices_per_pose": 3150,
-      "uv2_grid_side": 57,
-      "topology_sha256": "0de93d02613f0a2541a797aa1924ca8d96da8c9a82573e1f8f690d578478338d",
+      "triangles_per_pose": 1094,
+      "expected_imported_vertices_per_pose": 3282,
+      "uv2_grid_side": 58,
+      "topology_sha256": "c2489960230e04b4df2d976c77e9928a60864bc5cd4bcbae4fad957f2bdd483e",
       "file": "assets/armored_baked_poses.glb",
-      "bytes": 5032088,
-      "sha256": "f61e447971c1aff1c7a8b8f34c79227d56a75277a78dc388dfa792c09571d791",
+      "bytes": 5209808,
+      "sha256": "33c3e6ee90b5c6c0ae020b15a60c6a3d3194f6dbe1e7c15389207bc67247848a",
       "samples": [
         {
           "name": "idle_00",
@@ -219,61 +220,61 @@
         {
           "name": "death_00",
           "min_height_m": 0.0,
-          "max_height_m": 1.5835248231887817,
-          "floor_correction_m": 1.862645149230957e-09
+          "max_height_m": 1.5841840505599976,
+          "floor_correction_m": 1.862645149230957e-08
         },
         {
           "name": "death_01",
           "min_height_m": 0.0,
-          "max_height_m": 1.5798614025115967,
-          "floor_correction_m": 2.1420419216156006e-08
+          "max_height_m": 1.5832439661026,
+          "floor_correction_m": 2.9802322387695312e-08
         },
         {
           "name": "death_02",
-          "min_height_m": 7.450580596923828e-09,
-          "max_height_m": 1.542806625366211,
+          "min_height_m": 1.6763806343078613e-08,
+          "max_height_m": 1.5439865589141846,
           "floor_correction_m": 0.0
         },
         {
           "name": "death_03",
-          "min_height_m": 3.3527612686157227e-08,
-          "max_height_m": 1.4596132040023804,
+          "min_height_m": 7.450580596923828e-09,
+          "max_height_m": 1.4729927778244019,
           "floor_correction_m": 0.0
         },
         {
           "name": "death_04",
-          "min_height_m": 3.725290298461914e-08,
-          "max_height_m": 1.2771967649459839,
-          "floor_correction_m": 0.0
+          "min_height_m": 0.0,
+          "max_height_m": 1.3188334703445435,
+          "floor_correction_m": 3.725290298461914e-08
         },
         {
           "name": "death_05",
           "min_height_m": 0.0,
-          "max_height_m": 1.0848917961120605,
-          "floor_correction_m": 1.4901161193847656e-08
+          "max_height_m": 1.0739426612854004,
+          "floor_correction_m": 0.0
         },
         {
           "name": "death_06",
-          "min_height_m": 0.0,
-          "max_height_m": 0.9646456837654114,
-          "floor_correction_m": 7.450580596923828e-08
+          "min_height_m": 2.9802322387695312e-08,
+          "max_height_m": 0.8319482803344727,
+          "floor_correction_m": 0.0
         },
         {
           "name": "death_07",
-          "min_height_m": 0.0,
-          "max_height_m": 0.9588174223899841,
+          "min_height_m": 2.9802322387695312e-08,
+          "max_height_m": 0.6276386976242065,
           "floor_correction_m": 0.0
         },
         {
           "name": "death_08",
-          "min_height_m": 5.960464477539063e-08,
-          "max_height_m": 0.9660083055496216,
-          "floor_correction_m": 0.0
+          "min_height_m": 0.0,
+          "max_height_m": 0.48564648628234863,
+          "floor_correction_m": 7.450580596923828e-09
         },
         {
           "name": "death_09",
-          "min_height_m": 5.960464477539063e-08,
-          "max_height_m": 0.9626879692077637,
+          "min_height_m": 1.1920928955078125e-07,
+          "max_height_m": 0.4347943067550659,
           "floor_correction_m": 0.0
         }
       ]
@@ -282,207 +283,207 @@
       "triangles_per_pose": 364,
       "expected_imported_vertices_per_pose": 1092,
       "uv2_grid_side": 34,
-      "topology_sha256": "67e113f50e3c7b49fb8005367a72a310ad3614fbcb68d03c50150b1e8716f904",
+      "topology_sha256": "3fecf9ddebb7759ede65a935be9189da32bfa586dc2a5441ac3d161f19f5e2d0",
       "file": "assets/armored_baked_poses_far.glb",
-      "bytes": 2259116,
-      "sha256": "46ccfdc38def424b193c41e0ca8676b1a6038564f77a6eafe4584d679efe32e0",
+      "bytes": 2257448,
+      "sha256": "b56f9bcbc655e9fff8efd80bcc3142e3e73d701dba4910309f02c8afc55418b9",
       "samples": [
         {
           "name": "idle_00",
-          "min_height_m": 3.725290298461914e-09,
+          "min_height_m": 0.008629512041807175,
           "max_height_m": 1.5930187702178955,
           "floor_correction_m": 0.0
         },
         {
           "name": "idle_01",
-          "min_height_m": 4.889443516731262e-09,
+          "min_height_m": 0.008629518561065197,
           "max_height_m": 1.5850187540054321,
           "floor_correction_m": 0.0
         },
         {
           "name": "walk_00",
-          "min_height_m": 0.0,
-          "max_height_m": 1.5890225172042847,
-          "floor_correction_m": 2.614688128232956e-07
+          "min_height_m": 0.007728074677288532,
+          "max_height_m": 1.5890222787857056,
+          "floor_correction_m": 0.0
         },
         {
           "name": "walk_01",
           "min_height_m": 0.0,
-          "max_height_m": 1.5924311876296997,
-          "floor_correction_m": 2.253800630569458e-07
+          "max_height_m": 1.5977606773376465,
+          "floor_correction_m": 0.005329691339284182
         },
         {
           "name": "walk_02",
-          "min_height_m": 0.0,
+          "min_height_m": 0.008629530668258667,
           "max_height_m": 1.5992485284805298,
-          "floor_correction_m": 2.6775524020195007e-08
+          "floor_correction_m": 0.0
         },
         {
           "name": "walk_03",
-          "min_height_m": 0.0,
+          "min_height_m": 0.008629558607935905,
           "max_height_m": 1.6026571989059448,
-          "floor_correction_m": 3.259629011154175e-09
+          "floor_correction_m": 0.0
         },
         {
           "name": "walk_04",
-          "min_height_m": 0.0,
+          "min_height_m": 0.008629554882645607,
           "max_height_m": 1.5992485284805298,
-          "floor_correction_m": 2.0489096641540527e-08
+          "floor_correction_m": 0.0
         },
         {
           "name": "walk_05",
-          "min_height_m": 0.0,
-          "max_height_m": 1.5924310684204102,
-          "floor_correction_m": 1.203734427690506e-07
+          "min_height_m": 0.0086295111104846,
+          "max_height_m": 1.5924309492111206,
+          "floor_correction_m": 0.0
         },
         {
           "name": "walk_06",
-          "min_height_m": 0.0,
-          "max_height_m": 1.5890225172042847,
-          "floor_correction_m": 2.614688128232956e-07
+          "min_height_m": 0.008629253134131432,
+          "max_height_m": 1.5890222787857056,
+          "floor_correction_m": 0.0
         },
         {
           "name": "walk_07",
-          "min_height_m": 0.0,
-          "max_height_m": 1.5924309492111206,
-          "floor_correction_m": 2.253800630569458e-07
+          "min_height_m": 0.003569742664694786,
+          "max_height_m": 1.5924307107925415,
+          "floor_correction_m": 0.0
         },
         {
           "name": "walk_08",
-          "min_height_m": 0.0,
+          "min_height_m": 0.00862954929471016,
           "max_height_m": 1.5992484092712402,
-          "floor_correction_m": 2.6775524020195007e-08
+          "floor_correction_m": 0.0
         },
         {
           "name": "walk_09",
-          "min_height_m": 0.0,
+          "min_height_m": 0.008629565127193928,
           "max_height_m": 1.6026569604873657,
-          "floor_correction_m": 3.259629011154175e-09
+          "floor_correction_m": 0.0
         },
         {
           "name": "walk_10",
-          "min_height_m": 0.0,
+          "min_height_m": 0.00862953532487154,
           "max_height_m": 1.5992484092712402,
-          "floor_correction_m": 2.0489096641540527e-08
+          "floor_correction_m": 0.0
         },
         {
           "name": "walk_11",
-          "min_height_m": 0.0,
-          "max_height_m": 1.592430830001831,
-          "floor_correction_m": 1.203734427690506e-07
+          "min_height_m": 0.008629383519291878,
+          "max_height_m": 1.5924307107925415,
+          "floor_correction_m": 0.0
         },
         {
           "name": "attack_00",
-          "min_height_m": 0.0,
+          "min_height_m": 0.008629490621387959,
           "max_height_m": 1.4739402532577515,
-          "floor_correction_m": 1.862645149230957e-09
+          "floor_correction_m": 0.0
         },
         {
           "name": "attack_01",
-          "min_height_m": 0.0,
+          "min_height_m": 0.008629493415355682,
           "max_height_m": 1.4781723022460938,
-          "floor_correction_m": 2.561137080192566e-09
+          "floor_correction_m": 0.0
         },
         {
           "name": "attack_02",
-          "min_height_m": 7.2177499532699585e-09,
+          "min_height_m": 0.008629510179162025,
           "max_height_m": 1.5215637683868408,
           "floor_correction_m": 0.0
         },
         {
           "name": "attack_03",
-          "min_height_m": 0.0,
+          "min_height_m": 0.008629471063613892,
           "max_height_m": 1.5736851692199707,
-          "floor_correction_m": 2.584420144557953e-08
+          "floor_correction_m": 0.0
         },
         {
           "name": "attack_04",
-          "min_height_m": 5.122274160385132e-09,
+          "min_height_m": 0.008629508316516876,
           "max_height_m": 1.5928338766098022,
           "floor_correction_m": 0.0
         },
         {
           "name": "attack_05",
-          "min_height_m": 4.656612873077393e-10,
+          "min_height_m": 0.00862949714064598,
           "max_height_m": 1.5912843942642212,
           "floor_correction_m": 0.0
         },
         {
           "name": "attack_06",
-          "min_height_m": 0.0,
+          "min_height_m": 0.00862949714064598,
           "max_height_m": 1.5920569896697998,
-          "floor_correction_m": 3.958120942115784e-09
-        },
-        {
-          "name": "attack_07",
-          "min_height_m": 0.0,
-          "max_height_m": 1.595184326171875,
-          "floor_correction_m": 1.862645149230957e-09
-        },
-        {
-          "name": "death_00",
-          "min_height_m": 0.0,
-          "max_height_m": 1.590938925743103,
-          "floor_correction_m": 1.862645149230957e-09
-        },
-        {
-          "name": "death_01",
-          "min_height_m": 0.0,
-          "max_height_m": 1.5907763242721558,
-          "floor_correction_m": 2.1420419216156006e-08
-        },
-        {
-          "name": "death_02",
-          "min_height_m": 7.450580596923828e-09,
-          "max_height_m": 1.559154748916626,
           "floor_correction_m": 0.0
         },
         {
-          "name": "death_03",
+          "name": "attack_07",
+          "min_height_m": 0.008629490621387959,
+          "max_height_m": 1.595184326171875,
+          "floor_correction_m": 0.0
+        },
+        {
+          "name": "death_00",
+          "min_height_m": 0.008629660122096539,
+          "max_height_m": 1.588602900505066,
+          "floor_correction_m": 0.0
+        },
+        {
+          "name": "death_01",
+          "min_height_m": 0.012061260640621185,
+          "max_height_m": 1.5910792350769043,
+          "floor_correction_m": 0.0
+        },
+        {
+          "name": "death_02",
           "min_height_m": 0.0,
-          "max_height_m": 1.4685180187225342,
-          "floor_correction_m": 0.00015038251876831055
+          "max_height_m": 1.5597965717315674,
+          "floor_correction_m": 0.00037565454840660095
+        },
+        {
+          "name": "death_03",
+          "min_height_m": 0.0010616034269332886,
+          "max_height_m": 1.4809902906417847,
+          "floor_correction_m": 0.0
         },
         {
           "name": "death_04",
-          "min_height_m": 0.000795707106590271,
-          "max_height_m": 1.273422122001648,
+          "min_height_m": 0.005441106855869293,
+          "max_height_m": 1.3159016370773315,
           "floor_correction_m": 0.0
         },
         {
           "name": "death_05",
-          "min_height_m": 0.0016377270221710205,
-          "max_height_m": 1.0823564529418945,
+          "min_height_m": 0.012258954346179962,
+          "max_height_m": 1.0668373107910156,
           "floor_correction_m": 0.0
         },
         {
           "name": "death_06",
-          "min_height_m": 0.0022091269493103027,
-          "max_height_m": 0.9425102472305298,
+          "min_height_m": 0.012793764472007751,
+          "max_height_m": 0.837487518787384,
           "floor_correction_m": 0.0
         },
         {
           "name": "death_07",
-          "min_height_m": 0.00020742416381835938,
-          "max_height_m": 0.9378236532211304,
+          "min_height_m": 0.013666033744812012,
+          "max_height_m": 0.6336958408355713,
           "floor_correction_m": 0.0
         },
         {
           "name": "death_08",
-          "min_height_m": 0.0007733702659606934,
-          "max_height_m": 0.9461368322372437,
+          "min_height_m": 0.013612523674964905,
+          "max_height_m": 0.49198710918426514,
           "floor_correction_m": 0.0
         },
         {
           "name": "death_09",
-          "min_height_m": 0.0010461807250976562,
-          "max_height_m": 0.9432781338691711,
+          "min_height_m": 1.1920928955078125e-07,
+          "max_height_m": 0.4414879083633423,
           "floor_correction_m": 0.0
         }
       ]
     }
   },
-  "generator_sha256": "f9a885b5d5f7f91fb38bab3fd6666801567fb23416ccae1f81a1ffed3307e070",
-  "motion_sha256": "3f1d4c5d262d45882fa8274953cdd31790cb222ac857648b1d1cbf4e569956db",
-  "elapsed_seconds": 0.931
+  "generator_sha256": "cb82ee26051ea939d2f0fb77d07f419f10c7517500b30e14f8eb35393f215b71",
+  "motion_sha256": "76baa23c8916bf0024d265025083c7b8e1a954a540d2d4da451e020a2c3c0dd2",
+  "elapsed_seconds": 1.001
 }

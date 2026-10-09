@@ -1,0 +1,11 @@
+{
+  "authored_stride_m": 1.2,
+  "simulation_speed_mps_unchanged": 1.2,
+  "cycle_s": 1.0,
+  "stance_fraction": 0.625,
+  "maximum_stance_toe_travel_error_m": 2.3841857918482923e-08,
+  "minimum_knee_bend_offset_m": 0.08550405532327793,
+  "checked_walk_samples": 12,
+  "runtime_planted_contact_requires_measured_displacement_clock": true,
+  "visual_contact_and_final_death_settling": "pending review"
+}

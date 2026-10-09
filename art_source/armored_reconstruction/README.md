@@ -1,21 +1,21 @@
 # Original armored infected art prototype
 
-Status: **isolated candidate, not yet accepted for production**. This package changes presentation only for ordinary armored infected. Boss art and simulation statistics are outside its scope.
+Status: **bounded model/movement review accepted; real target-device play unverified**. This package changes presentation only for ordinary armored infected. Boss art and simulation statistics are outside its scope.
 
-The original silhouette is a burdened civilian industrial worker: broad work vest, uneven patched protective apron, one bent salvage shoulder, exposed infected jaw and hands, and heavy work boots. Its proportions, surfaces and motion were authored for this project. The owned infected atlas and existing baked-pose/corner-ID engineering convention are reused; the runner model and runner gait are not reused.
+The original silhouette is a burdened civilian industrial worker: broad work vest, uneven patched protective apron, a broad sloping protective mantle, one dominant bent salvage shoulder and one wrapped shoulder, exposed infected jaw and hands, and heavy work boots. Its proportions, surfaces and motion were authored for this project. The owned infected atlas and existing baked-pose/corner-ID engineering convention are reused; the runner model and runner gait are not reused.
 
 ## Regenerate
 
 Run Blender 4.3.2 in background factory mode from this directory:
 
     blender --background --factory-startup --threads 2 --python source/build_heavy_poses.py
-    python source/validate_assets.py
+    python validation/validate_glb.py
 
-The source generator is the complete editable authoring record. It writes no `.blend` file and saves no Blender UI/workspace state. The validation helper requires NumPy. Outputs are `assets/armored_baked_poses.glb`, `assets/armored_baked_poses_far.glb` and `armored_manifest.json`.
+The source generator is the complete editable authoring record. It writes no `.blend` file and saves no Blender UI/workspace state. The runnable validator is retained at `validation/validate_glb.py` and requires NumPy. Outputs are `assets/armored_baked_poses.glb`, `assets/armored_baked_poses_far.glb` and `armored_manifest.json`.
 
 ## Runtime contract
 
-- Original geometry: 1,050 triangles per near pose and 364 per far pose; 32 shared meshes per LOD
+- Original geometry: 1,094 triangles per near pose and 364 per far pose; 32 shared meshes per LOD
 - One material surface and one embedded copy of the owned atlas per GLB
 - No runtime bones, skin, morphs, animation tracks, physics or per-actor materials
 - Identity pose-node transforms, meters, Godot -Z forward
@@ -35,4 +35,4 @@ Design principles consulted: Valve, *Stylization With a Purpose* (GDC 2008), sil
 
 `validation/glb_contract.json` verifies node names, budgets, one surface, identity transforms, no runtime skeleton, all unique UV2 corner IDs, finite geometry, no floor penetration, approximately 1.6 m idle scale, distinct walk poses and source/asset hashes. `validation/authoring_diagnostics.json` records foot targets, support, toe rotation and exact joint reach.
 
-Still required before acceptance: normal-camera far-LOD silhouette review, visual planted-foot/contact review, immediate attack/contact readability, final collapsed pose settling, fresh combat comparison and measured 200-unit renderer cost. The current final death pose has a 0.96 m high lower torso while a hand reaches the floor; visual review must determine whether it needs a lower settled finish. Static validation alone does not establish art quality.
+Integration and limited visual acceptance, rejected drafts, gameplay equivalence and measured cost are documented in docs/ARMORED_MODEL_WIP.md at repository root. Real phone/Web/Mac and human quality evaluation remain unverified.

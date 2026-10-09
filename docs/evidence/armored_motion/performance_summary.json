@@ -1,0 +1,33 @@
+{
+  "scope": "Native controlled200armored renderer A/B; not gameplay enemy-count change or browser/device performance",
+  "environment": "llvmpipe (LLVM 19.1.7, 256 bits)",
+  "camera_size": 50,
+  "count": 200,
+  "art_change_not_general_performance_claim": true,
+  "same_roots_and_loaded_assets": true,
+  "old_six_part": {
+    "frame_mean_ms": 64.57071111111115,
+    "frame_p95_ms_by_round": [
+      77.746,
+      68.222
+    ],
+    "renderer_cpu_mean_ms": 2.4669,
+    "draw_calls_by_round": [
+      9.0,
+      9.0
+    ]
+  },
+  "new_shared_poses": {
+    "frame_mean_ms": 58.7759555555556,
+    "frame_p95_ms_by_round": [
+      78.136,
+      76.601
+    ],
+    "renderer_cpu_mean_ms": 3.356855555555555,
+    "draw_calls_by_round": [
+      24.1777777777778,
+      24.1777777777778
+    ]
+  },
+  "interpretation": "Native software-renderer mean frame time fell about9%, but renderer CPU rose about0.89ms and frame-tail latency did not consistently improve. Higher draw count; both new LODs cast body shadows. No realGPU/Web/phone claim, no enemy count reduction."
+}

@@ -3,13 +3,13 @@
   "lods": {
     "near": {
       "poses": 32,
-      "triangles_per_pose": 1050,
-      "corners": 3150,
+      "triangles_per_pose": 1094,
+      "corners": 3282,
       "surfaces": 1,
       "runtime_bones": 0,
       "idle_height_m": 1.5885999202728271,
       "min_ground_m": 0.0,
-      "bytes": 5032088
+      "bytes": 5209808
     },
     "far": {
       "poses": 32,
@@ -19,7 +19,7 @@
       "runtime_bones": 0,
       "idle_height_m": 1.5930187702178955,
       "min_ground_m": 0.0,
-      "bytes": 2259116
+      "bytes": 2257448
     }
   },
   "generator_current": true,

@@ -1,0 +1,18 @@
+{
+  "scope": "Controlled fresh M1 scene; three ordinary armored enemies deliberately placed on verified traversable approaches. Not earned campaign play. Both passes use identical simulation and camera50.",
+  "samples": 300,
+  "fields_compared": [
+    "elapsed",
+    "kills",
+    "ammo",
+    "enemy positions, health, attack_at",
+    "guard positions, health",
+    "corpse_count"
+  ],
+  "all_samples_equal": true,
+  "first_enemy_attack_seconds": 5.79999999999999,
+  "kills": 2,
+  "terminal_seconds": 10.0,
+  "invalid_first_setup": "Discarded: initial enemies were placed in central blocked cells. No game navigation changes were made. Corrected west approach was checked for open cells and real paths before recording.",
+  "visual_acceptance": "Corrected shoulder/death model re-recorded; all300 simulation samples still identical. Normal-camera visual review is reported separately."
+}

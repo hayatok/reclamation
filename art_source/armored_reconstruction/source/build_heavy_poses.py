@@ -124,17 +124,18 @@ def build_model():
     MATERIAL.node_tree.links.new(texture.outputs['Color'],bs.inputs['Base Color'])
     # Burdened trapezoid worker vest: long apron and broad sloped shoulders, with
     # a shallow warm bib against cold dark overalls. No matched armor suit.
-    loft('Broad creased worker torso',[(.93,0,.025,.205,.145),(1.14,0,.025,.265,.17),(1.31,-.012,.015,.294,.162),(1.39,-.02,.012,.215,.135)],7,'spine')
+    loft('Broad creased protective worker vest',[(.93,0,.025,.223,.15),(1.14,0,.025,.302,.175),(1.31,-.012,.015,.340,.18),(1.43,-.02,.012,.263,.155)],9,'spine')
+    loft('Broad sloping scuffed protection mantle',[(1.20,-.012,.028,.310,.175),(1.35,-.015,.025,.348,.177),(1.455,-.018,.025,.253,.145)],13,'spine')
     ell('Heavy overalls pelvis',(0,.025,.90),(.225,.15,.145),8,'hips',8,3)
-    panel('Upper patched protective bib',[(-.19,-.158,1.32),(.18,-.16,1.35),(.245,-.15,1.20),(.17,-.178,1.035),(-.20,-.16,1.08)],9,'spine',.028)
+    panel('Upper patched protective bib',[(-.233,-.183,1.37),(.226,-.183,1.395),(.278,-.181,1.20),(.19,-.190,1.035),(-.223,-.183,1.08)],9,'spine',.028)
     panel('Left uneven apron skirt',[(.005,-.171,1.10),(.207,-.150,1.12),(.225,-.138,.75),(.157,-.160,.66),(.030,-.174,.76)],4,'hips')
     panel('Right torn apron skirt',[(-.213,-.148,1.10),(-.012,-.174,1.10),(-.026,-.175,.81),(-.095,-.155,.72),(-.202,-.13,.84)],9,'hips')
     panel('Large diagonal repair patch',[(-.177,-.182,1.23),(-.039,-.192,1.20),(-.005,-.19,1.045),(-.15,-.185,1.07)],10,'spine',.012)
-    panel('Pale worn upper bib lip',[(-.19,-.178,1.31),(.177,-.18,1.34),(.17,-.182,1.30),(-.19,-.178,1.27)],13,'spine',.012)
+    panel('Pale worn upper bib lip',[(-.231,-.205,1.36),(.225,-.205,1.385),(.219,-.208,1.338),(-.231,-.205,1.313)],13,'spine',.012)
     # One curved sheet-metal shoulder: a single unequal silhouette accent.
-    loft('Bent left salvage shoulder',[(1.23,.283,.005,.105,.16),(1.37,.292,.015,.16,.16),(1.43,.26,.015,.105,.12)],9,'chest',7)
+    loft('Bent left salvage shoulder',[(1.23,.310,.005,.137,.168),(1.385,.307,.015,.193,.175),(1.505,.275,.015,.128,.129)],13,'chest',7)
     panel('Dark shoulder strap',[(.16,-.117,1.40),(.224,-.12,1.38),(.19,-.180,1.08),(.135,-.180,1.10)],5,'spine',.018)
-    ell('Torn bare right shoulder',(-.286,-.01,1.32),(.089,.094,.116),0,'chest',7,3)
+    ell('Wrapped heavy right shoulder',(-.311,.006,1.35),(.143,.134,.143),4,'chest',7,3)
     taper('Exposed neck',(0,-.07,1.40),(0,-.135,1.48),.066,.062,1,'neck',6)
     ell('Blunt infected skull',(0,-.15,1.57),(.119,.113,.137),0,'head',8,4)
     ell('Matted short scalp',(-.018,-.12,1.662),(.12,.101,.053),5,'head',7,3)
@@ -156,7 +157,7 @@ def build_model():
         bones.update({f'upper_arm.{side}':(shoulder,elbow,'chest'),f'forearm.{side}':(elbow,wrist,f'upper_arm.{side}'),
           f'hand.{side}':(wrist,(sign*.385,-.15,.665),f'forearm.{side}'),f'thigh.{side}':(hip,knee,'hips'),
           f'shin.{side}':(knee,ankle,f'thigh.{side}'),f'foot.{side}':(ankle,(sign*.17,-.17,.055),f'shin.{side}')})
-        taper('Heavy sleeve '+side,shoulder,elbow,.107 if side=='L' else .085,.078,7 if side=='L' else 0,'upper_arm.'+side,7)
+        taper('Heavy sleeve '+side,shoulder,elbow,.123 if side=='L' else .109,.081,7,'upper_arm.'+side,7)
         ell('Articulated exposed elbow '+side,elbow,(.071,.065,.062),1,'forearm.'+side,6,3)
         taper('Bared thick forearm '+side,elbow,wrist,.073,.047,0,'forearm.'+side,7)
         ell('Large infected palm '+side,(sign*.385,-.115,.761),(.065,.042,.084),0,'hand.'+side,6,3)
@@ -222,6 +223,7 @@ def main():
     gait=HeavyGait(rig,near)
     manifest={'status':'isolated_original_armored_candidate','generator':'source/build_heavy_poses.py',
       'model':'Original quarantined industrial worker; ordinary armored only, boss excluded',
+      'revision':'Broad protective shoulder envelope and prone death settle; geometry revised, other clip timing unchanged',
       'runtime_bones':0,'editable_bones':len(rig.data.bones),'pose_count':sum(v[1] for v in CLIPS.values()),
       'forward':'Godot -Z','units':'meters','atlas_source':'Owned infected_reconstruction/assets/infected_atlas.png',
       'atlas_sha256':digest(ASSETS/'heavy_atlas.png'),'blender_version':bpy.app.version_string,

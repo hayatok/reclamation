@@ -143,17 +143,31 @@ class HeavyGait:
             self.aim('head',(.025,-.085+.060*recoil,.13))
         elif clip=='death':
             t=smooth(phase)
-            # Root has rotation only. CorpseMotion exclusively owns translation.
-            # Its baked_world removes the legacy procedural body topple, so the
-            # offline root rotation provides the single visible fall.
-            self.aim('spine',(.02,-.07-.16*t,.255-.13*t))
-            self.aim('head',(.02,-.025-.06*t,.15-.07*t))
-            self.aim('upper_arm.L',(.20,-.06-.12*t,-.27))
-            self.aim('forearm.L',(.02,-.09-.07*t,-.205))
-            self.aim('upper_arm.R',(-.15,-.10-.14*t,-.26))
-            self.aim('forearm.R',(-.02,-.15,-.18))
+            settle=smooth((phase-.28)/.72)
+            buckle=math.sin(math.pi*phase)**2
+            # First buckle, then release support and unfold into broad prone
+            # contact. Arms must not prop the pelvis above the settled body.
+            self.aim('spine',(.015*(1-settle),-.07*(1-settle)-.09*buckle,.255))
+            self.aim('chest',(.02*(1-settle),-.065*(1-settle),.130))
+            self.aim('neck',(-.025*(1-settle),-.046*(1-settle),.052))
+            self.aim('head',(.013*(1-settle),-.025*(1-settle),.150))
+            for side,sign in [('L',1),('R',-1)]:
+                self.aim('upper_arm.'+side,(sign*(.10+.025*settle),-.065*(1-settle),-.27))
+                self.aim('forearm.'+side,(sign*.012,(-.18 if side=='R' else -.09)*(1-settle),-.225))
+                self.aim('hand.'+side,(sign*.009,-.07*(1-settle),-.12))
+                # Releasing the planted legs makes the body settle as a whole,
+                # while preserving every authored segment's physical length.
+                thigh=self.rig.pose.bones['thigh.'+side]
+                thigh_direction=(thigh.tail-thigh.head).normalized().lerp(Vector((sign*.015,0.,-1.)).normalized(),settle)
+                self.aim('thigh.'+side,thigh_direction)
+                shin=self.rig.pose.bones['shin.'+side]
+                shin_direction=(shin.tail-shin.head).normalized().lerp(Vector((0.,0.,-1.)),settle)
+                self.aim('shin.'+side,shin_direction)
+                self.aim('foot.'+side,(sign*.14*settle,-.188+.038*settle,-.045-.025*settle))
+            # Root has orientation only: CorpseMotion exclusively owns world
+            # trajectory. The final plane is prone, not a hands-and-feet fold.
             root=self.rig.pose.bones['root']
-            root.rotation_euler=(t*1.34,t*.09,-t*.17)
+            root.rotation_euler=(t*math.pi/2,0.,-.035*math.sin(math.pi*phase))
             bpy.context.view_layer.update()
         if clip!='walk':
             evaluated=self.mesh.evaluated_get(bpy.context.evaluated_depsgraph_get())
