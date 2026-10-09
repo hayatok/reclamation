@@ -1,0 +1,8 @@
+{
+  "scene": "same unedited earned 780.40s M2 save, paused, camera50",
+  "before_draws": 299.0,
+  "after_draws": 299.0,
+  "before_primitives": 89597.0,
+  "after_primitives": 89745.0,
+  "scope": "40 static frames, llvmpipe; not FPS or target device performance"
+}

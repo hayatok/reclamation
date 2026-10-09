@@ -2,7 +2,7 @@
 
 - Keep game source, assets, documentation and tests in this repository. Never commit credentials, local workspace reports, editor caches or user conversation data.
 - Save each coherent, small implementation change to the authorized GitHub development/recovery branch promptly. Read the committed files back into an independent directory and verify every source-manifest SHA before describing the checkpoint as remotely preserved.
-- Publish a tagged GitHub release and Pages update roughly every five meaningful development versions, or when explicitly requested sooner. Do not publish Pages for each checkpoint or create artificial versions to reach the cadence. The current public baseline is v0.43; the next ordinary publication target is around v0.48.
+- Publish a tagged GitHub release and Pages update roughly every five meaningful development versions, or when explicitly requested sooner. Do not publish Pages for each checkpoint or create artificial versions to reach the cadence. Use the latest verified public tag as the baseline; a typical cadence is v0.43 → v0.48 → v0.53, without inventing intermediate releases.
 - At a publication milestone, include the audited source, macOS and Web packages and `SHA256SUMS.txt`. Upload all assets before publishing the release.
 - Publishing a release runs `.github/workflows/pages.yml` automatically and deploys the checksum-verified Web package to this repository's GitHub Pages site. This applies to prereleases too. A source commit alone does not deploy unfinished work.
 - Preserve this file, `.github/workflows/pages.yml`, `scripts/prepare_pages.py` and `docs/PUBLISHING.md` when assembling a new source snapshot. Never replace the repository tree with a snapshot that silently deletes publishing infrastructure.

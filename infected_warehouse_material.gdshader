@@ -8,5 +8,5 @@ uniform float alarm : hint_range(0.0, 1.0) = 0.0;
 void fragment() {
 	ALBEDO = COLOR.rgb * texture(fibre_texture, UV).rgb;
 	ROUGHNESS = 0.98;
-	EMISSION = vec3(0.14, 0.024, 0.003) * UV2.x * alarm;
+	EMISSION = vec3(0.55, 0.08, 0.008) * UV2.x * alarm;
 }
