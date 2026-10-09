@@ -272,6 +272,7 @@ func _work_target(unit: Dictionary) -> Dictionary:
 ## Mission facilities retain the same physical pad before/after restoration.
 ## Art and physics do not participate in the authoritative navigation grid.
 static func site_half_extents(kind: String, mission_mode: String) -> Vector2:
+	if kind == "abandoned_depot": return Vector2(1.8, 1.8)
 	if kind == "pump" and mission_mode == "restore": return Vector2(2.12, 2.12)
 	if kind in ["generator", "pump", "substation"]: return Vector2(2.1, 1.75)
 	return Vector2.ZERO

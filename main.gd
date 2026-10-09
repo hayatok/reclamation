@@ -22,6 +22,7 @@ var render_interpolation=RenderInterpolation.new()
 const DefeatRecap=preload("res://defeat_recap.gd")
 var defeat_recap=DefeatRecap.new()
 const CheckpointValidation=preload("res://checkpoint_validation.gd")
+const FrontierDepot=preload("res://frontier_depot.gd")
 const AtomicSave=preload("res://atomic_save.gd")
 const WorkerOrders=preload("res://worker_orders.gd")
 const ControlGroups=preload("res://control_groups.gd")
@@ -330,7 +331,8 @@ func _ready():
  core.maxhp=mission.core
  core.hp=mission.core
  make_site("generator",map_config.generator if map_config.frontier else mission.gen)
- if not map_config.frontier:make_site("pump",mission.pump)
+ if map_config.frontier:make_site(FrontierDepot.KIND,FrontierDepot.POSITION)
+ else:make_site("pump",mission.pump)
  for deposit in MissionResourceLayout.for_mission(campaign_state.current):
   make_resource(deposit.kind,deposit.pos,deposit.stock)
  if mission.mode=="finale":make_site("substation",Vector3(17,0,14))
@@ -487,7 +489,10 @@ func make_site(kind:String,p:Vector3):
  add_child(n)
  n.position=p
  var label:Label3D
- if kind=="scrap":
+ if kind==FrontierDepot.KIND:
+  FrontierDepot.add_visual(n)
+  label=world_label(n,site_title(kind)+" [未復旧]",Vector3(0,3.5,0),AMBER)
+ elif kind=="scrap":
   for i in 7:
    var b=box(Vector3(visual_rng.randf_range(.5,1.8),visual_rng.randf_range(.3,.9),visual_rng.randf_range(.5,1.2)),Color("6d7775"),Vector3(visual_rng.randf_range(-1.2,1.2),.5,visual_rng.randf_range(-1,1)),n)
    b.rotation.y=visual_rng.randf()*3
@@ -1115,6 +1120,7 @@ func select_rect(a:Vector2,b:Vector2,append:bool=false):
     inspected_resource=resource_at(ground)
     if inspected_resource.is_empty():
      for site in sites:
+      if FrontierDepot.retired(site):continue
       if frontier_position_known(site.node.position) and site.node.position.distance_to(ground)<3:inspected_site=site;break
  else:
   for unit in units:
@@ -1163,6 +1169,7 @@ func command_at(p:Vector3,screen:Vector2=Vector2.INF,append_orders:bool=false)->
  for b in buildings:
   if (b.built<1 or b.hp<b.maxhp) and b.node.position.distance_to(p)<b.radius+1:b_target=b
  for s in sites:
+  if FrontierDepot.retired(s):continue
   if frontier_position_known(s.node.position) and s.node.position.distance_to(p)<3:s_target=s
  var resource_target=resource_at(p)
  if append_orders:
@@ -1195,7 +1202,7 @@ func command_at(p:Vector3,screen:Vector2=Vector2.INF,append_orders:bool=false)->
    issued_orders+=1
    continue
   if u.kind=="worker":
-   if b_target!=null:economy.suspend_for_construction(u)
+   if b_target!=null or (s_target!=null and s_target.kind==FrontierDepot.KIND):economy.suspend_for_construction(u)
    else:economy.cancel_assignment(u)
   if friendly_target!=null and not (u.kind=="worker" and (s_target!=null or b_target!=null)):
    if EscortOrders.assign(u,friendly_target,escort_count):
@@ -1240,6 +1247,7 @@ func placement_issue(kind:String,p:Vector3)->String:
  for building in buildings:
   if building.node.position.distance_to(p)<building.radius+radius+.5:return "建物に近すぎます"
  for site in sites:
+  if FrontierDepot.retired(site):continue
   if site.node.position.distance_to(p)<radius+2.7:return "復旧設備に近すぎます"
  for resource in resource_nodes:
   if not resource.renewable and resource.stock<=0:continue
@@ -2589,7 +2597,9 @@ func load_checkpoint()->bool:
   make_site(raw.kind,from_data(raw.pos))
   var s=sites.back()
   for key in ["progress","reclaimed","stock","paid"]:s[key]=raw[key]
-  if s.reclaimed:
+  if FrontierDepot.retired(s):
+   FrontierDepot.apply_retired(s)
+  elif s.reclaimed:
    StructureVisuals.set_site_reclaimed(s.node,true)
    s.label.text=site_title(s.kind)+" [復旧済]"
    s.label.modulate=CYAN
@@ -2918,6 +2928,7 @@ func impact_spark(p:Vector3,kind:String):
  if is_instance_valid(battle_fx):battle_fx.impact(p,kind)
 
 func site_title(kind:String)->String:
+ if kind==FrontierDepot.KIND:return "廃棄倉庫"
  if kind=="generator":return "01 発電所"
  if kind=="substation":return "03 避難所変電所"
  if kind=="scrap":return "廃材の山"
@@ -3631,11 +3642,13 @@ func update_ui():
   supply_text="作業員を選択して右クリックで採取"
   selection_text=GameRules.RESOURCE_TITLES[inspected_resource.resource]+"\n"+("菜園 / 継続生産" if inspected_resource.renewable else "残量 %d"%int(inspected_resource.stock))
  elif not inspected_site.is_empty():
-  portrait_kind="pump" if inspected_site.kind=="pump" and mission.mode=="restore" else "depot" if inspected_site.kind=="pump" and mission.mode=="convoy" else "central_station" if inspected_site.kind=="pump" and mission.mode=="finale" else "substation" if inspected_site.kind=="substation" else "electric"
+  portrait_kind="depot" if inspected_site.kind==FrontierDepot.KIND else "pump" if inspected_site.kind=="pump" and mission.mode=="restore" else "depot" if inspected_site.kind=="pump" and mission.mode=="convoy" else "central_station" if inspected_site.kind=="pump" and mission.mode=="finale" else "substation" if inspected_site.kind=="substation" else "electric"
   supply_text="作業員を選択して右クリックで復旧"
   if not inspected_site.reclaimed:
    var restoration=site_rule(inspected_site.kind)
    supply_text="段階%d / %s\n%s"%[int(restoration.age),"支払済み" if inspected_site.paid else GameRules.cost_text(restoration.cost),"作業員を選択して右クリックで復旧"]
+  if inspected_site.kind==FrontierDepot.KIND:
+   selection_tooltip="復旧後は3資源の搬入所 / 作業員1人で12秒"
   selection_text=site_title(inspected_site.kind)+"\n"+("復旧済" if inspected_site.reclaimed else "復旧 %d%%"%int(inspected_site.progress*100))
  selection_info.text=selection_text
  selection_info.tooltip_text=selection_tooltip
@@ -3650,6 +3663,9 @@ func update_ui():
  xp_bar.max_value=xp_needed();xp_bar.value=xp
  var cursor=get_viewport().get_mouse_position()
  for site in sites:
+  if site.kind==FrontierDepot.KIND:
+   site.node.visible=not site.reclaimed and frontier_position_known(site.node.position)
+   if site.reclaimed:continue
   var hover=camera.unproject_position(site.node.position+Vector3(0,1,0)).distance_to(cursor)<34
   site.label.visible=not ended and frontier_position_known(site.node.position) and (hover or inspected_site==site or selected.any(func(unit):return unit.target==site and unit.task=="site"))
  for resource in resource_nodes:
@@ -3685,6 +3701,7 @@ func tutorial_instruction()->String:
  return "揚水場を守る"
 
 func site_rule(kind:String)->Dictionary:
+ if kind==FrontierDepot.KIND:return {"age":1,"cost":FrontierDepot.COST,"time":FrontierDepot.WORK_SECONDS}
  if kind=="generator":return {"age":2,"cost":{"salvage":120,"parts":30},"time":60.0}
  return {"age":3,"cost":{"salvage":250 if kind=="substation" else 300,"parts":100},"time":90.0}
 
@@ -3704,6 +3721,8 @@ func work_site(unit:Dictionary,dt:float):
   site.paid=true
  site.progress=minf(1,site.progress+dt/float(rule.time))
  if site.progress>=1:
+  if site.kind==FrontierDepot.KIND:
+   FrontierDepot.complete(self,site);return
   site.reclaimed=true;site.label.text=site_title(site.kind)+" [復旧済]"
   StructureVisuals.set_site_reclaimed(site.node,true)
   if site.kind=="pump":rerolls+=1

@@ -10,7 +10,7 @@ func run():
  check(g.frontier!=null,"frontier controller ready")
  check(g.buildings[0].node.position==Vector3(-64,0,48),"home moved")
  check(g.nav.region==Rect2i(-96,-80,193,161),"broad grid")
- check(g.sites.size()==1 and g.sites[0].kind=="generator","no old convoy facility")
+ check(g.sites.size()==2 and g.sites[0].kind=="generator" and g.sites[1].kind=="abandoned_depot","optional depot replaces no objective and no old convoy facility")
  check(g.enemies.size()==32,"initial sleeping packs")
  check(g.combat_targets().is_empty(),"unknown mobs and nest excluded")
  check(g.frontier_visibility.structure_memory("frontier_nest").is_empty(),"no nest marker before discovery")

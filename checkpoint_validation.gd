@@ -104,18 +104,20 @@ static func validate(value:Variant)->bool:
  var site_footprints:Array[Rect2i]=[]
  var mission_mode:String=["restore","convoy","finale"][int(d.mission)]
  for s in d.sites:
-  if not s is Dictionary or not s.get("kind") in ["generator","pump","substation","scrap"] or not vector(s.get("pos")):return false
-  if frontier_mission and s.kind!="generator":return false
+  if not s is Dictionary or not s.get("kind") in ["generator","pump","substation","scrap","abandoned_depot"] or not vector(s.get("pos")):return false
+  if frontier_mission and s.kind not in ["generator","abandoned_depot"]:return false
+  if s.kind=="abandoned_depot" and (not frontier_mission or Vector3(s.pos[0],s.pos[1],s.pos[2])!=Vector3(-50,0,-8)):return false
   if not fields(s,["progress","stock"],["reclaimed","paid"]):return false
   if not number(s.progress,0,1) or s.stock<0:return false
   if s.reclaimed and s.progress!=1:return false
-  var half=Navigation.site_half_extents(s.kind,mission_mode)
+  if s.kind=="abandoned_depot" and (not s.paid and (s.progress>0 or s.reclaimed)):return false
+  var half=Vector2.ZERO if s.kind=="abandoned_depot" and s.reclaimed else Navigation.site_half_extents(s.kind,mission_mode)
   if half!=Vector2.ZERO:site_footprints.append(Navigation.footprint_rect(Vector3(s.pos[0],s.pos[1],s.pos[2]),half))
   if s.kind!="scrap":
    if sites_seen.has(s.kind):return false
    sites_seen[s.kind]=true
  if frontier_mission:
-  if d.sites.size()!=1 or not sites_seen.has("generator"):return false
+  if d.sites.size() not in [1,2] or not sites_seen.has("generator"):return false
  elif not sites_seen.has("generator") or not sites_seen.has("pump"):return false
  if int(d.mission)==2 and not sites_seen.has("substation"):return false
  if frontier_mission and not d.frontier.nest.dead:

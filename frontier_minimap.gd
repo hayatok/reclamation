@@ -117,6 +117,7 @@ func _bake_terrain(blocks: Array, field: RefCounted) -> void:
 
 func _draw_sites(host: Node, canvas: Control, field: RefCounted, config: Dictionary, size: Vector2) -> void:
 	for site: Dictionary in host.sites:
+		if site.kind == "abandoned_depot" and site.reclaimed: continue
 		if not _has_node(site):
 			continue
 		var position: Vector3 = site.node.global_position
