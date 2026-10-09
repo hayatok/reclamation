@@ -1,5 +1,4 @@
 extends RefCounted
-const TransmissionDefense=preload("res://transmission_defense.gd")
 const MissionMap=preload("res://mission_map.gd")
 const FrontierMission=preload("res://frontier_mission.gd")
 const FrontierVisibility=preload("res://frontier_visibility.gd")
@@ -67,8 +66,6 @@ static func validate(value:Variant)->bool:
  if not value is Dictionary:return false
  var d:Dictionary=value
  if not integer(d.get("mission"),0,2):return false
- if d.has("transmission_defense"):
-  if int(d.mission)!=2 or not TransmissionDefense.validate_snapshot(d.transmission_defense):return false
  var frontier_mission:bool=int(d.mission)==MissionMap.FRONTIER_MISSION
  var expected_version:int=4 if frontier_mission else 3
  if not integer(d.get("version"),expected_version,expected_version):return false
@@ -139,9 +136,6 @@ static func validate(value:Variant)->bool:
   if not e is Dictionary or not vector(e.get("pos")) or not vector(e.get("attack_pos")):return false
   if not fields(e,["hp","speed","cd","charged_until","windup"],["armored","convoy_hunter","boss"]):return false
   if e.hp<=0 or e.speed<=0:return false
-  if e.has("transmission_raider"):
-   if not e.transmission_raider is bool:return false
-   if e.transmission_raider and (int(d.mission)!=2 or not d.get("transmission_defense",{}).get("dispatched",false)):return false
  for i in d.units.size():
   if not _unit(d.units[i],d,i):return false
   # Reject an incompatible position before the loader touches the live scene.

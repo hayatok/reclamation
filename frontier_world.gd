@@ -4,6 +4,7 @@ extends "res://world_art.gd"
 ## This node creates art only. The host owns all movement, physics, fog and gameplay.
 
 const FreightVisuals = preload("res://freight_yard_visuals.gd")
+const FreightShells = preload("res://freight_district_shells.gd")
 const PavementShader = preload("res://frontier_pavement.gdshader")
 const PLAYABLE_BOUNDS := Rect2(-96, -80, 192, 160)
 const TERRAIN_SIZE := Vector2(200, 168)
@@ -156,7 +157,10 @@ func _make_district() -> void:
 	for shell: Dictionary in shell_layout():
 		var block := shell_blocker(shell)
 		_box(block.pos + Vector3(0, 0.04, 0), Vector3(block.size.x, 0.16, block.size.z), "concrete_dark")
-		_building(shell.pos, shell.size, shell.stories, true)
+		if FreightShells.handles(shell.id):
+			FreightShells.build(self, shell)
+		else:
+			_building(shell.pos, shell.size, shell.stories, true)
 		occlusion_buildings.back()["frontier_id"] = shell.id
 	# The ruins retain individual baked meshes, materials and occlusion bounds.
 

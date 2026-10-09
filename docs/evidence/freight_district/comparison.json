@@ -1,0 +1,98 @@
+{
+  "method": "Same ordinary scouting saves, paused native Godot frames, same camera size50 and1180x737 viewport",
+  "scouting": "Four existing guards crossed the south bridge via ordinary attack-move orders; no added resources, units, teleports or revealed fog",
+  "rows": [
+    {
+      "stage": 1,
+      "before": {
+        "camera_focus": [
+          37.0,
+          0.0,
+          52.0
+        ],
+        "camera_size": 50.0,
+        "draw_calls": 280.0,
+        "primitives": 54199.0,
+        "renderer": "llvmpipe (LLVM 19.1.7, 256 bits)",
+        "stage": 1
+      },
+      "after": {
+        "camera_focus": [
+          37.0,
+          0.0,
+          52.0
+        ],
+        "camera_size": 50.0,
+        "draw_calls": 280.0,
+        "primitives": 51799.0,
+        "renderer": "llvmpipe (LLVM 19.1.7, 256 bits)",
+        "stage": 1
+      },
+      "complete_checkpoint_equal": true,
+      "before_state_sha256": "8edc0146ca0bca1f57cf2b314e7f2db7e662883f3ccdffbcfadd7d28572735ac",
+      "after_state_sha256": "8edc0146ca0bca1f57cf2b314e7f2db7e662883f3ccdffbcfadd7d28572735ac"
+    },
+    {
+      "stage": 2,
+      "before": {
+        "camera_focus": [
+          70.0,
+          0.0,
+          51.0
+        ],
+        "camera_size": 50.0,
+        "draw_calls": 276.0,
+        "primitives": 56221.0,
+        "renderer": "llvmpipe (LLVM 19.1.7, 256 bits)",
+        "stage": 2
+      },
+      "after": {
+        "camera_focus": [
+          70.0,
+          0.0,
+          51.0
+        ],
+        "camera_size": 50.0,
+        "draw_calls": 277.0,
+        "primitives": 52261.0,
+        "renderer": "llvmpipe (LLVM 19.1.7, 256 bits)",
+        "stage": 2
+      },
+      "complete_checkpoint_equal": true,
+      "before_state_sha256": "6845eed6fb1ad36cb99a9f22710dc1c7cb8087df6c9d75c7859ab5047c7cc214",
+      "after_state_sha256": "6845eed6fb1ad36cb99a9f22710dc1c7cb8087df6c9d75c7859ab5047c7cc214"
+    },
+    {
+      "stage": 3,
+      "before": {
+        "camera_focus": [
+          65.0,
+          0.0,
+          27.0
+        ],
+        "camera_size": 50.0,
+        "draw_calls": 282.0,
+        "primitives": 58505.0,
+        "renderer": "llvmpipe (LLVM 19.1.7, 256 bits)",
+        "stage": 3
+      },
+      "after": {
+        "camera_focus": [
+          65.0,
+          0.0,
+          27.0
+        ],
+        "camera_size": 50.0,
+        "draw_calls": 283.0,
+        "primitives": 55205.0,
+        "renderer": "llvmpipe (LLVM 19.1.7, 256 bits)",
+        "stage": 3
+      },
+      "complete_checkpoint_equal": true,
+      "before_state_sha256": "bba6c951a24ddd9a70629cfe322a14aadc80b4926f1277b8a61d62993899fcee",
+      "after_state_sha256": "bba6c951a24ddd9a70629cfe322a14aadc80b4926f1277b8a61d62993899fcee"
+    }
+  ],
+  "visual_review": "Industrial silhouette distinction accepted in paired stills; dispatch tower looks more intact but remains an abandoned facility in context",
+  "limits": "Static draw workload only, not FPS. Actual Web/Mac/phone/GPU, human-first-time play and audio audition unverified."
+}
