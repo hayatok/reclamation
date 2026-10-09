@@ -1,0 +1,26 @@
+{
+  "baseline": "public v0.63.0 official packed resources",
+  "candidate": "power planning presentation",
+  "fixture": "tests/fixtures/earned_frontier_departure.json",
+  "elapsed": 720.349999999893,
+  "saved_state_exact_match": true,
+  "camera_size": 50,
+  "native_pc": [
+    1180,
+    737
+  ],
+  "synthetic_mobile": [
+    [
+      844,
+      390
+    ],
+    [
+      390,
+      844
+    ]
+  ],
+  "actual_mobile_device": false,
+  "gpu": "llvmpipe LLVM19.1.7",
+  "cpu_microbenchmark": "300 repeated updates, one active source; final run median28us p95 41us; excludes GPU and full frame",
+  "geometry": "one MultiMesh ring batch,128 triangles per source; optional2-triangle link"
+}

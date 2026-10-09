@@ -88,6 +88,12 @@ const WorkerRoutePreview=preload("res://worker_route_preview.gd")
 var worker_route_preview:Node3D
 const WeaponRangePreview=preload("res://selected_weapon_range.gd")
 var weapon_range_preview:Node3D
+const PowerPlanning=preload("res://power_planning.gd")
+const PowerCoveragePreview=preload("res://power_coverage_preview.gd")
+var power_planning=PowerPlanning.new()
+var power_coverage_preview:Node3D
+var power_context_text:String=""
+var power_build_hint:String=""
 const UnitTypeSelection=preload("res://unit_type_selection.gd")
 const CrowdSteering=preload("res://crowd_steering.gd")
 var crowd_steering=CrowdSteering.new()
@@ -361,6 +367,7 @@ func _ready():
  horde_renderer.setup()
  worker_route_preview=WorkerRoutePreview.new();add_child(worker_route_preview)
  weapon_range_preview=WeaponRangePreview.new();add_child(weapon_range_preview)
+ power_coverage_preview=PowerCoveragePreview.new();add_child(power_coverage_preview)
  horde_renderer.low_detail=performance_mode
  render_interpolation.reset(units,enemies,corpses)
  battle_visibility=BattleVisibility.new()
@@ -1396,6 +1403,7 @@ func _process(delta):
  resolve_shell_muzzles(actor_frames)
  update_worker_route_preview()
  update_weapon_range_preview(actor_frames)
+ update_power_planning_preview()
  battle_visibility.update_visibility(camera,units,[] if aftermath_settled else enemies.filter(func(e):return frontier_visibility==null or frontier_visibility.is_visible(e.node.position)),[] if aftermath_settled else shells,delta)
  battle_fx.update(dt,camera,buildings,actor_frames)
  if pending_card_delay>0:
@@ -2849,7 +2857,8 @@ func recompute_power():
  power_capacity=base_power()*(1+bonus("power","power_capacity_add")) if generator_on else 0
  power_used=0
  for b in buildings:b.powered=false
- if not generator_on:return
+ if not generator_on:
+  power_planning.capture(self);return
  var sources=[get_site("generator").node.position]
  var changed=true
  while changed:
@@ -2868,6 +2877,8 @@ func recompute_power():
     if origin.distance_to(b.node.position)<=22 and power_used+demand<=power_capacity:
      b.powered=true;power_used+=demand
      break
+
+ power_planning.capture(self)
 
 func bonus(id:String,key:String)->float:
  return float(catalog_by_id.get(id,{}).get("effects",{}).get(key,0))*float(upgrades.get(id,0))
@@ -3516,6 +3527,7 @@ func refresh_context_commands(force:bool=false):
     if detail_text.begins_with("必要施設:"):detail_text="発展 "+compact_cost(GameRules.age(settlement_age+1).cost)+" / "+detail_text
   if not mobile_enabled and detail_text.is_empty() and current_supply_feedback.get("active",false) and (selected.any(func(unit):return unit.kind in ["guard","grenade","siegecart"]) or inspected.get("kind","") in ["factory","tower","mortar"]):
    detail_text=current_supply_feedback.context
+  if not power_context_text.is_empty() and (not build_mode.is_empty() or detail_text.is_empty()):detail_text=power_context_text
   if escort_targeting:detail_text=selected_order_text()
   elif detail_text.is_empty():detail_text=selected_escort_summary()
   command_detail.text=detail_text
@@ -3693,11 +3705,11 @@ func update_ui():
   var rule=GameRules.building(inspected.kind)
   portrait_kind=inspected.kind;hp_sum=inspected.hp;max_sum=inspected.maxhp
   selection_text=rule.title
-  if inspected.kind=="factory":selection_text+="\n"+factory_status(inspected)
-  elif rule.power>0:selection_text+="\n"+("給電中" if inspected.powered else "未給電")
+  if inspected.kind=="factory":selection_text+="\n"+power_building_status(inspected)
+  elif rule.power>0:selection_text+="\n"+power_building_status(inspected)
   if not mobile_enabled and queue_caption.text.is_empty():
-   if inspected.kind=="factory":command_heading.text=factory_status(inspected)
-   elif rule.power>0:command_heading.text="給電中" if inspected.powered else "未給電"
+   if inspected.kind=="factory":command_heading.text=power_building_status(inspected)
+   elif rule.power>0:command_heading.text=power_building_status(inspected)
   supply_text="耐久 %d / %d"%[int(hp_sum),int(max_sum)]
   selection_tooltip={"hq":"作業員の生産・段階の発展","barracks":"生存者・爆薬手を訓練","vehicle_workshop":"補給車・移動迫撃車を生産","house":"人口上限 +5","depot":"3資源の搬入先","garden":"作業員が食料を耕作","factory":"電力で弾薬を補給","relay":"送電範囲を延長","yard":"近くの採取・修理を支援","tower":"自動迎撃","mortar":"範囲砲撃","wall":"感染者の進行を遮る"}.get(inspected.kind,"")
   if inspected.kind in ["house","depot","garden","relay","yard","tower","mortar","wall"]:supply_text+="\n"+selection_tooltip
@@ -3976,3 +3988,79 @@ func selected_escort_summary()->String:
  var target=followers[0].target
  if followers.any(func(unit):return unit.target!=target):return "護衛中 %d"%followers.size()
  return "護衛中 %d / %s"%[followers.size(),GameRules.unit(target.kind).title]
+
+# Read the last committed grid allocation; this presentation never energizes
+# buildings or predicts which consumer will win a later allocation pass.
+func power_status_text(data:Dictionary)->String:
+ return {"pending":"送電更新待ち","off":"発電停止中","out_of_range":"送電範囲外","capacity":"電力不足","powered":"給電中","disabled":"手動停止","construction":"建設中","unpowered":"未給電"}.get(data.get("status",""),"")
+
+func power_building_status(building:Dictionary)->String:
+ if building.kind=="factory":
+  var canonical=factory_status(building)
+  if canonical!="未給電":return canonical
+ var data=power_planning.query(self,building.kind,building.node.position,building)
+ return power_status_text(data)
+
+func power_spare_text(data:Dictionary)->String:
+ return "必要%.1f / 空き%.1f"%[data.get("demand",0.0),data.get("current_free",0.0)]
+
+func update_power_planning_preview():
+ power_context_text="";power_build_hint=""
+ if not is_instance_valid(power_coverage_preview):return
+ power_coverage_preview.clear_preview()
+ if title_open or ended or active_card or is_instance_valid(options_panel) or is_instance_valid(route_panel) or is_instance_valid(dismantle_panel):return
+ if mobile_enabled and is_instance_valid(mobile_hud) and mobile_hud.has_open_popup():return
+ var placing=not build_mode.is_empty() and float(GameRules.building(build_mode).get("power",0))>0
+ var building:Dictionary=inspected if not inspected.is_empty() and is_instance_valid(inspected.get("node")) and float(GameRules.building(inspected.kind).get("power",0))>0 else {}
+ var generator_selected=not inspected_site.is_empty() and inspected_site.kind=="generator" and is_instance_valid(inspected_site.get("node"))
+ if not placing and building.is_empty() and not generator_selected:return
+ var fresh=power_planning.is_fresh(self)
+ if not fresh:
+  power_context_text="送電更新待ち"
+  if placing:power_build_hint=power_context_text
+  return
+ var green=Color(.63,.79,.62,.65);var amber=Color(.85,.71,.43,.65);var quiet=Color(.64,.68,.61,.38)
+ var sources=power_planning.committed_sources(self)
+ var known_sources:Array=[]
+ for point in sources:
+  if frontier_position_known(point):known_sources.append(point)
+ var rings:Array=[];var colors:Array=[]
+ var link_start=Vector3.INF;var link_end=Vector3.INF;var link_color=green
+ if placing:
+  rings=known_sources.duplicate()
+  for point in rings:colors.append(green)
+  var data=power_planning.query(self,build_mode,Vector3.INF)
+  power_build_hint="発電停止中" if not generator_on else power_spare_text(data)
+  power_context_text=power_build_hint+" / 現在の送電範囲22m"
+  if not mobile_enabled:
+   var cursor=get_viewport().get_mouse_position()
+   var over_ui=get_viewport().gui_get_hovered_control()!=null
+   if not over_ui:
+    var point=ground_at(cursor)
+    var issue=placement_issue(build_mode,point)
+    if not issue.is_empty():power_context_text=issue
+    else:
+     data=power_planning.query(self,build_mode,point)
+     power_context_text=("給電可能" if data.get("status","")=="powered" else power_status_text(data))+" / "+power_spare_text(data)+"（現在）"
+     var nearest:Vector3=data.get("nearest_source",Vector3.INF)
+     if nearest.is_finite() and nearest in known_sources:
+      link_start=nearest;link_end=point
+      link_color=green if data.get("status","")=="powered" else amber
+ elif generator_selected:
+  if frontier_position_known(inspected_site.node.position):rings=[inspected_site.node.position];colors=[green if generator_on else quiet]
+  power_context_text=("発電中" if generator_on else "発電停止中")+" / 送電範囲22m"
+ else:
+  var data=power_planning.query(self,building.kind,building.node.position,building)
+  var status:String=data.get("status","")
+  power_context_text=power_status_text(data)
+  if status=="capacity":power_context_text+=" / "+power_spare_text(data)+"（現在）"
+  elif status=="out_of_range":power_context_text+=" / 中継器の範囲22m"
+  elif status=="powered":power_context_text+=" / 消費%.1f・空き%.1f"%[data.get("demand",0.0),data.get("current_free",0.0)]
+  if building.kind=="tower" and status in ["off","out_of_range","capacity"]:power_context_text+=" / 非給電でも迎撃"
+  if building.kind=="relay":
+   rings=[building.node.position];colors=[green if building.powered else quiet]
+  var nearest:Vector3=data.get("nearest_source",Vector3.INF)
+  if nearest.is_finite() and nearest in known_sources and nearest!=building.node.position:
+   rings.append(nearest);colors.append(green)
+   link_start=nearest;link_end=building.node.position;link_color=green if building.powered else amber
+ power_coverage_preview.set_plan(rings,colors,link_start,link_end,link_color)
