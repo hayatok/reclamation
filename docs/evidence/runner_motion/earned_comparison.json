@@ -1,0 +1,33 @@
+{
+  "status": "Movement visual review accepted; two six-second earned comparisons exact; controlled rendering comparison complete",
+  "viewport": [
+    1180,
+    737
+  ],
+  "orthographic_size": 50,
+  "capture": "180 offline fixed-step frames at30Hz, not runtime FPS",
+  "commands": "Same four earned guards attack-move from current freight_scout_3 save; no free resources or enemy placement",
+  "state": {
+    "saved_state_equal": true,
+    "different_fields": [],
+    "start_equal": true,
+    "scope": "Same earned save, ordinary attack-move, unchanged game commands and deferred upgrade choices; old rigid runner fallback vs articulated runner renderer. Offline30fps captures do not establish actual runtime FPS."
+  },
+  "start_elapsed": 863.699999999762,
+  "end_elapsed": 869.699999999757,
+  "kills_before": 274,
+  "kills_after": 281,
+  "visible_runners_end": 19,
+  "saved_state_sha256": {
+    "before_clip_start": "800e292bdccbfb903bfbe23449c3545675d8fc928af0643edb80ac8bfe152704",
+    "before_clip_end": "34add482a220612f916c9e45f5ffdc870e89749081397c2939bc59db634e2d61",
+    "after_clip_start": "800e292bdccbfb903bfbe23449c3545675d8fc928af0643edb80ac8bfe152704",
+    "after_clip_end": "34add482a220612f916c9e45f5ffdc870e89749081397c2939bc59db634e2d61"
+  },
+  "limits": [
+    "Old fallback and new renderer run in same integrated game; both models loaded",
+    "Script timing during PNG capture is not a controlled performance benchmark",
+    "No real Web, phone, Mac, GPU or human first-play validation",
+    "No runner melee contact occurred in the recorded advance, so normal-distance attack readability is unconfirmed"
+  ]
+}

@@ -429,6 +429,8 @@
   },
   "generator_sha256": "739d3dc2e2368f212a42e2962e7a84a8ec14e61149901bcb74d0ee29b55b0f48",
   "motion_sha256": "81d26d03d26ee374e99f36bc6df8b69bea172cd8b734cddffdc815fd336c6b64",
-  "editable_rig_sha256": "137c94b9f0964ba801c416e4cfcf34f21278bf8e0b85e5f95403cefc1dc0e7b1",
-  "elapsed_seconds": 0.949
+  "editable_rig_sha256": "8bdaa41d4d736ce593f2486bb0a5d8b8dc07ba0ae3cd5128591ef0ac182df151",
+  "elapsed_seconds": 0.949,
+  "original_editable_rig_sha256": "137c94b9f0964ba801c416e4cfcf34f21278bf8e0b85e5f95403cefc1dc0e7b1",
+  "editable_source_cleanup": "validation/editable_source_cleanup.json"
 }

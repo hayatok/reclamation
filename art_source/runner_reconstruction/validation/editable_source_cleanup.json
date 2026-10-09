@@ -1,0 +1,32 @@
+{
+  "passed": true,
+  "blender_version": "4.3.2",
+  "method": "scene datablocks only via bpy.data.libraries.write; no UI screens or file-browser history",
+  "original_input_unchanged": true,
+  "runtime_glbs_untouched": true,
+  "editable_content_exactly_equal": true,
+  "comparison": [
+    "scene object transforms",
+    "near and far vertex positions and topology",
+    "atlas UV and corner-ID layers",
+    "all vertex groups and weights",
+    "18 rest bones and hierarchy",
+    "packed atlas bytes",
+    "fresh evaluated run pose"
+  ],
+  "clean_output_reopened": true,
+  "clean_output_not_resaved": true,
+  "private_path_scan_passed": true,
+  "clean_blend_bytes": 1234624,
+  "clean_blend_sha256": "8bdaa41d4d736ce593f2486bb0a5d8b8dc07ba0ae3cd5128591ef0ac182df151",
+  "atlas_sha256": "15c19aee678132595e2ea135446feccde88c5580e3c331b29838a52bef72330c",
+  "fresh_process_open_passed": true,
+  "active_scene_contains_rig_near_and_far": true,
+  "ui_state_omission_warning": "Blender reports Library file, loading empty scene while generating its fallback UI context; verified active scene contains the full editable rig and both meshes.",
+  "ui_datablocks_absent": [
+    "Screen",
+    "WindowManager",
+    "Workspace"
+  ],
+  "original_frozen_18_file_allowlist_still_matches": true
+}

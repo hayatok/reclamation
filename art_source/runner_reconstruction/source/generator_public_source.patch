@@ -1,0 +1,15 @@
+--- a/art_source/runner_reconstruction/source/build_runner_poses.py
++++ b/art_source/runner_reconstruction/source/build_runner_poses.py
+@@ -246,7 +246,11 @@
+             packed.filepath = " " * 1023
+             packed.filepath = "//../assets/runner_atlas.png"
+     # Editable rig and mesh are retained; generator carries the exact clip source.
+-    bpy.ops.wm.save_as_mainfile(filepath=str(SOURCE/'runner_original_rig.blend'))
++    # Write only scene dependencies, excluding UI/file-browser path history.
++    bpy.context.scene.render.filepath = " " * 1023
++    bpy.context.scene.render.filepath = "//renders/"
++    bpy.data.libraries.write(str(SOURCE/'runner_original_rig.blend'),
++        {bpy.context.scene}, path_remap='NONE', fake_user=True, compress=False)
+     far.hide_render=False
+     far.hide_set(False)
+     for label,obj in [('near',near),('far',far)]:

@@ -1,0 +1,239 @@
+{
+  "camera_size": 50,
+  "count": 200,
+  "measured_frames_per_round": 90,
+  "memory_claim": false,
+  "new_shadow_policy": "farLOD shadows off, retained runtime policy",
+  "old_shadow_policy": "torso only, retained runtime policy",
+  "renderer": "llvmpipe (LLVM 19.1.7, 256 bits)",
+  "rendering_method": "gl_compatibility",
+  "resolution": [
+    1180,
+    737
+  ],
+  "round_order": [
+    "old",
+    "new",
+    "old",
+    "new"
+  ],
+  "rounds": [
+    {
+      "draw_calls": {
+        "max": 9.0,
+        "mean": 9.0,
+        "median": 9.0,
+        "min": 9.0,
+        "p95": 9.0,
+        "samples": 90
+      },
+      "frame_wall_ms": {
+        "max": 81.388,
+        "mean": 65.0796,
+        "median": 64.545,
+        "min": 53.843,
+        "p95": 72.789,
+        "samples": 90
+      },
+      "mode": "old_six_part",
+      "new_far_count": {
+        "max": 0,
+        "mean": 0.0,
+        "median": 0,
+        "min": 0,
+        "p95": 0,
+        "samples": 90
+      },
+      "primitives": {
+        "max": 130404.0,
+        "mean": 130404.0,
+        "median": 130404.0,
+        "min": 130404.0,
+        "p95": 130404.0,
+        "samples": 90
+      },
+      "render_update_cpu_ms": {
+        "max": 3.196,
+        "mean": 2.15858888888889,
+        "median": 2.082,
+        "min": 1.786,
+        "p95": 2.77,
+        "samples": 90
+      },
+      "round": 1,
+      "visible_count": {
+        "max": 200,
+        "mean": 200.0,
+        "median": 200,
+        "min": 200,
+        "p95": 200,
+        "samples": 90
+      }
+    },
+    {
+      "draw_calls": {
+        "max": 14.0,
+        "mean": 13.3333333333333,
+        "median": 14.0,
+        "min": 10.0,
+        "p95": 14.0,
+        "samples": 90
+      },
+      "frame_wall_ms": {
+        "max": 62.777,
+        "mean": 49.7103888888889,
+        "median": 49.342,
+        "min": 43.168,
+        "p95": 55.3,
+        "samples": 90
+      },
+      "mode": "new_shared_poses",
+      "new_far_count": {
+        "max": 200,
+        "mean": 200.0,
+        "median": 200,
+        "min": 200,
+        "p95": 200,
+        "samples": 90
+      },
+      "primitives": {
+        "max": 64928.0,
+        "mean": 63888.0,
+        "median": 63680.0,
+        "min": 63680.0,
+        "p95": 64928.0,
+        "samples": 90
+      },
+      "render_update_cpu_ms": {
+        "max": 8.664,
+        "mean": 3.07425555555556,
+        "median": 2.895,
+        "min": 2.53,
+        "p95": 4.509,
+        "samples": 90
+      },
+      "round": 2,
+      "visible_count": {
+        "max": 200,
+        "mean": 200.0,
+        "median": 200,
+        "min": 200,
+        "p95": 200,
+        "samples": 90
+      }
+    },
+    {
+      "draw_calls": {
+        "max": 9.0,
+        "mean": 9.0,
+        "median": 9.0,
+        "min": 9.0,
+        "p95": 9.0,
+        "samples": 90
+      },
+      "frame_wall_ms": {
+        "max": 85.92,
+        "mean": 62.8488444444444,
+        "median": 61.737,
+        "min": 54.263,
+        "p95": 74.632,
+        "samples": 90
+      },
+      "mode": "old_six_part",
+      "new_far_count": {
+        "max": 0,
+        "mean": 0.0,
+        "median": 0,
+        "min": 0,
+        "p95": 0,
+        "samples": 90
+      },
+      "primitives": {
+        "max": 130404.0,
+        "mean": 130404.0,
+        "median": 130404.0,
+        "min": 130404.0,
+        "p95": 130404.0,
+        "samples": 90
+      },
+      "render_update_cpu_ms": {
+        "max": 5.757,
+        "mean": 2.1188,
+        "median": 2.022,
+        "min": 1.783,
+        "p95": 2.503,
+        "samples": 90
+      },
+      "round": 3,
+      "visible_count": {
+        "max": 200,
+        "mean": 200.0,
+        "median": 200,
+        "min": 200,
+        "p95": 200,
+        "samples": 90
+      }
+    },
+    {
+      "draw_calls": {
+        "max": 14.0,
+        "mean": 13.3333333333333,
+        "median": 14.0,
+        "min": 10.0,
+        "p95": 14.0,
+        "samples": 90
+      },
+      "frame_wall_ms": {
+        "max": 59.494,
+        "mean": 48.0688222222222,
+        "median": 47.369,
+        "min": 41.274,
+        "p95": 54.169,
+        "samples": 90
+      },
+      "mode": "new_shared_poses",
+      "new_far_count": {
+        "max": 200,
+        "mean": 200.0,
+        "median": 200,
+        "min": 200,
+        "p95": 200,
+        "samples": 90
+      },
+      "primitives": {
+        "max": 64928.0,
+        "mean": 63888.0,
+        "median": 63680.0,
+        "min": 63680.0,
+        "p95": 64928.0,
+        "samples": 90
+      },
+      "render_update_cpu_ms": {
+        "max": 4.115,
+        "mean": 2.88846666666667,
+        "median": 2.83,
+        "min": 2.55,
+        "p95": 3.314,
+        "samples": 90
+      },
+      "round": 4,
+      "visible_count": {
+        "max": 200,
+        "mean": 200.0,
+        "median": 200,
+        "min": 200,
+        "p95": 200,
+        "samples": 90
+      }
+    }
+  ],
+  "same_actor_roots_and_positions": true,
+  "same_light_floor_camera": true,
+  "same_loaded_assets_both_modes": true,
+  "scope": "Native controlled200runner renderer A/B; not gameplay enemy-count change or browser/device performance",
+  "screenshot_encoding_in_timing": false,
+  "simulation_dt": 0.0166666666666667,
+  "speed_mps": 2.7,
+  "vsync_requested_disabled": true,
+  "warmup_frames_per_round": 30
+}

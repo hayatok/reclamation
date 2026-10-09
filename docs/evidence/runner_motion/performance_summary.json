@@ -1,0 +1,28 @@
+{
+  "render_update_cpu_ms": {
+    "old_mean": 2.138694444444445,
+    "new_mean": 2.981361111111115,
+    "delta": 0.8426666666666702,
+    "percent_change": 39.40098450508505
+  },
+  "frame_wall_ms": {
+    "old_mean": 63.964222222222205,
+    "new_mean": 48.88960555555555,
+    "delta": -15.074616666666657,
+    "percent_change": -23.5672632964956
+  },
+  "draw_calls": {
+    "old_mean": 9.0,
+    "new_mean": 13.3333333333333,
+    "delta": 4.3333333333333,
+    "percent_change": 48.14814814814778
+  },
+  "primitives": {
+    "old_mean": 130404.0,
+    "new_mean": 63888.0,
+    "delta": -66516.0,
+    "percent_change": -51.0076378025214
+  },
+  "all_rounds_visible_200": true,
+  "interpretation": "Both alternating comparisons favor new frame-wall time, with higher render-update CPU and more draw calls. Native llvmpipe only; no browser, target-device, or memory claim."
+}

@@ -31,7 +31,7 @@ projectile origins and input controls are untouched.
   936 corner vertices each; 1,892,692 bytes.
 - `source/build_runner_poses.py` and `source/runner_gait.py`: original geometry,
   rig, pose, export and diagnostic source.
-- `source/runner_original_rig.blend`: generated editable weighted rig. This WIP checkpoint omits that binary while editor UI-path metadata is cleaned; the source scripts and packed runtime GLBs are included.
+- `source/runner_original_rig.blend`: editable weighted rig saved as scene datablocks without editor UI history. See SOURCE_CLEANUP.md for the fresh-process reopen and exact content comparison.
 - `assets/runner_atlas.png`: verbatim owned source atlas; its SHA is recorded.
 - `runner_manifest.json`: source/asset hashes, topology and timing contracts.
 - `validation/horde_integration.patch`: the small independent runner-renderer
@@ -59,6 +59,11 @@ requires them. Do not change HOME. The isolated native art-review script is:
 
     godot --resolution 1180x737 --script res://tests/review_runner_asset.gd -- --out=/your/output/prefix
 
+Before publishing a newly generated editable binary, run the scene-only cleanup
+in SOURCE_CLEANUP.md into a separate output and validate its paths. The supplied
+generator_public_source.patch is an optional unapplied source-save change; runtime
+geometry was not regenerated during cleanup.
+
 That script compares near/far assets, captures close poses and the actual normal
 orthographic size 50 at 1180×737, then exits. It is explicitly an isolated art
 preview, not an earned gameplay clip or a browser performance test.
@@ -74,10 +79,12 @@ speed/armored classification for living and corpse dictionaries, no double draw
 of rigid runners, distance gait and pause stability, immediate attack contact,
 saved-start corpse placement, and no gameplay dictionary mutation.
 
-These are structural checks. They do not establish visual acceptance or browser
-performance. Acceptance needs the same compatible earned encounter before and
-after, at normal camera size, with unchanged gameplay state and separate timing
-measurements. The near model must not be accepted on a close-up alone.
+These structural checks alone do not establish visual acceptance or browser
+performance. The integrated movement pass subsequently compared two consecutive
+six-second intervals of the same earned advance at normal camera size, with exact
+saved-state equality. The controlled200-runner comparison and visual limits are
+recorded in ../../docs/RUNNER_MODEL_WIP.md. Close-up previews were not the sole
+acceptance evidence; real browser/device and melee readability remain unverified.
 
 Far decimation is performed once before posing. It can raise the sole by a few
 millimeters or require up to 1.3 cm floor correction in two push-off poses. A
