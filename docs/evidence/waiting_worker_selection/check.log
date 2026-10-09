@@ -1,0 +1,12 @@
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+PASS earned state has five waiting and nine working workers
+PASS ordinary shortcut still cycles one worker
+PASS Shift+period selects only waiting workers
+PASS selection preserves all cargo, orders and active workers
+PASS save selected waiting group
+PASS resume restores five selected workers
+PASS counted touch control has a finger-size target
+PASS touch chooses five workers and returns to map
+PASS touch selection and reload preserve worker state
+WAITING_SELECTION_RESULT failures=0 viewport=(844, 390)

@@ -332,6 +332,8 @@ func _show_selection(replace_current:bool=false)->void:
  for entry in [["本部",func():_close_popup();host.select_headquarters()],["全戦闘員",func():_close_popup();host.select_guards()],["全作業員",func():_close_popup();host.select_workers()]]:
   var shortcut=_button(entry[0],entry[1],selectors)
   shortcut.size_flags_horizontal=Control.SIZE_EXPAND_FILL
+ var waiting=host.units.filter(func(unit):return host.worker_needs_attention(unit)).size()
+ if waiting>0:_button("待機 %d人を選択"%waiting,func():_close_popup();host.select_idle_worker(true),body)
  MobileGroups.add_to_selection(self,body)
  _body_text(body,_touch_words(host.selection_info.tooltip_text+"\n"+host.supply_status.text+"\n"+host.supply_status.tooltip_text),15)
  if host.current_supply_feedback.get("active",false) and host.inspected.get("kind","")!="factory" and not host.supply_status.text.contains(host.current_supply_feedback.context):

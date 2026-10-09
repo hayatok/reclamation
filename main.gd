@@ -571,8 +571,8 @@ func make_ui():
    )
  var stretch=Control.new();stretch.size_flags_horizontal=Control.SIZE_EXPAND_FILL;row.add_child(stretch)
  stats=label("");stats.visible=false;root_ui.add_child(stats)
- idle_worker_button=button("待機 0",select_idle_worker,86)
- idle_worker_button.tooltip_text="待機・採取停止・経路なしの作業員を選択  [ . ]"
+ idle_worker_button=button("待機 0",func():select_idle_worker(Input.is_key_pressed(KEY_SHIFT)),86)
+ idle_worker_button.tooltip_text="待機・採取停止・経路なしの作業員を選択  [ . ]\nShift で全員を選択"
  row.add_child(idle_worker_button)
  pause_button=button("一時停止",toggle_pause,86)
  pause_button.tooltip_text="戦術ポーズ / Space"
@@ -1057,7 +1057,7 @@ func _unhandled_input(event):
     KEY_C:select_guards()
     KEY_V:select_workers()
     KEY_H:select_headquarters()
-    KEY_PERIOD:select_idle_worker()
+    KEY_PERIOD:select_idle_worker(event.shift_pressed)
    get_viewport().set_input_as_handled();return
   if not build_mode.is_empty():
    for action in context_actions:
@@ -3339,14 +3339,18 @@ func worker_needs_attention(unit:Dictionary)->bool:
  if unit.kind!="worker":return false
  return unit.task=="idle" or unit.get("economy_phase","") in ["waiting_resource","waiting_dropoff"] or friendly_navigation.current_status(unit)==FriendlyNavigation.BLOCKED
 
-func select_idle_worker():
+func select_idle_worker(select_all:bool=false):
  cancel_targeting_mode()
  var idle=[]
  for unit in units:
   if worker_needs_attention(unit):idle.append(unit)
  if idle.is_empty():return
- last_idle_worker=(last_idle_worker+1)%idle.size()
- selected=[idle[last_idle_worker]];inspected={};inspected_site={};inspected_resource={}
+ if select_all:
+  selected=idle
+ else:
+  last_idle_worker=(last_idle_worker+1)%idle.size()
+  selected=[idle[last_idle_worker]]
+ inspected={};inspected_site={};inspected_resource={}
  camera_focus=MissionMap.clamp_camera(map_config,selected[0].node.position);update_selection()
 
 func stop_selected():
