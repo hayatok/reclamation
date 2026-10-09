@@ -1811,7 +1811,7 @@ func hit(e:Dictionary,damage:float,direct:bool,generation:int=0,electric:bool=fa
   direction.y=0
   if direction.length_squared()<.000001:direction=e.node.basis.z;direction.y=0
   direction=direction.normalized() if direction.length_squared()>.000001 else Vector3.FORWARD
-  corpses.append({"node":e.node,"dead":false,"armored":e.get("armored",false),"speed":e.speed,"moving":false,"life":3.5,"lean":visual_rng.randf_range(-1.5,1.5),"scale":e.node.scale,"start":e.node.transform,"death_kind":death_kind,"death_direction":direction})
+  corpses.append({"node":e.node,"dead":false,"boss":e.get("boss",false),"armored":e.get("armored",false),"speed":e.speed,"moving":false,"life":3.5,"lean":visual_rng.randf_range(-1.5,1.5),"scale":e.node.scale,"start":e.node.transform,"death_kind":death_kind,"death_direction":direction})
  else:e.node.queue_free()
  if upgrades.get("blast",0)>0 and (direct or (generation>0 and generation<2 and upgrades.get("cascade",0)>0)):
   var radius=2*(1+bonus("blast_radius","blast_radius_add"))

@@ -1,0 +1,488 @@
+{
+  "status": "isolated_original_armored_candidate",
+  "generator": "source/build_heavy_poses.py",
+  "model": "Original quarantined industrial worker; ordinary armored only, boss excluded",
+  "runtime_bones": 0,
+  "editable_bones": 18,
+  "pose_count": 32,
+  "forward": "Godot -Z",
+  "units": "meters",
+  "atlas_source": "Owned infected_reconstruction/assets/infected_atlas.png",
+  "atlas_sha256": "15c19aee678132595e2ea135446feccde88c5580e3c331b29838a52bef72330c",
+  "blender_version": "4.3.2",
+  "walk_stride_m": 1.2,
+  "walk_speed_mps_unchanged": 1.2,
+  "stance_fraction": 0.625,
+  "runtime_contract": "Measured displacement / stride; shared UV2-paired pose shader; one surface; no runtime Skeleton3D",
+  "contact_contract": "attack_00 is contact; 0.9 s cooldown and immediate damage unchanged",
+  "death_contract": "No planar root motion; single baked topple, supplied with CorpseMotion baked_world",
+  "clips": {
+    "idle": {
+      "duration": 1.8,
+      "loop": true,
+      "poses": [
+        "idle_00",
+        "idle_01"
+      ]
+    },
+    "walk": {
+      "duration": 1.0,
+      "loop": true,
+      "poses": [
+        "walk_00",
+        "walk_01",
+        "walk_02",
+        "walk_03",
+        "walk_04",
+        "walk_05",
+        "walk_06",
+        "walk_07",
+        "walk_08",
+        "walk_09",
+        "walk_10",
+        "walk_11"
+      ]
+    },
+    "attack": {
+      "duration": 0.9,
+      "loop": false,
+      "poses": [
+        "attack_00",
+        "attack_01",
+        "attack_02",
+        "attack_03",
+        "attack_04",
+        "attack_05",
+        "attack_06",
+        "attack_07"
+      ]
+    },
+    "death": {
+      "duration": 1.2,
+      "loop": false,
+      "poses": [
+        "death_00",
+        "death_01",
+        "death_02",
+        "death_03",
+        "death_04",
+        "death_05",
+        "death_06",
+        "death_07",
+        "death_08",
+        "death_09"
+      ]
+    }
+  },
+  "lods": {
+    "near": {
+      "triangles_per_pose": 1050,
+      "expected_imported_vertices_per_pose": 3150,
+      "uv2_grid_side": 57,
+      "topology_sha256": "0de93d02613f0a2541a797aa1924ca8d96da8c9a82573e1f8f690d578478338d",
+      "file": "assets/armored_baked_poses.glb",
+      "bytes": 5032088,
+      "sha256": "f61e447971c1aff1c7a8b8f34c79227d56a75277a78dc388dfa792c09571d791",
+      "samples": [
+        {
+          "name": "idle_00",
+          "min_height_m": 3.725290298461914e-09,
+          "max_height_m": 1.5885999202728271,
+          "floor_correction_m": 0.0
+        },
+        {
+          "name": "idle_01",
+          "min_height_m": 4.889443516731262e-09,
+          "max_height_m": 1.5805999040603638,
+          "floor_correction_m": 0.0
+        },
+        {
+          "name": "walk_00",
+          "min_height_m": 0.0,
+          "max_height_m": 1.5846036672592163,
+          "floor_correction_m": 2.614688128232956e-07
+        },
+        {
+          "name": "walk_01",
+          "min_height_m": 0.0,
+          "max_height_m": 1.588012456893921,
+          "floor_correction_m": 2.253800630569458e-07
+        },
+        {
+          "name": "walk_02",
+          "min_height_m": 0.0,
+          "max_height_m": 1.5948296785354614,
+          "floor_correction_m": 2.6775524020195007e-08
+        },
+        {
+          "name": "walk_03",
+          "min_height_m": 0.0,
+          "max_height_m": 1.598238468170166,
+          "floor_correction_m": 3.259629011154175e-09
+        },
+        {
+          "name": "walk_04",
+          "min_height_m": 0.0,
+          "max_height_m": 1.5948296785354614,
+          "floor_correction_m": 2.0489096641540527e-08
+        },
+        {
+          "name": "walk_05",
+          "min_height_m": 0.0,
+          "max_height_m": 1.5880123376846313,
+          "floor_correction_m": 1.203734427690506e-07
+        },
+        {
+          "name": "walk_06",
+          "min_height_m": 0.0,
+          "max_height_m": 1.5846036672592163,
+          "floor_correction_m": 2.614688128232956e-07
+        },
+        {
+          "name": "walk_07",
+          "min_height_m": 0.0,
+          "max_height_m": 1.5880120992660522,
+          "floor_correction_m": 2.253800630569458e-07
+        },
+        {
+          "name": "walk_08",
+          "min_height_m": 0.0,
+          "max_height_m": 1.5948295593261719,
+          "floor_correction_m": 2.6775524020195007e-08
+        },
+        {
+          "name": "walk_09",
+          "min_height_m": 0.0,
+          "max_height_m": 1.5982381105422974,
+          "floor_correction_m": 3.259629011154175e-09
+        },
+        {
+          "name": "walk_10",
+          "min_height_m": 0.0,
+          "max_height_m": 1.5948295593261719,
+          "floor_correction_m": 2.0489096641540527e-08
+        },
+        {
+          "name": "walk_11",
+          "min_height_m": 0.0,
+          "max_height_m": 1.5880119800567627,
+          "floor_correction_m": 1.203734427690506e-07
+        },
+        {
+          "name": "attack_00",
+          "min_height_m": 0.0,
+          "max_height_m": 1.4628156423568726,
+          "floor_correction_m": 1.862645149230957e-09
+        },
+        {
+          "name": "attack_01",
+          "min_height_m": 0.0,
+          "max_height_m": 1.4669407606124878,
+          "floor_correction_m": 2.561137080192566e-09
+        },
+        {
+          "name": "attack_02",
+          "min_height_m": 7.2177499532699585e-09,
+          "max_height_m": 1.506513237953186,
+          "floor_correction_m": 0.0
+        },
+        {
+          "name": "attack_03",
+          "min_height_m": 0.0,
+          "max_height_m": 1.5569441318511963,
+          "floor_correction_m": 2.584420144557953e-08
+        },
+        {
+          "name": "attack_04",
+          "min_height_m": 5.122274160385132e-09,
+          "max_height_m": 1.5803461074829102,
+          "floor_correction_m": 0.0
+        },
+        {
+          "name": "attack_05",
+          "min_height_m": 4.656612873077393e-10,
+          "max_height_m": 1.5790045261383057,
+          "floor_correction_m": 0.0
+        },
+        {
+          "name": "attack_06",
+          "min_height_m": 0.0,
+          "max_height_m": 1.5797770023345947,
+          "floor_correction_m": 3.958120942115784e-09
+        },
+        {
+          "name": "attack_07",
+          "min_height_m": 0.0,
+          "max_height_m": 1.582904577255249,
+          "floor_correction_m": 1.862645149230957e-09
+        },
+        {
+          "name": "death_00",
+          "min_height_m": 0.0,
+          "max_height_m": 1.5835248231887817,
+          "floor_correction_m": 1.862645149230957e-09
+        },
+        {
+          "name": "death_01",
+          "min_height_m": 0.0,
+          "max_height_m": 1.5798614025115967,
+          "floor_correction_m": 2.1420419216156006e-08
+        },
+        {
+          "name": "death_02",
+          "min_height_m": 7.450580596923828e-09,
+          "max_height_m": 1.542806625366211,
+          "floor_correction_m": 0.0
+        },
+        {
+          "name": "death_03",
+          "min_height_m": 3.3527612686157227e-08,
+          "max_height_m": 1.4596132040023804,
+          "floor_correction_m": 0.0
+        },
+        {
+          "name": "death_04",
+          "min_height_m": 3.725290298461914e-08,
+          "max_height_m": 1.2771967649459839,
+          "floor_correction_m": 0.0
+        },
+        {
+          "name": "death_05",
+          "min_height_m": 0.0,
+          "max_height_m": 1.0848917961120605,
+          "floor_correction_m": 1.4901161193847656e-08
+        },
+        {
+          "name": "death_06",
+          "min_height_m": 0.0,
+          "max_height_m": 0.9646456837654114,
+          "floor_correction_m": 7.450580596923828e-08
+        },
+        {
+          "name": "death_07",
+          "min_height_m": 0.0,
+          "max_height_m": 0.9588174223899841,
+          "floor_correction_m": 0.0
+        },
+        {
+          "name": "death_08",
+          "min_height_m": 5.960464477539063e-08,
+          "max_height_m": 0.9660083055496216,
+          "floor_correction_m": 0.0
+        },
+        {
+          "name": "death_09",
+          "min_height_m": 5.960464477539063e-08,
+          "max_height_m": 0.9626879692077637,
+          "floor_correction_m": 0.0
+        }
+      ]
+    },
+    "far": {
+      "triangles_per_pose": 364,
+      "expected_imported_vertices_per_pose": 1092,
+      "uv2_grid_side": 34,
+      "topology_sha256": "67e113f50e3c7b49fb8005367a72a310ad3614fbcb68d03c50150b1e8716f904",
+      "file": "assets/armored_baked_poses_far.glb",
+      "bytes": 2259116,
+      "sha256": "46ccfdc38def424b193c41e0ca8676b1a6038564f77a6eafe4584d679efe32e0",
+      "samples": [
+        {
+          "name": "idle_00",
+          "min_height_m": 3.725290298461914e-09,
+          "max_height_m": 1.5930187702178955,
+          "floor_correction_m": 0.0
+        },
+        {
+          "name": "idle_01",
+          "min_height_m": 4.889443516731262e-09,
+          "max_height_m": 1.5850187540054321,
+          "floor_correction_m": 0.0
+        },
+        {
+          "name": "walk_00",
+          "min_height_m": 0.0,
+          "max_height_m": 1.5890225172042847,
+          "floor_correction_m": 2.614688128232956e-07
+        },
+        {
+          "name": "walk_01",
+          "min_height_m": 0.0,
+          "max_height_m": 1.5924311876296997,
+          "floor_correction_m": 2.253800630569458e-07
+        },
+        {
+          "name": "walk_02",
+          "min_height_m": 0.0,
+          "max_height_m": 1.5992485284805298,
+          "floor_correction_m": 2.6775524020195007e-08
+        },
+        {
+          "name": "walk_03",
+          "min_height_m": 0.0,
+          "max_height_m": 1.6026571989059448,
+          "floor_correction_m": 3.259629011154175e-09
+        },
+        {
+          "name": "walk_04",
+          "min_height_m": 0.0,
+          "max_height_m": 1.5992485284805298,
+          "floor_correction_m": 2.0489096641540527e-08
+        },
+        {
+          "name": "walk_05",
+          "min_height_m": 0.0,
+          "max_height_m": 1.5924310684204102,
+          "floor_correction_m": 1.203734427690506e-07
+        },
+        {
+          "name": "walk_06",
+          "min_height_m": 0.0,
+          "max_height_m": 1.5890225172042847,
+          "floor_correction_m": 2.614688128232956e-07
+        },
+        {
+          "name": "walk_07",
+          "min_height_m": 0.0,
+          "max_height_m": 1.5924309492111206,
+          "floor_correction_m": 2.253800630569458e-07
+        },
+        {
+          "name": "walk_08",
+          "min_height_m": 0.0,
+          "max_height_m": 1.5992484092712402,
+          "floor_correction_m": 2.6775524020195007e-08
+        },
+        {
+          "name": "walk_09",
+          "min_height_m": 0.0,
+          "max_height_m": 1.6026569604873657,
+          "floor_correction_m": 3.259629011154175e-09
+        },
+        {
+          "name": "walk_10",
+          "min_height_m": 0.0,
+          "max_height_m": 1.5992484092712402,
+          "floor_correction_m": 2.0489096641540527e-08
+        },
+        {
+          "name": "walk_11",
+          "min_height_m": 0.0,
+          "max_height_m": 1.592430830001831,
+          "floor_correction_m": 1.203734427690506e-07
+        },
+        {
+          "name": "attack_00",
+          "min_height_m": 0.0,
+          "max_height_m": 1.4739402532577515,
+          "floor_correction_m": 1.862645149230957e-09
+        },
+        {
+          "name": "attack_01",
+          "min_height_m": 0.0,
+          "max_height_m": 1.4781723022460938,
+          "floor_correction_m": 2.561137080192566e-09
+        },
+        {
+          "name": "attack_02",
+          "min_height_m": 7.2177499532699585e-09,
+          "max_height_m": 1.5215637683868408,
+          "floor_correction_m": 0.0
+        },
+        {
+          "name": "attack_03",
+          "min_height_m": 0.0,
+          "max_height_m": 1.5736851692199707,
+          "floor_correction_m": 2.584420144557953e-08
+        },
+        {
+          "name": "attack_04",
+          "min_height_m": 5.122274160385132e-09,
+          "max_height_m": 1.5928338766098022,
+          "floor_correction_m": 0.0
+        },
+        {
+          "name": "attack_05",
+          "min_height_m": 4.656612873077393e-10,
+          "max_height_m": 1.5912843942642212,
+          "floor_correction_m": 0.0
+        },
+        {
+          "name": "attack_06",
+          "min_height_m": 0.0,
+          "max_height_m": 1.5920569896697998,
+          "floor_correction_m": 3.958120942115784e-09
+        },
+        {
+          "name": "attack_07",
+          "min_height_m": 0.0,
+          "max_height_m": 1.595184326171875,
+          "floor_correction_m": 1.862645149230957e-09
+        },
+        {
+          "name": "death_00",
+          "min_height_m": 0.0,
+          "max_height_m": 1.590938925743103,
+          "floor_correction_m": 1.862645149230957e-09
+        },
+        {
+          "name": "death_01",
+          "min_height_m": 0.0,
+          "max_height_m": 1.5907763242721558,
+          "floor_correction_m": 2.1420419216156006e-08
+        },
+        {
+          "name": "death_02",
+          "min_height_m": 7.450580596923828e-09,
+          "max_height_m": 1.559154748916626,
+          "floor_correction_m": 0.0
+        },
+        {
+          "name": "death_03",
+          "min_height_m": 0.0,
+          "max_height_m": 1.4685180187225342,
+          "floor_correction_m": 0.00015038251876831055
+        },
+        {
+          "name": "death_04",
+          "min_height_m": 0.000795707106590271,
+          "max_height_m": 1.273422122001648,
+          "floor_correction_m": 0.0
+        },
+        {
+          "name": "death_05",
+          "min_height_m": 0.0016377270221710205,
+          "max_height_m": 1.0823564529418945,
+          "floor_correction_m": 0.0
+        },
+        {
+          "name": "death_06",
+          "min_height_m": 0.0022091269493103027,
+          "max_height_m": 0.9425102472305298,
+          "floor_correction_m": 0.0
+        },
+        {
+          "name": "death_07",
+          "min_height_m": 0.00020742416381835938,
+          "max_height_m": 0.9378236532211304,
+          "floor_correction_m": 0.0
+        },
+        {
+          "name": "death_08",
+          "min_height_m": 0.0007733702659606934,
+          "max_height_m": 0.9461368322372437,
+          "floor_correction_m": 0.0
+        },
+        {
+          "name": "death_09",
+          "min_height_m": 0.0010461807250976562,
+          "max_height_m": 0.9432781338691711,
+          "floor_correction_m": 0.0
+        }
+      ]
+    }
+  },
+  "generator_sha256": "f9a885b5d5f7f91fb38bab3fd6666801567fb23416ccae1f81a1ffed3307e070",
+  "motion_sha256": "3f1d4c5d262d45882fa8274953cdd31790cb222ac857648b1d1cbf4e569956db",
+  "elapsed_seconds": 0.931
+}

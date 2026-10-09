@@ -33,7 +33,8 @@ func run():
  horde.update_horde(enemies,1.0)
  assert(horde.baked.visible_count==1 and horde.baked_runner.visible_count==2)
  assert(horde._buckets[1].members.is_empty(),'No duplicate six-part runner draw')
- assert(horde._buckets[2].members.size()==1,'Armored fallback remains')
+ assert(horde.baked_armored.active and horde.baked_armored.visible_count==1,'Ordinary armored model is active')
+ assert(horde._buckets[2].members.is_empty(),'No duplicate six-part ordinary armored draw')
  assert(enemies==before,'Render step does not mutate combat dictionaries')
  var actor=enemies[1].node
  var old_phase=horde.baked_runner.gait_states[actor.get_instance_id()].cycle
