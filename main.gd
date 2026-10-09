@@ -3274,7 +3274,17 @@ func building_completed(building:Dictionary):
  context_signature=""
 
 func finish_construction_order(worker:Dictionary):
- WorkerOrders.finish(self,worker,true)
+ # A completed food plot is a new job for its builders. Explicit queued orders
+ # still win; other construction/repair keeps the previous gather assignment.
+ var garden:Dictionary={}
+ var target:Variant=worker.get("target")
+ if worker.task=="build" and target is Dictionary and WorkerOrders.alive(target) and target in buildings and target.kind=="garden" and target.built>=1:
+  for resource in resource_nodes:
+   if resource.get("source_building",{})==target: garden=resource;break
+ WorkerOrders.finish(self,worker)
+ if worker.task=="idle":
+  if not garden.is_empty():economy.assign_resource(worker,garden)
+  else:economy.resume_after_construction(worker)
 
 func remove_garden_resource(building:Dictionary):
  building["being_removed"]=true

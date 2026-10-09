@@ -1,0 +1,68 @@
+[
+  {
+    "builders": [
+      {
+        "cargo": 0.0,
+        "cargo_kind": "",
+        "phase": "waiting_resource",
+        "position": [
+          -74.0,
+          0.0,
+          40.0
+        ],
+        "resource": "parts",
+        "task": "gather"
+      },
+      {
+        "cargo": 0.0,
+        "cargo_kind": "",
+        "phase": "waiting_resource",
+        "position": [
+          -74.0,
+          0.0,
+          41.0
+        ],
+        "resource": "parts",
+        "task": "gather"
+      }
+    ],
+    "completed_after_seconds": 13.9999999999873,
+    "elapsed": 902.699999999727,
+    "food_after": 961.88,
+    "food_before": 950.38,
+    "variant": "before"
+  },
+  {
+    "builders": [
+      {
+        "cargo": 8.568,
+        "cargo_kind": "food",
+        "phase": "gathering",
+        "position": [
+          -81.0,
+          0.0,
+          44.0
+        ],
+        "resource": "food",
+        "task": "gather"
+      },
+      {
+        "cargo": 10.368,
+        "cargo_kind": "food",
+        "phase": "gathering",
+        "position": [
+          -81.0,
+          0.0,
+          42.0
+        ],
+        "resource": "food",
+        "task": "gather"
+      }
+    ],
+    "completed_after_seconds": 13.9999999999873,
+    "elapsed": 902.699999999727,
+    "food_after": 984.88,
+    "food_before": 950.38,
+    "variant": "after"
+  }
+]
