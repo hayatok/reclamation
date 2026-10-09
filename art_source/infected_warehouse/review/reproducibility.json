@@ -1,0 +1,9 @@
+{
+  "byte_identical_independent_rebuild": true,
+  "sha256": {
+    "assets/infected_warehouse_alive.glb": "101bf58f5297814c2a5a65445b0b65a55b1511e13dc85238fdec782c41fdb9f6",
+    "assets/infected_warehouse_dead.glb": "1d951c70e63455e150a4446fc5fadb8e10973a84bea98b1f9eecc87e6ddc8739",
+    "assets/infected_fibre.png": "689d183afe86b803b62bb0925a22bc58834a6f7000a1b46ab8262f589784fe68",
+    "asset_stats.json": "e74face0629d10bade1a476b643e5ea03950b2557a2c92d3eae8a5df934c521e"
+  }
+}

@@ -1,0 +1,22 @@
+{
+	"Intact": {
+		"horizontal_radius": 4.26651191711426,
+		"max_y": 5.09156036376953,
+		"opaque_surfaces": 2,
+		"triangles": 3352
+	},
+	"Rubble": {
+		"horizontal_radius": 4.26651191711426,
+		"max_y": 1.4099999666214,
+		"opaque_surfaces": 2,
+		"triangles": 2924
+	},
+	"checks": {
+		"alarm_clears_on_death": true,
+		"alive_dead_alive_roundtrip": true,
+		"architecture_material_unchanged": true,
+		"no_runtime_children_on_meshes": true,
+		"per_instance_alarm": true,
+		"texture_mipmaps": true
+	}
+}

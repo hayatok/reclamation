@@ -1,0 +1,78 @@
+{
+  "alive": {
+    "WarehouseShell": {
+      "triangles": 1020,
+      "vertices": 1470,
+      "surfaces": 1,
+      "aabb_min": [
+        -3.259999990463257,
+        0.0,
+        -2.8499999046325684
+      ],
+      "aabb_max": [
+        3.174999952316284,
+        4.699999809265137,
+        2.8499999046325684
+      ],
+      "horizontal_radius": 4.266511917114258
+    },
+    "Infection": {
+      "triangles": 2332,
+      "vertices": 1176,
+      "surfaces": 1,
+      "aabb_min": [
+        -2.516026496887207,
+        0.0735490620136261,
+        -3.530412197113037
+      ],
+      "aabb_max": [
+        3.7658309936523438,
+        5.091560363769531,
+        2.676799774169922
+      ],
+      "horizontal_radius": 3.9286553859710693
+    }
+  },
+  "dead": {
+    "BrokenWarehouse": {
+      "triangles": 592,
+      "vertices": 678,
+      "surfaces": 1,
+      "aabb_min": [
+        -3.174999952316284,
+        0.0,
+        -2.8499999046325684
+      ],
+      "aabb_max": [
+        3.174999952316284,
+        1.409999966621399,
+        2.8499999046325684
+      ],
+      "horizontal_radius": 4.266511917114258
+    },
+    "SpentInfection": {
+      "triangles": 2332,
+      "vertices": 1176,
+      "surfaces": 1,
+      "aabb_min": [
+        -2.5115268230438232,
+        0.05699898675084114,
+        -3.5269761085510254
+      ],
+      "aabb_max": [
+        3.759291172027588,
+        1.2561432123184204,
+        2.6686975955963135
+      ],
+      "horizontal_radius": 3.921462297439575
+    }
+  },
+  "provenance": {
+    "original": true,
+    "source": "source/build_infected_warehouse.py",
+    "coordinate_system": "glTF +Y up, metres",
+    "vertex_colors": "linear RGB, converted explicitly from authored sRGB hex",
+    "texture": "Original deterministic 256x256 grayscale fibre field; mipmaps required at import",
+    "runtime_surfaces_per_visible_state": 2
+  }
+}
