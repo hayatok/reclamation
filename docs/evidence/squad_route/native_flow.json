@@ -1,0 +1,45 @@
+{
+  "scope": "Native cloud ordinary keyboard/mouse sequence; same paused game and camera, replaced only minimap drawing helper",
+  "flow": [
+    "Four earned east-bank scouts selected",
+    "Ctrl1 register",
+    "Right-click west-bank minimap destination",
+    "Resume simulation",
+    "Left-click minimap to look at home",
+    "Pause after9simulationseconds",
+    "Capture old/new same-state display",
+    "H selects HQ and clearscue",
+    "1 recalls samefour and restorecue",
+    "W stops squad and clearscue"
+  ],
+  "elapsed": 871.699999999755,
+  "selected_indices": [
+    6,
+    7,
+    8,
+    9
+  ],
+  "checkpoint_equal": true,
+  "path_queries_unchanged_on_draw_swap": true,
+  "desktop_pixels": [
+    1180,
+    737
+  ],
+  "mobile_fixture_pixels": [
+    844,
+    390
+  ],
+  "mobile_minimap_pixels": [
+    64,
+    64
+  ],
+  "limits": [
+    "Mobile layout is native synthetic, not phone/Safari",
+    "Representative actual route, not guarantee that every selected member shares a path",
+    "First unknown clips route; issued point does not certify reachability"
+  ],
+  "final_cache_native_checked": true,
+  "final_paused_stop_clears": true,
+  "helper_sha256": "84fb9873be30d1bd915e4581c48bd0754bcf91cec38e1c8c47f305bad8f44ae4",
+  "minimap_sha256": "38cec1fad099b5a58c3387b3c12fa32476f770b14cb75b82b7d5e60a649e7fb4"
+}

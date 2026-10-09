@@ -3,6 +3,7 @@ extends RefCounted
 ## Terrain is baked once; a single 48x40 texture is tinted on fog revision only.
 ## No nest coordinates are read from map_config or the live controller.
 const MissionMap = preload("res://mission_map.gd")
+const SelectedSquadRouteCue = preload("res://selected_squad_route_cue.gd")
 const NEST_ID: String = "frontier_nest"
 const UNKNOWN_COLOR: Color = Color("0c1216")
 const LAND_COLOR: Color = Color("52615a")
@@ -25,6 +26,7 @@ var _map_texture: ImageTexture
 var _layout_signature: Array = []
 var _fog_revision: int = -1
 var _field: RefCounted
+var _selected_order_cache: RefCounted = SelectedSquadRouteCue.new()
 
 ## Needed only if static terrain is replaced without changing map dimensions.
 func invalidate_terrain() -> void:
@@ -46,6 +48,7 @@ func draw(host: Node) -> void:
 		canvas.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	canvas.draw_texture_rect(texture, _playable_rect(config, size), false)
 	_draw_sites(host, canvas, field, config, size)
+	_draw_selected_route(host, canvas, field, config, size)
 	_draw_friendlies(host, canvas, config, size)
 	_draw_enemies(host, canvas, field, config, size)
 	_draw_nest(host, canvas, field, config, size)
@@ -137,6 +140,26 @@ func _draw_sites(host: Node, canvas: Control, field: RefCounted, config: Diction
 		if not field.is_visible(position):
 			color *= Color(0.6, 0.6, 0.6, 1.0)
 		canvas.draw_circle(MissionMap.world_to_map(config, position, size), 2.3, color)
+
+## The source ring identifies one real member's route, never a merged squad path.
+## Unknown terrain clips the line; the flag marks only the player's issued point.
+func _draw_selected_route(host: Node, canvas: Control, field: RefCounted, config: Dictionary, size: Vector2) -> void:
+	var cue: Dictionary = _selected_order_cache.get_data(host.selected, host.friendly_navigation, field, host.nav, float(host.elapsed))
+	if cue.is_empty():
+		return
+	var color: Color = Color("c7be96") if cue.task == "move" else Color("d3a17a")
+	var line: PackedVector2Array = PackedVector2Array()
+	for position: Vector3 in cue.known_route:
+		line.append(MissionMap.world_to_map(config, position, size))
+	if line.size() > 1:
+		canvas.draw_polyline(line, Color(color, 0.78), 1.25, true)
+		if not cue.route_complete:
+			canvas.draw_circle(line[-1], 1.7, color)
+	var source: Vector2 = MissionMap.world_to_map(config, cue.representative_position, size)
+	canvas.draw_arc(source, 3.6, 0.0, TAU, 16, color, 1.0, true)
+	var flag: Vector2 = MissionMap.world_to_map(config, cue.issued_destination, size)
+	canvas.draw_line(flag + Vector2(0, 2), flag + Vector2(0, -6), color, 1.4, true)
+	canvas.draw_polyline(PackedVector2Array([flag + Vector2(0, -6), flag + Vector2(6, -3), flag, flag + Vector2(0, -6)]), color, 1.2, true)
 
 func _draw_friendlies(host: Node, canvas: Control, config: Dictionary, size: Vector2) -> void:
 	for building: Dictionary in host.buildings:

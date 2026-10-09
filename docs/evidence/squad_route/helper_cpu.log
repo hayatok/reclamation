@@ -1,0 +1,4 @@
+SQUAD_CUE_BENCH selected=4 mode=frozen samples=2000 mean_usec=48.068 draw_points=96 fog_checks=214 builds=1 hits=2039 path_queries=0
+SQUAD_CUE_BENCH selected=4 mode=moving_tick samples=2000 mean_usec=729.123 draw_points=96 fog_checks=214 builds=2000 hits=40 path_queries=0
+SQUAD_CUE_BENCH selected=64 mode=frozen samples=2000 mean_usec=510.07 draw_points=96 fog_checks=214 builds=1 hits=2039 path_queries=0
+SQUAD_CUE_BENCH selected=64 mode=moving_tick samples=2000 mean_usec=1586.972 draw_points=96 fog_checks=214 builds=2000 hits=40 path_queries=0

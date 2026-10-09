@@ -1,0 +1,96 @@
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+PASS fog fixture accepts explored-cell snapshot
+PASS coherent combat squad receives a cue
+PASS lowest instance ID is the explicitly identified representative
+PASS selection-array reordering keeps route and representative stable
+PASS known route preserves actual detour without a wall shortcut
+PASS known endpoint and issued point are explicit and independent
+PASS build and returned-data edits leave units, nodes, fog, revision and query counters unchanged
+PASS helper never moves the representative node
+PASS mixed move and attack-move orders suppress the entire cue
+PASS matching attack-move squad is eligible
+PASS divergent requested goals cannot invent a shared route
+PASS focus_fire member suppresses squad cue
+PASS escort member suppresses squad cue
+PASS gather member suppresses squad cue
+PASS build member suppresses squad cue
+PASS idle member suppresses squad cue
+PASS pending member suppresses squad cue
+PASS blocked member suppresses squad cue
+PASS arrived member suppresses squad cue
+PASS work_waiting member suppresses squad cue
+PASS mixed worker/combat selection suppresses cue
+PASS siege cart belongs to eligible military kinds
+PASS dead selection member clears cue
+PASS duplicate actor cannot impersonate a squad
+PASS deselection clears cue
+PASS navigation revision rejects all stale paths immediately
+PASS changed order cannot reuse prior nav route
+PASS physical arrival clears cue even before status catch-up
+PASS fog fixture accepts explored-cell snapshot
+PASS long waypoint leg stops at the first unknown cell
+PASS explored prefix ends just inside the first unknown boundary
+PASS own issued destination survives independently of fog clipping
+PASS changed hidden wall beyond first unknown is never inspected
+PASS hidden boundary navigation cell cannot change the clipped route
+PASS unknown own requested point is shown instead of projected endpoint
+PASS target-bearing order cannot expose an enemy or hidden structure target
+PASS route never resumes after crossing unknown into later explored waypoints
+PASS fog fixture accepts explored-cell snapshot
+PASS unknown side cell at a diagonal corner clips the leg conservatively
+PASS hidden corner navigation cell cannot change the clipped route
+PASS fog fixture accepts explored-cell snapshot
+PASS boundary-aligned leg cannot reveal unknown cells along its other side
+PASS fog fixture accepts explored-cell snapshot
+PASS exact maximum fog edge remains an explored endpoint
+PASS local navigation points transform into world minimap coordinates
+PASS drawing never inspects unannounced grid writes
+PASS production grid revision immediately invalidates the old route
+PASS nonfinite interior route point is rejected
+PASS nonfinite requested point is rejected
+PASS incomplete route whose tail differs from nav endpoint is rejected
+PASS empty route never becomes a straight destination segment
+PASS drawing-point cap reports an explicitly incomplete prefix
+PASS oversized route is rejected before traversal
+PASS dense fog fixture restores
+PASS fog traversal has a hard shared cell-check budget
+PASS drawing remains free of pathfinding queries
+PASS real FriendlyNavigation moving route is accepted
+PASS render cue performs no additional pathfinding
+PASS ordinary navigation arrival removes the cue
+PASS frozen render-only frame reuses identical drawing data
+PASS frozen render-only frame reuses identical drawing data
+PASS frozen render-only frame reuses identical drawing data
+PASS frozen render-only frame reuses identical drawing data
+PASS frozen render-only frame reuses identical drawing data
+PASS frozen render-only frame reuses identical drawing data
+PASS frozen render-only frame reuses identical drawing data
+PASS frozen render-only frame reuses identical drawing data
+PASS identical paused key builds exactly once
+PASS returned cache data cannot mutate retained route
+PASS paused representative route edit invalidates detached snapshot
+PASS paused position change rebuilds immediately
+PASS new simulation tick refreshes even if actor is holding position
+PASS paused stop clears cached route immediately
+PASS resumed valid order rebuilds after a paused stop
+PASS paused goal replacement hides route before planning
+PASS paused requested destination change cannot retain old marker
+PASS cached pending clears immediately
+PASS valid movement rebuilds after pending
+PASS cached blocked clears immediately
+PASS valid movement rebuilds after blocked
+PASS cached arrived clears immediately
+PASS valid movement rebuilds after arrived
+PASS cached work_waiting clears immediately
+PASS valid movement rebuilds after work_waiting
+PASS paused death clears the cache
+PASS paused deselection clears the cache
+PASS paused selection replacement uses the new representative
+PASS navigation revision clears cached route before next simulation tick
+PASS fog revision refreshes same-time cached prefix
+PASS fog fixture accepts explored-cell snapshot
+PASS same-layout same-revision field replacement refreshes cache
+PASS grid instance replacement invalidates cache identity
+PASS disabled visibility clears cached presentation
+SELECTED_SQUAD_ROUTE_RESULT checks=93 failures=0
