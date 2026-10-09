@@ -16,3 +16,7 @@ Design references: official Age of Empires IV victory conditions and Season One 
 - https://www.ageofempires.com/news/age-of-empires-iv-season-one-update-release-notes/
 
 Native controlled-frame review at 1180×737 confirms the existing countdown, focus action and interruption instruction are legible. These images stage warning/occupation on an archived army and are not ordinary-play or performance evidence. See `evidence/transmission_defense/review.json`.
+
+## Bounded play conclusion
+
+Not accepted for release. A paid continuation reached Age III research but stopped before transmission readiness when its chosen builders were enclosed by its own construction layout. Other troops and workers remained, so this does not establish a global softlock or a balance defect. No further commander retries or difficulty changes were made. The concrete state is retained in `tests/fixtures/m3_paid_age3_construction_pocket.json`; the observer correction and limits are in `evidence/transmission_defense/bounded_play_result.json`.
