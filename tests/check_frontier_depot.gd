@@ -53,7 +53,21 @@ func run():
  check(g.placement_issue("depot",site.node.position).is_empty(),"retired site leaves no invisible build exclusion")
  check(save_reload(),"destroyed depot and claimed site remain valid")
  check(g.buildings.filter(func(b):return b.kind=="depot").is_empty(),"reload does not regenerate dismantled depot")
+ if g.mobile_input!=null:
+  for unit in g.units:unit.node.position=g.map_config.home+Vector3(-8,0,0)
+  var guard=g.units.filter(func(u):return u.kind=="guard")[0]
+  g.selected=[guard];g.camera_focus=Vector3(-50,0,-8);g.mobile_input._camera()
+  await process_frame
+  g.mobile_input._tap(g.camera.unproject_position(Vector3(-50,0,-8)),0,false)
+  check(g.selected==[guard] and guard.task=="move","touch on cleared depot ground issues movement")
  var bad=g.checkpoint_data();bad.sites[1].paid=false
  check(not g.valid_checkpoint(bad),"unpaid completed repair is rejected")
+ g.free();await process_frame
+ for index in [0,2]:
+  c.current=index;c.launch=true;c.resume=false;c.choose_run_seed(4451)
+  g=load("res://main.tscn").instantiate();root.add_child(g);g.set_process(false)
+  step(1)
+  check(g.get_site("abandoned_depot").is_empty() and g.valid_checkpoint(g.checkpoint_data()),"other mission keeps its facilities and valid save")
+  g.free();await process_frame
  print("FRONTIER_DEPOT_RESULT failures=",failures)
- g.free();await process_frame;quit(1 if failures else 0)
+ quit(1 if failures else 0)

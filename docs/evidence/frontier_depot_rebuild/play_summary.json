@@ -1,0 +1,48 @@
+{
+  "cards": [],
+  "deposits": [
+    {
+      "amount": 10.0,
+      "resource": "food",
+      "time": 104.549999999996
+    },
+    {
+      "amount": 10.0,
+      "resource": "food",
+      "time": 104.549999999996
+    }
+  ],
+  "elapsed": 104.999999999996,
+  "ended": false,
+  "hq_hp": 1000.0,
+  "kills": 16,
+  "orders": [
+    {
+      "event": "paid training shelter",
+      "time": 3.0
+    },
+    {
+      "event": "queued two paid guards",
+      "time": 18.5000000000001
+    },
+    {
+      "event": "four guards advance, two workers follow",
+      "time": 62.4999999999986
+    },
+    {
+      "event": "workers restore discovered depot",
+      "time": 87.4999999999972
+    },
+    {
+      "event": "depot ready",
+      "time": 94.4999999999968
+    }
+  ],
+  "restored": true,
+  "stockpile": {
+    "food": 390.0,
+    "parts": 20.0,
+    "salvage": 84.0
+  },
+  "units": 10
+}

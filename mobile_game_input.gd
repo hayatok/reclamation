@@ -107,6 +107,7 @@ func _tap(screen:Vector2,mode:int,append:bool)->void:
    if host.frontier_position_known(site.node.position) and site.node.position.distance_to(ground)<3 and not site.get("reclaimed",false):
     host.command_at(ground,screen,append);return
  for site in host.sites:
+  if site.kind=="abandoned_depot" and site.reclaimed:continue
   if host.frontier_position_known(site.node.position) and site.node.position.distance_to(ground)<3:
    host.select_rect(screen,screen,false);return
  if not host.selected.is_empty():host.command_at(ground,screen,append)

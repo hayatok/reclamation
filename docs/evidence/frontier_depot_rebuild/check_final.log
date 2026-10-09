@@ -1,0 +1,27 @@
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+PASS unknown optional depot starts hidden
+PASS new frontier checkpoint valid
+PASS scouting reveals the abandoned structure
+PASS normal work pays once and starts restoration
+PASS explicit actual repair cost
+PASS partial restoration saves and reloads
+PASS payment and progress preserved
+PASS restoration creates one ordinary depot
+PASS only completed building owns the footprint
+PASS multiple workers and reload do not double charge
+PASS ordinary health and construction state
+PASS completed restoration roundtrip
+PASS reload never creates a duplicate or visible ghost
+PASS refund is based on actual repair cost
+PASS dismantling releases the site footprint
+PASS retired site leaves no invisible build exclusion
+PASS destroyed depot and claimed site remain valid
+PASS reload does not regenerate dismantled depot
+PASS touch on cleared depot ground issues movement
+PASS unpaid completed repair is rejected
+PASS other mission keeps its facilities and valid save
+PASS other mission keeps its facilities and valid save
+FRONTIER_DEPOT_RESULT failures=0
+WARNING: ObjectDB instances leaked at exit (run with --verbose for details).
+   at: cleanup (core/object/object.cpp:2663)

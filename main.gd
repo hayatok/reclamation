@@ -3649,6 +3649,7 @@ func update_ui():
    supply_text="段階%d / %s\n%s"%[int(restoration.age),"支払済み" if inspected_site.paid else GameRules.cost_text(restoration.cost),"作業員を選択して右クリックで復旧"]
   if inspected_site.kind==FrontierDepot.KIND:
    selection_tooltip="復旧後は3資源の搬入所 / 作業員1人で12秒"
+   command_heading.text="復旧 %d%% → 資源搬入所"%int(inspected_site.progress*100)
   selection_text=site_title(inspected_site.kind)+"\n"+("復旧済" if inspected_site.reclaimed else "復旧 %d%%"%int(inspected_site.progress*100))
  selection_info.text=selection_text
  selection_info.tooltip_text=selection_tooltip
