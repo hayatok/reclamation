@@ -234,3 +234,5 @@ Godot 4.6.3で `project.godot` を開き、F5を押します。追加プラグ�
 [0.8の画面](docs/screenshots/v08_earned_overview.png)と[以前の砲撃映像](docs/video/earned_barrage.mp4)は旧版の記録です。0.9の新しい操作・経済の画面やリアルタイム性能を示すものではありません。
 
 完成した版の公開とGitHub Pagesへの配信は[公開手順](docs/PUBLISHING.md)を参照してください。ソース更新だけでは配信しません。
+
+成長選択が後続候補に及ぼす既存の効果を、該当する8枚に表示しました。[範囲と検証](docs/GROWTH_FAMILY_CLARITY.md)。

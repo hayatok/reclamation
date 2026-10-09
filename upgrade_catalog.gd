@@ -69,6 +69,16 @@ static func family_for(id: String) -> String:
 			return family
 	return ""
 
+## Only these choices change the persisted family reservation, not every member.
+static func chosen_family(id: String) -> String:
+	return family_for(id) if id in ["chain", "blast", "multi", "salvo", "storm", "cascade", "sweep", "fortress"] else ""
+
+static func family_choice_text(id: String) -> String:
+	var family := chosen_family(id)
+	if family.is_empty():return ""
+	var title: String = {"lightning":"電撃", "explosive":"爆発", "mobile":"機動・補給", "ballistic":"実弾"}[family]
+	return "採用後の候補補助：%s系\n未登場が続く時、取得可能な候補を補充" % title
+
 static func _copy_card(card: Dictionary) -> Dictionary:
 	var result := card.duplicate(true)
 	result["family"] = family_for(card.id)

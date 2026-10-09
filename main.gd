@@ -1955,6 +1955,12 @@ func display_cards():
    next.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
    next.custom_minimum_size.x=300
    v.add_child(next)
+  var family_note=UpgradeCatalog.family_choice_text(data.id)
+  if not family_note.is_empty():
+   var family_label=label(family_note,13,Color("595c48"))
+   family_label.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
+   family_label.custom_minimum_size.x=300
+   v.add_child(family_label)
   var rank=int(upgrades.get(data.id,0))+1
   var footer="採用  [%d]"%[i+1]
   if data.get("max_rank",-1)>0:footer+="    RANK %d / %d"%[rank,data.max_rank]
@@ -1979,8 +1985,8 @@ func choose_upgrade(index:int):
  pending_upgrade_levels.pop_front()
  cards=[]
  upgrades[data.id]=upgrades.get(data.id,0)+1
- if data.id in ["chain","blast","multi","salvo","storm","cascade","sweep","fortress"]:
-  var family=UpgradeCatalog.family_for(data.id)
+ var family=UpgradeCatalog.chosen_family(data.id)
+ if not family.is_empty():
   if family!=preferred_family:family_misses=0
   preferred_family=family
  if data.id=="armor":
@@ -2468,8 +2474,9 @@ func _desktop_modal_layout():
    item.body.offset_top=14 if compact else 18
    item.body.offset_bottom=-14 if compact else -18
    item.body.add_theme_constant_override("separation",8 if compact else 10)
-   item.art.custom_minimum_size.y=170 if compact else 210
-   item.art.get_child(0).custom_minimum_size.y=160 if compact else 200
+   var family_room=40.0 if compact and cards.any(func(card):return not UpgradeCatalog.chosen_family(card.id).is_empty()) else 0.0
+   item.art.custom_minimum_size.y=(170 if compact else 210)-family_room
+   item.art.get_child(0).custom_minimum_size.y=(160 if compact else 200)-family_room
 
 func start_mission(index:int,seed_override:int=-1):
  campaign_state.current=index

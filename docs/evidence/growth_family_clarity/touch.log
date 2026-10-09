@@ -1,0 +1,17 @@
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+PASS resumed card modal is above HUD
+PASS former HUD region targets the growth modal
+PASS former HUD region targets the growth modal
+PASS presentation does not reroll offers
+PASS replacement after reroll stays modal
+PASS postpone returns to normal HUD
+PASS reopen existing choices
+PASS reopen preserves cards and RNG
+PASS save while choices are open
+PASS second scene reload keeps offers and topmost panel
+PASS all three adoption controls exist
+PASS interrupted press cannot apply upgrade
+PASS fresh tap applies chosen upgrade once
+PASS duplicate release cannot reapply upgrade
+RESTORED_TOUCH_GROWTH_RESULT failures=0 viewport=(844, 390)

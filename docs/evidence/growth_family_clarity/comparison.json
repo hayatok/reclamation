@@ -1,0 +1,11 @@
+{
+  "exact_saved_state_equal": true,
+  "states": [
+    "chosen",
+    "opened",
+    "reopened",
+    "rerolled",
+    "resumed"
+  ],
+  "scope": "same earned save; open/reopen/reroll/choose/resume; complete checkpoint including both RNG states"
+}

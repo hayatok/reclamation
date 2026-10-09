@@ -534,6 +534,8 @@ func _adapt_cards(panel:Control)->void:
   _body_text(content,host.upgrade_preview(data),13,AMBER)
   var route:String=host.upgrade_route_text(data.id)
   if not route.is_empty():_body_text(content,route,12,MUTED)
+  var family_note:String=host.UpgradeCatalog.family_choice_text(data.id)
+  if not family_note.is_empty():_body_text(content,family_note,12,MUTED)
   var spacer=Control.new();spacer.size_flags_vertical=Control.SIZE_EXPAND_FILL;content.add_child(spacer)
   var choose=_button("この強化を採用",func():host.choose_upgrade(i),content)
   choose.custom_minimum_size.y=48
