@@ -3,6 +3,7 @@ extends Control
 ## selected producers, queues, upgrade effects, save state and all callbacks.
 ## Coordinates are CSS-sized logical viewport units; never multiply by DPR.
 const Deck=preload("res://command_deck.gd")
+const ExpandedMap=preload("res://mobile_expanded_map.gd")
 const MobileGroups=preload("res://mobile_groups.gd")
 const PALE=Color("eee6d1")
 const AMBER=Color("d2b573")
@@ -31,6 +32,7 @@ var pause_button:Button
 var growth_button:Button
 var idle_button:Button
 var menu_button:Button
+var expanded_map:Control
 var popup:PanelContainer
 var popup_previous_pause:bool=false
 var grid_home:Node
@@ -231,7 +233,8 @@ func _layout()->void:
   grid_area=Rect2(Vector2(4,52),Vector2(w-8,52))
  host.command_grid.columns=columns
  _rect(host.command_grid,grid_area)
- _rect(host.minimap,map_area)
+ if is_instance_valid(expanded_map):expanded_map.fit(safe_rect)
+ else:_rect(host.minimap,map_area)
  var goal_w:float=minf(w,420)
  _rect(goal,Rect2(Vector2(safe_rect.position.x,safe_rect.position.y+top_h+4),Vector2(goal_w,44)))
  _rect(alert,Rect2(Vector2(safe_rect.end.x-minf(w,310),safe_rect.position.y+top_h+52),Vector2(minf(w,310),44)))
@@ -333,6 +336,7 @@ func _show_selection(replace_current:bool=false)->void:
  for entry in [["本部",func():_close_popup();host.select_headquarters()],["全戦闘員",func():_close_popup();host.select_guards()],["全作業員",func():_close_popup();host.select_workers()]]:
   var shortcut=_button(entry[0],entry[1],selectors)
   shortcut.size_flags_horizontal=Control.SIZE_EXPAND_FILL
+ _button("地図を開く",_show_map,body)
  var waiting=host.units.filter(func(unit):return host.worker_needs_attention(unit)).size()
  if waiting>0:_button("待機 %d人を選択"%waiting,func():_close_popup();host.select_idle_worker(true),body)
  var kinds=host.selection_kind_counts()
@@ -369,7 +373,21 @@ func _show_selection(replace_current:bool=false)->void:
    _body_text(costs_body,title_text+"\n"+_touch_words(action.button.tooltip_text),14)
  _button("閉じる",_close_popup,body)
 
+func _show_map()->void:
+ var body=_open_popup("地図",true)
+ if body==null:return
+ expanded_map=ExpandedMap.new();body.add_child(expanded_map)
+ expanded_map.setup(host,safe_rect)
+ _button("選択へ戻る",func():_show_selection(true),body)
+
+func _restore_map()->void:
+ if is_instance_valid(expanded_map):
+  expanded_map.restore()
+  expanded_map=null
+  _rect(host.minimap,map_area)
+
 func _open_popup(title:String,replace_current:bool=false)->VBoxContainer:
+ _restore_map()
  var scroll:ScrollContainer
  if replace_current and has_open_popup():
   # Navigate inside one owned modal: retain the first pause snapshot and the
@@ -407,6 +425,7 @@ func _open_popup(title:String,replace_current:bool=false)->VBoxContainer:
 
 func _close_popup()->void:
  if not has_open_popup():return
+ _restore_map()
  popup.hide();popup.queue_free()
  popup=null;host.paused=popup_previous_pause
 
@@ -683,7 +702,8 @@ func _allow_scroll_drag(node)->void:
   node.mouse_filter=Control.MOUSE_FILTER_PASS
  for child in node.get_children():_allow_scroll_drag(child)
 
-func cancel_scroll_drag()->void:
+func cancel_scroll_drag(reason:String="")->void:
+ if is_instance_valid(expanded_map):expanded_map.cancel_gesture(reason in ["blur","hidden","pagehide","focus_lost","visibilitychange"])
  for scroll in host.root_ui.find_children("MobileScroll","ScrollContainer",true,false):
   if is_instance_valid(scroll) and scroll.is_visible_in_tree():
    # Godot's setter cancels its internal touch drag/momentum without moving it.

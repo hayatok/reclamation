@@ -3888,7 +3888,7 @@ func _mobile_layout(initial:bool=false)->void:
 func _mobile_reset(reason:String)->void:
  escort_targeting=false
  mobile_gui_guard.cancel_interaction()
- if is_instance_valid(mobile_hud):mobile_hud.cancel_scroll_drag()
+ if is_instance_valid(mobile_hud):mobile_hud.cancel_scroll_drag(reason)
  if mobile_input!=null:mobile_input.cancel(reason,reason in ["blur","hidden","pagehide","focus_lost","visibilitychange"])
 func touch_set_mode(mode:int)->void:
  escort_targeting=false

@@ -1,0 +1,11 @@
+{
+  "native_touch": true,
+  "camera_only": true,
+  "orders_and_selection_unchanged": true,
+  "touchcancel_and_blur_rejected": true,
+  "rotation_and_multitouch_rejected": true,
+  "save_load": true,
+  "phone": false,
+  "browser": false,
+  "renderer": "Godot 4.6.3 Compatibility llvmpipe"
+}
