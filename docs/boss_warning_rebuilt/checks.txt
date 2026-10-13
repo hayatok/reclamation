@@ -1,0 +1,1 @@
+PASS boss warning: fixed radius, cached geometry/colors, pause, fresh-renderer restore, clipping, lifecycle, bounded cues, no record mutation

@@ -47,6 +47,7 @@ const DesktopCommandDock=preload("res://desktop_command_dock.gd")
 const CommandDeck=preload("res://command_deck.gd")
 const EnvironmentOverlay=preload("res://environment_overlay.gd")
 const BattleFX=preload("res://battle_fx.gd")
+const BossAttackWarningView=preload("res://boss_attack_warning.gd")
 const BattleVisibility=preload("res://battle_visibility.gd")
 const ConvoyPlan=preload("res://convoy_plan.gd")
 const GameRules=preload("res://settlement_rules.gd")
@@ -181,6 +182,7 @@ var selected:Array=[]
 var horde_renderer:Node3D
 var district_art:Node3D
 var battle_visibility:Node
+var boss_attack_warning:Node3D
 var battle_fx:Node
 var camera:Camera3D
 var camera_focus=Vector3.ZERO
@@ -360,6 +362,7 @@ func _ready():
   rebuild_navigation()
  make_ui()
  make_audio()
+ boss_attack_warning=BossAttackWarningView.new();add_child(boss_attack_warning)
  battle_fx=BattleFX.new()
  add_child(battle_fx)
  horde_renderer=HordeRenderer.new()
@@ -1407,6 +1410,7 @@ func _process(delta):
  update_worker_route_preview()
  update_weapon_range_preview(actor_frames)
  update_power_planning_preview()
+ update_boss_attack_warning()
  battle_visibility.update_visibility(camera,units,[] if aftermath_settled else enemies.filter(func(e):return frontier_visibility==null or frontier_visibility.is_visible(e.node.position)),[] if aftermath_settled else shells,delta)
  battle_fx.update(dt,camera,buildings,actor_frames)
  if pending_card_delay>0:
@@ -1635,7 +1639,6 @@ func simulate_world(dt:float):
    if e.cd<=0:
     if e.get("boss",false):
      e.windup=1.4;e.attack_pos=target.node.position
-     pulse(e.attack_pos,RED,4.5,1.4)
      continue
     e["attack_at"]=elapsed
     target.hp-=18 if e.get("armored",false) else 9
@@ -4068,3 +4071,26 @@ func update_power_planning_preview():
    rings.append(nearest);colors.append(green)
    link_start=nearest;link_end=building.node.position;link_color=green if building.powered else amber
  power_coverage_preview.set_plan(rings,colors,link_start,link_end,link_color)
+
+func update_boss_attack_warning():
+ if not is_instance_valid(boss_attack_warning):return
+ var records:Array=[]
+ var fog_active=frontier_visibility!=null and frontier_visibility.enabled
+ if not ended and not title_open:
+  for enemy in enemies:
+   if not enemy.get("boss",false) or enemy.get("dead",false):continue
+   if fog_active and not frontier_visibility.is_visible(enemy.node.position):continue
+   var record=enemy.duplicate(false)
+   record["target_visible"]=not fog_active or frontier_visibility.is_visible(enemy.attack_pos)
+   records.append(record)
+ boss_attack_warning.sync_warnings(records,not ended and not title_open,Callable(self,"boss_warning_patch_visible") if fog_active else Callable())
+
+func boss_warning_patch_visible(patch:Rect2)->bool:
+ if frontier_visibility==null or not frontier_visibility.enabled:return true
+ var fog=frontier_visibility
+ var first=Vector2i(floori((patch.position.x-fog.bounds.position.x)/fog.cell_size),floori((patch.position.y-fog.bounds.position.y)/fog.cell_size))
+ var last=Vector2i(floori((patch.end.x-fog.bounds.position.x)/fog.cell_size),floori((patch.end.y-fog.bounds.position.y)/fog.cell_size))
+ for y in range(first.y,last.y+1):
+  for x in range(first.x,last.x+1):
+   if fog.cell_state(Vector2i(x,y))!=fog.VISIBLE:return false
+ return true

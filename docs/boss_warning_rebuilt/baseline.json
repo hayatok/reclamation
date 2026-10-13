@@ -1,0 +1,13 @@
+{
+  "after_reload": {
+    "boss_count": 1,
+    "pulse_count": 0,
+    "windup": 1.4
+  },
+  "paused": {
+    "paused": true,
+    "pulse_count": 0,
+    "windup": 1.4
+  },
+  "save_error": 0
+}

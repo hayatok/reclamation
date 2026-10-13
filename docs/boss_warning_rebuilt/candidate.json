@@ -1,0 +1,23 @@
+{
+  "after_reload": {
+    "boss_count": 1,
+    "pulse_count": 0,
+    "warning_count": 1,
+    "windup": 1.4
+  },
+  "cached_sync_mean_usec": 21.6405,
+  "death_warning_count": 0,
+  "impact": {
+    "hp_after": 1080.0,
+    "hp_before": 1200.0,
+    "warning_count": 0,
+    "windup": -0.000000000000000763278329429795
+  },
+  "paused": {
+    "paused": true,
+    "pulse_count": 0,
+    "warning_count": 1,
+    "windup": 1.4
+  },
+  "save_error": 0
+}
