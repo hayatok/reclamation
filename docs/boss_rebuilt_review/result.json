@@ -8,9 +8,10 @@
   "simulation_seconds": 1.8,
   "hp_after": 1080,
   "remaining": [
-    "Independent visual review",
-    "Walk/death ordinary-distance review",
-    "CPU comparison",
-    "Export/real Web/phone validation"
-  ]
+    "Full gameplay balance not re-evaluated (rules unchanged)",
+    "Real Web/Mac/phone/GPU and audible output unverified",
+    "Animation smoothness not independently reviewed from video"
+  ],
+  "independent_visual_review": "Normal-distance broad torso, separated arms, strike/recovery, walk ground contact and settled death accepted from stills; no serious clipping observed. Label scaling is the largest readability gain. Animation smoothness not established by stills.",
+  "cpu": "94 existing enemies, plus separate artificial one-boss insertion: repeated 200-call render-data means were baseline1.112/0.965ms and candidate1.250/1.106ms with boss. Order drift/noise present; this is modest additional CPU work, not an FPS improvement or browser benchmark."
 }

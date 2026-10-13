@@ -1,0 +1,49 @@
+{
+  "cases": [
+    {
+      "enemies": 94,
+      "inserted_boss": false,
+      "samples": [
+        {
+          "mean_ms": 1.608665,
+          "renderer": "baseline"
+        },
+        {
+          "mean_ms": 1.125085,
+          "renderer": "candidate"
+        },
+        {
+          "mean_ms": 1.02514,
+          "renderer": "candidate"
+        },
+        {
+          "mean_ms": 0.94374,
+          "renderer": "baseline"
+        }
+      ]
+    },
+    {
+      "enemies": 95,
+      "inserted_boss": true,
+      "samples": [
+        {
+          "mean_ms": 1.11188,
+          "renderer": "baseline"
+        },
+        {
+          "mean_ms": 1.25,
+          "renderer": "candidate"
+        },
+        {
+          "mean_ms": 1.10639,
+          "renderer": "candidate"
+        },
+        {
+          "mean_ms": 0.96452,
+          "renderer": "baseline"
+        }
+      ]
+    }
+  ],
+  "scope": "Native render-data CPU only; fixed earned 94-enemy snapshot plus separately labelled one-boss insertion, not FPS"
+}
