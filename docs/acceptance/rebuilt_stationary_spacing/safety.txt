@@ -1,0 +1,17 @@
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+PASS seven exactly overlapping combatants spread deterministically
+PASS exact-duplicate settling respects grid, speed, current worker/convoy cells and work/gather goals
+PASS settling consumes no global gameplay random draw
+PASS worker position, gathering goal and task are untouched
+PASS convoy position, path goal and stop/task state are untouched
+PASS construction reservations remain unchanged
+PASS new same-tick construction reservation prevents intrusion
+PASS new same-tick gather destination prevents intrusion
+PASS existing shared worker cell allows only a non-approaching escape
+PASS escaping combatant never moves worker or assignment
+PASS large dt separation does not tunnel through adjacent wall
+PASS solid start never teleports to a free nearby cell
+PASS low unit speed remains the movement limit
+PASS helper explicitly excludes worker and convoy kinds
+COMBAT_SPACING_SAFETY_SUMMARY checks=14 failures=0

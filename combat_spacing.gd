@@ -3,7 +3,7 @@ extends RefCounted
 ## Travel, work slots, convoy motion, targeting and path queries stay with their
 ## existing owners. A blocked candidate simply stays still; no reposition jump.
 const Navigation = preload("res://friendly_navigation.gd")
-const INFANTRY_RADIUS := 0.55
+const INFANTRY_RADIUS := 0.70
 const CART_RADIUS := 0.85
 const SETTLE_SPEED := 1.5
 const MAX_STEP := 0.12
@@ -11,6 +11,8 @@ const MAX_NEIGHBORS := 16
 const HASH_SIZE := 2.0
 const EPSILON := 0.000001
 const TURN_OPTIONS := [0.0, PI / 4.0, -PI / 4.0, PI / 2.0, -PI / 2.0, PI * 0.75, -PI * 0.75, PI]
+var spacing_grid:AStarGrid2D
+var radius_cache:Dictionary={}
 var actors: Array = []
 var positions: Array[Vector3] = []
 var indices: Dictionary = {}
@@ -21,6 +23,7 @@ var reservations: Dictionary = {}
 
 func prepare(live_actors: Array, work_reservations: Dictionary) -> void:
  actors.clear();positions.clear();indices.clear();buckets.clear();protected_cells.clear();other_actors.clear()
+ radius_cache.clear()
  reservations=work_reservations
  for actor in live_actors:
   if not _live(actor):continue
@@ -42,6 +45,7 @@ func settle(unit: Dictionary, grid: AStarGrid2D, dt: float, speed: float, firing
  if not _live(unit) or unit.get("kind", "") not in ["guard", "grenade", "siegecart"] or not is_finite(dt) or not is_finite(speed) or dt<=0.0 or speed<=0.0:return false
  var index:int=indices.get(unit.node.get_instance_id(),-1)
  if index<0:return false
+ spacing_grid=grid
  var start:Vector3=unit.node.position
  var cell:=_bucket(start)
  var neighbors:Array[int]=[]
@@ -123,7 +127,18 @@ func _protect(point: Vector3) -> void:
  protected_cells[cell].append(point)
 
 func _radius(unit: Dictionary) -> float:
- return CART_RADIUS if unit.get("kind", "")=="siegecart" else INFANTRY_RADIUS
+ if unit.get("kind", "")=="siegecart":return CART_RADIUS
+ var id:int=unit.node.get_instance_id()
+ if radius_cache.has(id):return radius_cache[id]
+ var radius:float=INFANTRY_RADIUS
+ if spacing_grid!=null:
+  var cell=Navigation.cell_of(unit.node.position)
+  for x in range(-1,2):
+   for z in range(-1,2):
+    var nearby=cell+Vector2i(x,z)
+    if not spacing_grid.region.has_point(nearby) or spacing_grid.is_point_solid(nearby):radius=.55
+ radius_cache[id]=radius
+ return radius
 
 func _bucket(point: Vector3) -> Vector2i:
  return Vector2i(floori(point.x/HASH_SIZE),floori(point.z/HASH_SIZE))
