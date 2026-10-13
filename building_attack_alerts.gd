@@ -1,6 +1,5 @@
 extends RefCounted
 ## Presentation-only event memory. Never serialized or used by combat/orders.
-const CentralStationDefense=preload("res://central_station_defense.gd")
 const QUIET_GAP := 8.0
 const TARGET_GAP := 18.0
 const GLOBAL_GAP := 3.0
@@ -16,7 +15,7 @@ func reset() -> void:
  recent.clear();current.clear();last_shown=-1000.0;last_sound=-1000.0
 
 func record_hit(target: Dictionary, now: float) -> void:
- if not CentralStationDefense.repair_target(target) and target.get("kind", "")!="worker" and (not target.has("built") or target.get("kind", "") in ["wall", "tower", "mortar"]):return
+ if target.get("kind", "")!="worker" and (not target.has("built") or target.get("kind", "") in ["wall", "tower", "mortar"]):return
  if not is_instance_valid(target.get("node")):return
  var id: int=target.node.get_instance_id()
  if not recent.has(id):
@@ -44,8 +43,6 @@ func update(now: float, targets: Array) -> bool:
    var entry: Dictionary=recent.get(current.id,{})
    if not entry.is_empty():current.position=entry.position;entry.pending=0;entry.last_alert=now
    last_shown=now;changed=true
-  elif current.severity==3 and CentralStationDefense.operational(target):
-   current.clear() # Recovery must not leave a stale shutdown warning.
   elif current.severity<3 and target not in targets:
    current.clear() # Voluntary removal is not an enemy destruction alert.
   if not current.is_empty() and now>=float(current.until):current.clear()
@@ -56,7 +53,6 @@ func update(now: float, targets: Array) -> bool:
   var target: Dictionary=entry.target
   if now-float(entry.last_hit)>60.0:
    recent.erase(id);continue
-  if int(entry.pending)==3 and CentralStationDefense.operational(target):entry.pending=0
   if int(entry.pending)==0:continue
   if float(target.hp)>0 and target not in targets:
    recent.erase(id);continue
@@ -78,7 +74,7 @@ func update(now: float, targets: Array) -> bool:
 
 func text_for(title: String) -> String:
  if current.is_empty():return ""
- if int(current.severity)==3:return title+("：停止 / 修理が必要" if CentralStationDefense.is_station(current.target) else "：喪失")
+ if int(current.severity)==3:return title+"：喪失"
  var target: Dictionary=current.target
  if float(target.hp)<=float(target.maxhp)*CRITICAL:
   return title+"：耐久危険 %d%%"%maxi(1,ceili(float(target.hp)/float(target.maxhp)*100.0))

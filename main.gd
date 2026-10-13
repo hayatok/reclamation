@@ -23,7 +23,6 @@ const DefeatRecap=preload("res://defeat_recap.gd")
 var defeat_recap=DefeatRecap.new()
 const CheckpointValidation=preload("res://checkpoint_validation.gd")
 const FrontierDepot=preload("res://frontier_depot.gd")
-const CentralStationDefense=preload("res://central_station_defense.gd")
 const AtomicSave=preload("res://atomic_save.gd")
 const WorkerOrders=preload("res://worker_orders.gd")
 const ControlGroups=preload("res://control_groups.gd")
@@ -522,7 +521,6 @@ func make_site(kind:String,p:Vector3):
 
  var marker=ring(Vector3(0,.1,0),2.4,AMBER if kind=="generator" or kind=="scrap" else CYAN,n)
  sites.append({"marker":marker,"node":n,"kind":kind,"progress":0.0,"reclaimed":false,"stock":650.0,"label":label,"paid":false})
- CentralStationDefense.initialize(sites.back(),campaign_state.current,bonus("armor","max_hp_add"))
  var half=FriendlyNavigation.site_half_extents(kind,mission.mode)
  if half!=Vector2.ZERO:sites.back()["nav_half_extents"]=half
  # HQ construction precedes the sites on a fresh launch. Rebuild here too so
@@ -847,7 +845,7 @@ func draw_minimap():
   minimap.draw_rect(Rect2((origin+Vector2(32,32))/64*size,Vector2(block.size.x,block.size.z)/64*size),Color("65634f"))
  for s in sites:
   var p=(Vector2(s.node.position.x,s.node.position.z)+Vector2(32,32))/64*size
-  minimap.draw_circle(p,3,RED if s.get("disabled",false) else AMBER if not s.reclaimed else Color("b6c897"))
+  minimap.draw_circle(p,3,AMBER if not s.reclaimed else Color("b6c897"))
  for resource in resource_nodes:
   if resource.renewable or resource.stock>0:
    minimap.draw_circle((Vector2(resource.node.position.x,resource.node.position.z)+Vector2(32,32))/64*size,2.5,resource_color(resource.resource))
@@ -893,12 +891,12 @@ func draw_minimap():
  if view_box.has_area():minimap.draw_rect(view_box,Color("c6b991"),false,1)
 
 func update_building_attack_alert():
- var sound=building_attack_alerts.update(elapsed,buildings+units.filter(func(unit):return unit.kind=="worker")+sites.filter(func(site):return CentralStationDefense.repair_target(site)))
+ var sound=building_attack_alerts.update(elapsed,buildings+units.filter(func(unit):return unit.kind=="worker"))
  var alert=building_attack_alerts.current
  building_attack_button.visible=not alert.is_empty() and not title_open and not ended
  building_attack_button.disabled=active_card or is_instance_valid(options_panel) or is_instance_valid(dismantle_panel) or is_instance_valid(route_panel)
  if not alert.is_empty():
-  var title=site_title(alert.target.kind) if CentralStationDefense.is_station(alert.target) else "作業員" if alert.target.kind=="worker" else GameRules.building(alert.target.kind).get("title",alert.target.kind)
+  var title="作業員" if alert.target.kind=="worker" else GameRules.building(alert.target.kind).get("title",alert.target.kind)
   building_attack_button.text=building_attack_alerts.text_for(title)
   if sound and building_attack_button.visible:tone("warning")
 
@@ -1226,8 +1224,7 @@ func command_at(p:Vector3,screen:Vector2=Vector2.INF,append_orders:bool=false)->
   if workers.is_empty():return false
   var task="move"
   var target:Variant=null
-  if CentralStationDefense.repairable(s_target):task="repair";target=s_target
-  elif not resource_target.is_empty() and b_target==null:task="gather";target=resource_target
+  if not resource_target.is_empty() and b_target==null:task="gather";target=resource_target
   elif b_target!=null:task="build" if b_target.built<1 else "repair";target=b_target
   elif s_target!=null or friendly_target!=null:
    notify("予約は移動・建設・修理・採取に対応しています。",3);return false
@@ -1253,7 +1250,7 @@ func command_at(p:Vector3,screen:Vector2=Vector2.INF,append_orders:bool=false)->
   if u.kind=="worker" and friendly_target!=null and resource_target.is_empty() and s_target==null and b_target==null and not EscortOrders.can_follow(u,friendly_target):continue
   friendly_navigation.invalidate_order(u)
   if u.kind=="worker":WorkerOrders.clear(u)
-  if u.kind=="worker" and not resource_target.is_empty() and b_target==null and not CentralStationDefense.repairable(s_target):
+  if u.kind=="worker" and not resource_target.is_empty() and b_target==null:
    economy.assign_resource(u,resource_target)
    issued_orders+=1
    continue
@@ -1269,7 +1266,7 @@ func command_at(p:Vector3,screen:Vector2=Vector2.INF,append_orders:bool=false)->
   u.task="attack_move" if attack_move and u.kind in ["guard","grenade","siegecart"] else "move"
   u.target=null
   if u.kind=="worker" and s_target!=null:
-   u.task="repair" if CentralStationDefense.repairable(s_target) else "site"
+   u.task="site"
    u.target=s_target
    u.goal=s_target.node.position if s_target.has("nav_half_extents") else s_target.node.position+Vector3((i%3-1)*.9,0,2.2)
   elif u.kind=="worker" and b_target!=null:
@@ -1518,7 +1515,7 @@ func simulate_world(dt:float):
    WorkerOrders.tick(self,u)
    if u.task in ["build","repair"]:
     var work_target:Variant=u.target
-    if not WorkerOrders.valid_target(self,{"task":u.task,"target":work_target}) or WorkerOrders.satisfied({"task":u.task,"target":work_target}):
+    if work_target==null or not is_instance_valid(work_target.get("node")) or work_target.node.is_queued_for_deletion() or work_target.get("hp",0)<=0 or (u.task=="build" and work_target.built>=1) or (u.task=="repair" and work_target.hp>=work_target.maxhp):
      finish_construction_order(u)
    elif u.task=="site" and (not WorkerOrders.alive(u.target) or u.target not in sites or u.target.get("reclaimed",false)):
     WorkerOrders.finish(self,u,true)
@@ -1569,15 +1566,13 @@ func simulate_world(dt:float):
    else:finish_construction_order(u)
   elif u.task=="repair" and u.target!=null:
    var building=u.target
-   if not WorkerOrders.valid_target(self,{"task":"repair","target":building}):finish_construction_order(u)
-   elif friendly_navigation.is_work_arrived(u,nav):
+   if is_instance_valid(building.get("node")) and building.hp>0:
     var healed=minf(building.maxhp-building.hp,dt*8*construction_multiplier())
     var paid=minf(resources,healed*.1)
-    if CentralStationDefense.is_station(building):CentralStationDefense.repair(building,paid*10)
-    else:building.hp=minf(building.maxhp,building.hp+paid*10)
-    resources-=paid
+    building.hp=minf(building.maxhp,building.hp+paid*10);resources-=paid
     if building.hp>=building.maxhp:
      finish_construction_order(u)
+   else:finish_construction_order(u)
   if u.kind in ["guard","grenade","siegecart"] and u.cd<=0:
    var weapon=GameRules.unit(u.kind)
    var range_value=float(weapon.range)*(1+bonus("range","range_add"))
@@ -1619,10 +1614,6 @@ func simulate_world(dt:float):
   for b in buildings:
    var dis=e.node.position.distance_to(b.node.position)-b.radius
    if dis<best:best=dis;target=b
-  for site in sites:
-   if not CentralStationDefense.operational(site):continue
-   var dis=e.node.position.distance_to(site.node.position)-site.radius
-   if dis<best:best=dis;target=site
   for u in units:
    var dis=e.node.position.distance_to(u.node.position)-(1.8 if u.kind=="convoy" else .6 if u.kind=="truck" else 0)
    if dis<best and dis<(10 if u.kind=="convoy" else 6):best=dis;target=u
@@ -1657,9 +1648,7 @@ func simulate_world(dt:float):
      e.windup=1.4;e.attack_pos=target.node.position
      continue
     e["attack_at"]=elapsed
-    var damage:float=18 if e.get("armored",false) else 9
-    if CentralStationDefense.is_station(target):CentralStationDefense.damage(target,damage)
-    else:target.hp-=damage
+    target.hp-=18 if e.get("armored",false) else 9
     building_attack_alerts.record_hit(target,elapsed)
     e.cd=.9 if e.get("armored",false) else .75
     if not low_fx:pulse(target.node.position,RED,.6,.15)
@@ -2067,19 +2056,11 @@ func choose_upgrade(index:int):
    u.maxhp+=increase;u.hp=minf(u.maxhp,u.hp+increase)
   for b in buildings:
    if b.kind!="hq":b.maxhp+=b.basehp*.2;b.hp=minf(b.maxhp,b.hp+b.basehp*.2)
-  for site in sites:
-   if not CentralStationDefense.is_station(site):continue
-   var increase:float=site.basehp*.2
-   site.maxhp+=increase
-   if site.reclaimed:CentralStationDefense.repair(site,increase)
-   else:site.hp=site.maxhp
  if data.id=="reserve":resources+=80
  if data.id=="reserve2":build_boost=12
  if data.id=="field_repair":
   for u in units:u.hp=u.maxhp
   for b in buildings:b.hp=b.maxhp
-  for site in sites:
-   if CentralStationDefense.repair_target(site):CentralStationDefense.repair(site,site.maxhp)
  active_card=false
  if is_instance_valid(choice_panel):choice_panel.queue_free()
  choice_panel=null
@@ -2603,11 +2584,7 @@ func checkpoint_data()->Dictionary:
  for event in blast_queue:data.blast_queue.append({"pos":vec_data(event.pos),"radius":event.radius,"damage":event.damage,"generation":event.generation})
  for card in cards:data.cards.append(card.id)
  for b in buildings:data.buildings.append({"kind":b.kind,"pos":vec_data(b.node.position),"hp":b.hp,"maxhp":b.maxhp,"built":b.built,"cd":b.cd,"shots":b.shots,"enabled":b.enabled,"paid_cost":b.get("paid_cost",0),"paid_resources":b.get("paid_resources",{}).duplicate(),"queue":b.get("queue",[]).duplicate(true),"rally":vec_data(b.get("rally",b.node.position)),"rally_target_index":resource_nodes.find(b.get("rally_target"))})
- for s in sites:
-  var saved_site={"kind":s.kind,"pos":vec_data(s.node.position),"progress":s.progress,"reclaimed":s.reclaimed,"stock":s.stock,"paid":s.paid}
-  if CentralStationDefense.is_station(s):
-   for field in ["hp","maxhp","disabled"]:saved_site[field]=s[field]
-  data.sites.append(saved_site)
+ for s in sites:data.sites.append({"kind":s.kind,"pos":vec_data(s.node.position),"progress":s.progress,"reclaimed":s.reclaimed,"stock":s.stock,"paid":s.paid})
  for resource in resource_nodes:
   data.resource_nodes.append({"resource":resource.resource,"pos":vec_data(resource.node.position),"stock":resource.stock,"renewable":resource.renewable,"radius":resource.radius,"source_building_index":buildings.find(resource.source_building)})
  for u in units:
@@ -2615,9 +2592,7 @@ func checkpoint_data()->Dictionary:
   var target_index=-1
   if u.target!=null:
    if u.task=="site":target_type="site";target_index=sites.find(u.target)
-   if u.task in ["build","repair"]:
-    target_type="site" if u.task=="repair" and CentralStationDefense.repair_target(u.target) else "build"
-    target_index=(sites if target_type=="site" else buildings).find(u.target)
+   if u.task in ["build","repair"]:target_type="build";target_index=buildings.find(u.target)
    if u.task=="focus_fire":
     if frontier!=null and frontier.can_target(u.target):target_type="structure";target_index=0
     else:target_type="enemy";target_index=living_enemies.find(u.target)
@@ -2691,8 +2666,6 @@ func load_checkpoint()->bool:
   make_site(raw.kind,from_data(raw.pos))
   var s=sites.back()
   for key in ["progress","reclaimed","stock","paid"]:s[key]=raw[key]
-  if CentralStationDefense.is_station(s):
-   for key in ["hp","maxhp","disabled"]:s[key]=raw[key]
   if FrontierDepot.retired(s):
    FrontierDepot.apply_retired(s)
   elif s.reclaimed:
@@ -3174,7 +3147,7 @@ func update_mission(dt:float):
    hold_time=convoy_progress()*100
   return
  var restored=settlement_age>=3 and generator_on and get_site("pump").reclaimed
- if mission.mode=="finale":restored=restored and get_site("substation").get("reclaimed",false) and CentralStationDefense.operational(get_site("pump"))
+ if mission.mode=="finale":restored=restored and get_site("substation").get("reclaimed",false)
  if restored:
   hold_time=minf(mission.hold,hold_time+dt)
   if mission.mode=="finale" and hold_time>=55 and not boss_spawned:
@@ -3197,10 +3170,6 @@ func boss_impact(enemy:Dictionary):
   if b.node.position.distance_to(p)<4.5+b.radius:
    b.hp-=175 if b.kind=="wall" else 120
    building_attack_alerts.record_hit(b,elapsed)
- for site in sites:
-  if CentralStationDefense.operational(site) and site.node.position.distance_to(p)<4.5+site.radius:
-   CentralStationDefense.damage(site,120.0)
-   building_attack_alerts.record_hit(site,elapsed)
  enemy.cd=3.2
  audio_system.play_event("heavy_hit",p,1.4)
 
@@ -3577,9 +3546,6 @@ func refresh_context_commands(force:bool=false):
   if not power_context_text.is_empty() and (not build_mode.is_empty() or detail_text.is_empty()):detail_text=power_context_text
   if escort_targeting:detail_text=selected_order_text()
   elif detail_text.is_empty():detail_text=selected_escort_summary()
-  if detail_text.is_empty() and CentralStationDefense.repairable(inspected_site):
-   var required_hp:float=maxf(0.0,inspected_site.maxhp*.25-inspected_site.hp) if inspected_site.disabled else inspected_site.maxhp-inspected_site.hp
-   detail_text=("作業員でタップ" if mobile_enabled else "作業員で右クリック")+" / "+("再開まで" if inspected_site.disabled else "全修理")+" 廃材%.1f"%(required_hp*.1)
   command_detail.text=detail_text
 
 func build_availability(kind:String)->Dictionary:
@@ -3699,9 +3665,6 @@ func update_ui():
  elif mission.mode=="finale":
   var sub=get_site("substation")
   if not sub.reclaimed and sub.progress>0:progress_lines.append("変電所 復旧 %d%%"%int(sub.progress*100))
-  if CentralStationDefense.repair_target(pump):
-   progress_lines.append("中央送電所 耐久 %d%%"%ceili(pump.hp/pump.maxhp*100))
-   if pump.disabled:progress_lines.append("送電停止 / 耐久25%で再開")
   if hold_time>0 or (settlement_age>=3 and pump.reclaimed and sub.reclaimed):progress_lines.append("初期送電 %d/%d秒"%[int(hold_time),int(mission.hold)])
   if boss_spawned:progress_lines.append("破砕体 "+("撃破" if boss_defeated else "接近"))
   mission_action_button.text="変電所へ"
@@ -3780,12 +3743,6 @@ func update_ui():
    selection_tooltip="復旧後は3資源の搬入所 / 作業員1人で12秒"
    command_heading.text="復旧 %d%% → 資源搬入所"%int(inspected_site.progress*100)
   selection_text=site_title(inspected_site.kind)+"\n"+("復旧済" if inspected_site.reclaimed else "復旧 %d%%"%int(inspected_site.progress*100))
-  if CentralStationDefense.repair_target(inspected_site):
-   hp_sum=inspected_site.hp;max_sum=inspected_site.maxhp
-   selection_text=site_title(inspected_site.kind)+"\n"+CentralStationDefense.status(inspected_site)
-   supply_text="耐久 %d / %d"%[int(hp_sum),int(max_sum)]
-   if hp_sum<max_sum:supply_text+="\n"+("作業員でタップして修理" if mobile_enabled else "作業員で右クリックして修理")
-   supply_tooltip="修理：基礎毎秒8耐久 / 耐久1につき廃材0.1\n停止後は耐久25%で送電再開。送電の進行は維持。"
  selection_info.text=selection_text
  selection_info.tooltip_text=selection_tooltip
  if mobile_enabled and ammo_feedback.active and (selected.any(func(unit):return unit.kind in ["guard","grenade","siegecart"]) or inspected.get("kind","") in ["factory","tower","mortar"]):
@@ -3802,12 +3759,8 @@ func update_ui():
   if site.kind==FrontierDepot.KIND:
    site.node.visible=not site.reclaimed and frontier_position_known(site.node.position)
    if site.reclaimed:continue
-  if CentralStationDefense.repair_target(site):
-   StructureVisuals.set_central_operational(site.node,not site.disabled)
-   site.label.text=site_title(site.kind)+(" [停止]" if site.disabled else " [復旧済]")+" 耐久 %d%%"%ceili(site.hp/site.maxhp*100)
-   site.label.modulate=RED if site.disabled else CYAN
   var hover=camera.unproject_position(site.node.position+Vector3(0,1,0)).distance_to(cursor)<34
-  site.label.visible=not ended and frontier_position_known(site.node.position) and (hover or inspected_site==site or selected.any(func(unit):return unit.target==site and unit.task in ["site","repair"]))
+  site.label.visible=not ended and frontier_position_known(site.node.position) and (hover or inspected_site==site or selected.any(func(unit):return unit.target==site and unit.task=="site"))
  for resource in resource_nodes:
   if not is_instance_valid(resource.node):continue
   resource.label.text=GameRules.RESOURCE_TITLES[resource.resource]+(" / 菜園" if resource.renewable else " %d"%int(resource.stock))
@@ -3834,7 +3787,6 @@ func tutorial_instruction()->String:
   return "車両工房・弾薬工房を整え\n本部で段階IIIへ"
  if not get_site("generator").reclaimed:return "作業員で発電所を復旧"
  if not get_site("pump").reclaimed:return "作業員で"+mission.facility+"を復旧"
- if mission.mode=="finale" and get_site("pump").get("disabled",false):return "中央送電所を修理 / 耐久25%で送電再開"
  if mission.mode=="finale" and not get_site("substation").reclaimed:return "作業員で変電所を復旧"
  if not generator_on:return "発電所を起動"
  if mission.mode=="convoy":return "輸送隊を護衛" if convoy_started else "輸送路を選んで出発"

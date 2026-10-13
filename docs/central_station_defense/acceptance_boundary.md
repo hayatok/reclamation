@@ -1,9 +1,0 @@
-# Central defense remains outside the next release
-
-The native continuation from the16m52.85s save assigned two workers to parts and two to northern salvage, used actually offered mobility/damage upgrades, and completed the already-paid AgeIII. The main combat force returned to the HQ frontage. During subsequent waves, the exposed economy lost allfive remaining workers, the replacement ammunition factory and the southeast depot. The session was stopped and saved at19m07.2s, before the declared21m52.85s bound.
-
-HQ remains1200/1200HP, allsix guards and two grenadiers remain at full HP, and stocks arefood806.5/salvage300.375/parts174.4. HQ and barracks remain usable, so worker reproduction is still possible; this is not a proven progression softlock or a game-over. Central/substation are still unrestored, transmission is0. The new central damage/repair mechanic was never exercised in this ordinary progression route.
-
-Consequently, the central-station rule remains unaccepted WIP and must be excluded from the next release. Its controlled recovery, cost, save and native UI checks remain valid in their recorded limited scope. The actual run demonstrates that the earlier enclosure and interrupted generator restoration could be recovered through ordinary controls; it does not demonstrate that the new finale is balanced. The operator's defense allocation and intermittent screenshot observation contributed to the economy loss. No enemy, resource or difficulty change is justified by this one result. Do not repeat ideal-plan searches to manufacture a win.
-
-The independently accepted boss model, boss warning and masonry/navigation alignment remain separable at city-alley commit b87d0e9e4e0cc0aec02aa92f9d76d88d1af00841. Publicv0.64 remains unchanged while the next release scope is prepared. This document records a release boundary, not an additional gameplay version.
