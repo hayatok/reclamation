@@ -77,6 +77,11 @@ var aftermath_settled:bool=false
 const CorpseMotion=preload("res://corpse_motion.gd")
 const HeavyTargeting=preload("res://heavy_targeting.gd")
 var heavy_targeting=HeavyTargeting.new()
+# Shared only while friendlies fire, before any enemy movement. Consumers check
+# deaths live; neither click targeting nor post-movement effects reuse this list.
+var _friendly_target_phase:bool=false
+var _combat_candidates_ready:bool=false
+var _combat_candidates:Array=[]
 const BuildingAttackAlerts=preload("res://building_attack_alerts.gd")
 var building_attack_alerts=BuildingAttackAlerts.new()
 var building_attack_button:Button
@@ -528,6 +533,7 @@ func make_site(kind:String,p:Vector3):
  rebuild_navigation()
 
 func spawn_enemy(p:Vector3,fast:bool=false,armored:bool=false,boss:bool=false):
+ _combat_candidates_ready=false
  var n=Node3D.new()
  add_child(n)
  n.position=p
@@ -1461,7 +1467,9 @@ func render_actors()->Dictionary:
  return rendered
 
 func simulate(dt:float):
+ _friendly_target_phase=false;_combat_candidates_ready=false;_combat_candidates.clear()
  simulate_world(dt)
+ _friendly_target_phase=false;_combat_candidates_ready=false;_combat_candidates.clear()
  supply_feedback.finish_step(dt)
 
 func simulate_world(dt:float):
@@ -1496,6 +1504,7 @@ func simulate_world(dt:float):
  # Production/economy may have spawned a worker this tick. Include it before
  # protecting current and assigned cells during combat settling.
  combat_spacing.prepare(units,friendly_navigation.work_reservations)
+ _friendly_target_phase=true
  for u in units.duplicate():
   if u.hp<=0:
    defeat_recap.record_loss(u,elapsed)
@@ -1606,6 +1615,7 @@ func simulate_world(dt:float):
     if e!=null:
      fire(b.node.position+Vector3(0,2.4 if b.kind=="mortar" else 3.3,0),e,85 if b.kind=="mortar" else 28 if b.powered else 19,b.kind,b)
      b.cd=(3.2 if b.kind=="mortar" else .48)/(1+bonus("rate","attack_speed_add"))
+ _friendly_target_phase=false;_combat_candidates_ready=false;_combat_candidates.clear()
  crowd_steering.prepare(enemies)
  for e in enemies.duplicate():
   if e.dead or (frontier!=null and not frontier.enemy_can_act(e)):continue
@@ -3921,6 +3931,7 @@ func frontier_position_known(position:Vector3)->bool:
  return frontier_visibility==null or frontier_visibility.is_explored(position)
 
 func refresh_frontier_visibility(dt:float,force:bool=false)->void:
+ _combat_candidates_ready=false
  if frontier_visibility==null:return
  frontier_visibility.update_sources(units,buildings,dt,force)
  if frontier!=null:
@@ -3931,8 +3942,11 @@ func refresh_frontier_visibility(dt:float,force:bool=false)->void:
 
 func combat_targets()->Array:
  if frontier_visibility==null:return enemies
+ if _friendly_target_phase and _combat_candidates_ready:return _combat_candidates
  var result=enemies.filter(func(enemy):return not enemy.dead and frontier_visibility.is_visible(enemy.node.position))
  if frontier!=null:result.append_array(frontier.targetable_structures())
+ if _friendly_target_phase:
+  _combat_candidates=result;_combat_candidates_ready=true
  return result
 
 func visible_horde()->Array:

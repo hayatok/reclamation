@@ -1,0 +1,90 @@
+{
+  "combat_targets_calls": {
+    "max": 37,
+    "mean": 31.8,
+    "min": 24,
+    "p95": 34,
+    "samples": 120,
+    "total": 3816.0
+  },
+  "combat_targets_ms": {
+    "max": 2.215,
+    "mean": 0.1384,
+    "min": 0.047,
+    "p95": 0.318,
+    "samples": 120,
+    "total": 16.608
+  },
+  "combat_targets_share_percent": 1.75842419442615,
+  "ended": false,
+  "enemies_per_step": {
+    "max": 43,
+    "mean": 41.8583333333333,
+    "min": 24,
+    "p95": 43,
+    "samples": 120,
+    "total": 5023.0
+  },
+  "engine": "4.6.3-stable (official)",
+  "final_actors": {
+    "buildings": 14,
+    "enemies": 24,
+    "live_enemies": 24,
+    "sleeping_field_true": 0,
+    "unit_kinds": {
+      "grenade": 2,
+      "guard": 12,
+      "siegecart": 1,
+      "truck": 1,
+      "worker": 14
+    },
+    "units": 30
+  },
+  "fixture": "res://tests/fixtures/earned_frontier_departure.json",
+  "from": 720.349999999893,
+  "initial_actors": {
+    "buildings": 14,
+    "enemies": 43,
+    "live_enemies": 43,
+    "sleeping_field_true": 0,
+    "unit_kinds": {
+      "grenade": 2,
+      "guard": 12,
+      "siegecart": 1,
+      "truck": 1,
+      "worker": 14
+    },
+    "units": 30
+  },
+  "limits": "One bounded earned M2 route, 120 x 50 ms steps. Headless elapsed CPU-work timing includes instrumentation and excludes startup, rendering, browser, and UI processing; not process CPU time or browser FPS. No gameplay state modifications or commands. External subclass calls tested combat_targets on every invocation. query_enemy_entries_virtual sums the enemy array size at each query; it is not a measured scan count, particularly for the cached candidate.",
+  "query_enemy_entries_virtual": 160354,
+  "rng_end": {
+    "card_rng": "-7073839208676200676",
+    "rng": "-2229809442595151162",
+    "visual_rng": "-2214877275341068306"
+  },
+  "rng_start": {
+    "card_rng": "-7073839208676200676",
+    "rng": "6939912874496389712",
+    "visual_rng": "-3837066394557402776"
+  },
+  "simulated_seconds": 5.99999999999454,
+  "simulation_ms": {
+    "max": 35.222,
+    "mean": 7.87068333333333,
+    "min": 4.391,
+    "p95": 14.395,
+    "samples": 120,
+    "total": 944.482
+  },
+  "target_results_returned": 41476,
+  "to": 726.349999999887,
+  "units_per_step": {
+    "max": 30,
+    "mean": 30.0,
+    "min": 30,
+    "p95": 30,
+    "samples": 120,
+    "total": 3600.0
+  }
+}

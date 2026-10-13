@@ -1,0 +1,2546 @@
+{
+  "active_card": false,
+  "ammo": 400.0,
+  "blast_queue": [],
+  "boss_defeated": false,
+  "boss_spawned": false,
+  "build_boost": 0.0,
+  "buildings": [
+    {
+      "built": 1.0,
+      "cd": 0.0,
+      "enabled": true,
+      "hp": 1000.0,
+      "kind": "hq",
+      "maxhp": 1000.0,
+      "paid_cost": 0.0,
+      "paid_resources": {
+
+      },
+      "pos": [
+        -64.0,
+        0.0,
+        48.0
+      ],
+      "queue": [],
+      "rally": [
+        -64.0,
+        0.0,
+        54.0
+      ],
+      "rally_target_index": -1,
+      "shots": 0.0
+    },
+    {
+      "built": 1.0,
+      "cd": 0.0,
+      "enabled": true,
+      "hp": 216.0,
+      "kind": "house",
+      "maxhp": 216.0,
+      "paid_cost": 40.0,
+      "paid_resources": {
+        "salvage": 40.0
+      },
+      "pos": [
+        -71.0,
+        0.0,
+        58.0
+      ],
+      "queue": [],
+      "rally": [
+        -71.0,
+        0.0,
+        62.7000007629395
+      ],
+      "rally_target_index": -1,
+      "shots": 0.0
+    },
+    {
+      "built": 1.0,
+      "cd": 0.0,
+      "enabled": true,
+      "hp": 408.0,
+      "kind": "barracks",
+      "maxhp": 408.0,
+      "paid_cost": 100.0,
+      "paid_resources": {
+        "salvage": 100.0
+      },
+      "pos": [
+        -57.0,
+        0.0,
+        58.0
+      ],
+      "queue": [],
+      "rally": [
+        -57.0,
+        0.0,
+        63.4000015258789
+      ],
+      "rally_target_index": -1,
+      "shots": 0.0
+    },
+    {
+      "built": 1.0,
+      "cd": 0.0,
+      "enabled": true,
+      "hp": 312.0,
+      "kind": "depot",
+      "maxhp": 312.0,
+      "paid_cost": 60.0,
+      "paid_resources": {
+        "salvage": 60.0
+      },
+      "pos": [
+        -72.0,
+        0.0,
+        45.0
+      ],
+      "queue": [],
+      "rally": [
+        -72.0,
+        0.0,
+        49.7999992370605
+      ],
+      "rally_target_index": -1,
+      "shots": 0.0
+    },
+    {
+      "built": 1.0,
+      "cd": 0.0,
+      "enabled": true,
+      "hp": 216.0,
+      "kind": "house",
+      "maxhp": 216.0,
+      "paid_cost": 40.0,
+      "paid_resources": {
+        "salvage": 40.0
+      },
+      "pos": [
+        -64.0,
+        0.0,
+        61.0
+      ],
+      "queue": [],
+      "rally": [
+        -64.0,
+        0.0,
+        65.6999969482422
+      ],
+      "rally_target_index": -1,
+      "shots": 0.0
+    },
+    {
+      "built": 1.0,
+      "cd": -589.650000000011,
+      "enabled": true,
+      "hp": 264.0,
+      "kind": "tower",
+      "maxhp": 264.0,
+      "paid_cost": 65.0,
+      "paid_resources": {
+        "salvage": 65.0
+      },
+      "pos": [
+        -54.0,
+        0.0,
+        45.0
+      ],
+      "queue": [],
+      "rally": [
+        -54.0,
+        0.0,
+        49.2999992370605
+      ],
+      "rally_target_index": -1,
+      "shots": 0.0
+    },
+    {
+      "built": 1.0,
+      "cd": 0.0,
+      "enabled": true,
+      "hp": 216.0,
+      "kind": "house",
+      "maxhp": 216.0,
+      "paid_cost": 40.0,
+      "paid_resources": {
+        "salvage": 40.0
+      },
+      "pos": [
+        -50.0,
+        0.0,
+        56.0
+      ],
+      "queue": [],
+      "rally": [
+        -50.0,
+        0.0,
+        60.7000007629395
+      ],
+      "rally_target_index": -1,
+      "shots": 0.0
+    },
+    {
+      "built": 1.0,
+      "cd": 0.0,
+      "enabled": true,
+      "hp": 267.0,
+      "kind": "depot",
+      "maxhp": 312.0,
+      "paid_cost": 60.0,
+      "paid_resources": {
+        "salvage": 60.0
+      },
+      "pos": [
+        -58.0,
+        0.0,
+        -18.0
+      ],
+      "queue": [],
+      "rally": [
+        -58.0,
+        0.0,
+        -13.1999998092651
+      ],
+      "rally_target_index": -1,
+      "shots": 0.0
+    },
+    {
+      "built": 1.0,
+      "cd": -7.98260869565216,
+      "enabled": true,
+      "hp": 264.0,
+      "kind": "tower",
+      "maxhp": 264.0,
+      "paid_cost": 65.0,
+      "paid_resources": {
+        "salvage": 65.0
+      },
+      "pos": [
+        -49.0,
+        0.0,
+        -18.0
+      ],
+      "queue": [],
+      "rally": [
+        -49.0,
+        0.0,
+        -13.6999998092651
+      ],
+      "rally_target_index": -1,
+      "shots": 134.0
+    },
+    {
+      "built": 1.0,
+      "cd": 0.0,
+      "enabled": true,
+      "hp": 336.0,
+      "kind": "factory",
+      "maxhp": 336.0,
+      "paid_cost": 120.0,
+      "paid_resources": {
+        "parts": 40.0,
+        "salvage": 120.0
+      },
+      "pos": [
+        -49.0,
+        0.0,
+        37.0
+      ],
+      "queue": [],
+      "rally": [
+        -49.0,
+        0.0,
+        41.7999992370605
+      ],
+      "rally_target_index": -1,
+      "shots": 0.0
+    },
+    {
+      "built": 1.0,
+      "cd": 0.0,
+      "enabled": true,
+      "hp": 504.0,
+      "kind": "vehicle_workshop",
+      "maxhp": 504.0,
+      "paid_cost": 180.0,
+      "paid_resources": {
+        "parts": 60.0,
+        "salvage": 180.0
+      },
+      "pos": [
+        -41.0,
+        0.0,
+        42.0
+      ],
+      "queue": [],
+      "rally": [
+        -41.0,
+        0.0,
+        47.5999984741211
+      ],
+      "rally_target_index": -1,
+      "shots": 0.0
+    },
+    {
+      "built": 1.0,
+      "cd": 0.0,
+      "enabled": true,
+      "hp": 216.0,
+      "kind": "house",
+      "maxhp": 216.0,
+      "paid_cost": 40.0,
+      "paid_resources": {
+        "salvage": 40.0
+      },
+      "pos": [
+        -78.0,
+        0.0,
+        55.0
+      ],
+      "queue": [],
+      "rally": [
+        -78.0,
+        0.0,
+        59.7000007629395
+      ],
+      "rally_target_index": -1,
+      "shots": 0.0
+    },
+    {
+      "built": 1.0,
+      "cd": 0.0,
+      "enabled": true,
+      "hp": 216.0,
+      "kind": "house",
+      "maxhp": 216.0,
+      "paid_cost": 40.0,
+      "paid_resources": {
+        "salvage": 40.0
+      },
+      "pos": [
+        -76.0,
+        0.0,
+        35.0
+      ],
+      "queue": [],
+      "rally": [
+        -76.0,
+        0.0,
+        39.7000007629395
+      ],
+      "rally_target_index": -1,
+      "shots": 0.0
+    },
+    {
+      "built": 1.0,
+      "cd": 0.0,
+      "enabled": true,
+      "hp": 216.0,
+      "kind": "house",
+      "maxhp": 216.0,
+      "paid_cost": 40.0,
+      "paid_resources": {
+        "salvage": 40.0
+      },
+      "pos": [
+        -55.0,
+        0.0,
+        34.0
+      ],
+      "queue": [],
+      "rally": [
+        -55.0,
+        0.0,
+        38.7000007629395
+      ],
+      "rally_target_index": -1,
+      "shots": 0.0
+    }
+  ],
+  "camera": {
+    "focus": [
+      -64.0,
+      0.0,
+      48.0
+    ],
+    "size": 50.0
+  },
+  "card_rng": "-7073839208676200676",
+  "cards": [],
+  "control_groups": [],
+  "convoy_encounter_stage": 0,
+  "convoy_halted": false,
+  "convoy_index": 0,
+  "convoy_pending": {
+
+  },
+  "convoy_route_choice": 0,
+  "convoy_started": false,
+  "defeat_recap": {
+    "events": [],
+    "mission": 1,
+    "run_seed": "5278979258395613045",
+    "version": 1
+  },
+  "elapsed": 720.349999999893,
+  "enemies": [
+    {
+      "armored": false,
+      "attack_pos": [
+        31.6000003814697,
+        0.0,
+        17.6000003814697
+      ],
+      "boss": false,
+      "cd": 0.44570592045784,
+      "charged_until": 0.0,
+      "convoy_hunter": false,
+      "hp": 45.0,
+      "pos": [
+        31.6000003814697,
+        0.0,
+        17.6000003814697
+      ],
+      "speed": 1.65,
+      "windup": 0.0
+    },
+    {
+      "armored": false,
+      "attack_pos": [
+        33.2000007629395,
+        0.0,
+        17.6000003814697
+      ],
+      "boss": false,
+      "cd": 0.444801867008209,
+      "charged_until": 0.0,
+      "convoy_hunter": false,
+      "hp": 45.0,
+      "pos": [
+        33.2000007629395,
+        0.0,
+        17.6000003814697
+      ],
+      "speed": 1.65,
+      "windup": 0.0
+    },
+    {
+      "armored": false,
+      "attack_pos": [
+        34.7999992370605,
+        0.0,
+        17.6000003814697
+      ],
+      "boss": false,
+      "cd": 0.105509355664253,
+      "charged_until": 0.0,
+      "convoy_hunter": false,
+      "hp": 45.0,
+      "pos": [
+        34.7999992370605,
+        0.0,
+        17.6000003814697
+      ],
+      "speed": 1.65,
+      "windup": 0.0
+    },
+    {
+      "armored": false,
+      "attack_pos": [
+        36.4000015258789,
+        0.0,
+        17.6000003814697
+      ],
+      "boss": false,
+      "cd": 0.0403451137244701,
+      "charged_until": 0.0,
+      "convoy_hunter": false,
+      "hp": 45.0,
+      "pos": [
+        36.4000015258789,
+        0.0,
+        17.6000003814697
+      ],
+      "speed": 1.65,
+      "windup": 0.0
+    },
+    {
+      "armored": false,
+      "attack_pos": [
+        31.6000003814697,
+        0.0,
+        19.2000007629395
+      ],
+      "boss": false,
+      "cd": 0.524747729301453,
+      "charged_until": 0.0,
+      "convoy_hunter": false,
+      "hp": 45.0,
+      "pos": [
+        31.6000003814697,
+        0.0,
+        19.2000007629395
+      ],
+      "speed": 1.65,
+      "windup": 0.0
+    },
+    {
+      "armored": false,
+      "attack_pos": [
+        33.2000007629395,
+        0.0,
+        19.2000007629395
+      ],
+      "boss": false,
+      "cd": 0.719822227954865,
+      "charged_until": 0.0,
+      "convoy_hunter": false,
+      "hp": 45.0,
+      "pos": [
+        33.2000007629395,
+        0.0,
+        19.2000007629395
+      ],
+      "speed": 1.65,
+      "windup": 0.0
+    },
+    {
+      "armored": false,
+      "attack_pos": [
+        34.7999992370605,
+        0.0,
+        19.2000007629395
+      ],
+      "boss": false,
+      "cd": 0.726733565330505,
+      "charged_until": 0.0,
+      "convoy_hunter": false,
+      "hp": 45.0,
+      "pos": [
+        34.7999992370605,
+        0.0,
+        19.2000007629395
+      ],
+      "speed": 1.65,
+      "windup": 0.0
+    },
+    {
+      "armored": false,
+      "attack_pos": [
+        36.4000015258789,
+        0.0,
+        19.2000007629395
+      ],
+      "boss": false,
+      "cd": 0.899456679821014,
+      "charged_until": 0.0,
+      "convoy_hunter": false,
+      "hp": 45.0,
+      "pos": [
+        36.4000015258789,
+        0.0,
+        19.2000007629395
+      ],
+      "speed": 1.65,
+      "windup": 0.0
+    },
+    {
+      "armored": false,
+      "attack_pos": [
+        31.6000003814697,
+        0.0,
+        20.7999992370605
+      ],
+      "boss": false,
+      "cd": 0.846236646175385,
+      "charged_until": 0.0,
+      "convoy_hunter": false,
+      "hp": 45.0,
+      "pos": [
+        31.6000003814697,
+        0.0,
+        20.7999992370605
+      ],
+      "speed": 1.65,
+      "windup": 0.0
+    },
+    {
+      "armored": false,
+      "attack_pos": [
+        33.2000007629395,
+        0.0,
+        20.7999992370605
+      ],
+      "boss": false,
+      "cd": 0.911156356334686,
+      "charged_until": 0.0,
+      "convoy_hunter": false,
+      "hp": 45.0,
+      "pos": [
+        33.2000007629395,
+        0.0,
+        20.7999992370605
+      ],
+      "speed": 1.65,
+      "windup": 0.0
+    },
+    {
+      "armored": false,
+      "attack_pos": [
+        34.7999992370605,
+        0.0,
+        20.7999992370605
+      ],
+      "boss": false,
+      "cd": 0.0181655455380678,
+      "charged_until": 0.0,
+      "convoy_hunter": false,
+      "hp": 45.0,
+      "pos": [
+        34.7999992370605,
+        0.0,
+        20.7999992370605
+      ],
+      "speed": 1.65,
+      "windup": 0.0
+    },
+    {
+      "armored": false,
+      "attack_pos": [
+        36.4000015258789,
+        0.0,
+        20.7999992370605
+      ],
+      "boss": false,
+      "cd": 0.774232089519501,
+      "charged_until": 0.0,
+      "convoy_hunter": false,
+      "hp": 45.0,
+      "pos": [
+        36.4000015258789,
+        0.0,
+        20.7999992370605
+      ],
+      "speed": 1.65,
+      "windup": 0.0
+    },
+    {
+      "armored": false,
+      "attack_pos": [
+        31.6000003814697,
+        0.0,
+        22.3999996185303
+      ],
+      "boss": false,
+      "cd": 0.137693881988525,
+      "charged_until": 0.0,
+      "convoy_hunter": false,
+      "hp": 30.0,
+      "pos": [
+        31.6000003814697,
+        0.0,
+        22.3999996185303
+      ],
+      "speed": 2.7,
+      "windup": 0.0
+    },
+    {
+      "armored": false,
+      "attack_pos": [
+        33.2000007629395,
+        0.0,
+        22.3999996185303
+      ],
+      "boss": false,
+      "cd": 0.221500024199486,
+      "charged_until": 0.0,
+      "convoy_hunter": false,
+      "hp": 30.0,
+      "pos": [
+        33.2000007629395,
+        0.0,
+        22.3999996185303
+      ],
+      "speed": 2.7,
+      "windup": 0.0
+    },
+    {
+      "armored": false,
+      "attack_pos": [
+        34.7999992370605,
+        0.0,
+        22.3999996185303
+      ],
+      "boss": false,
+      "cd": 0.43662241101265,
+      "charged_until": 0.0,
+      "convoy_hunter": false,
+      "hp": 30.0,
+      "pos": [
+        34.7999992370605,
+        0.0,
+        22.3999996185303
+      ],
+      "speed": 2.7,
+      "windup": 0.0
+    },
+    {
+      "armored": false,
+      "attack_pos": [
+        36.4000015258789,
+        0.0,
+        22.3999996185303
+      ],
+      "boss": false,
+      "cd": 0.525784313678741,
+      "charged_until": 0.0,
+      "convoy_hunter": false,
+      "hp": 30.0,
+      "pos": [
+        36.4000015258789,
+        0.0,
+        22.3999996185303
+      ],
+      "speed": 2.7,
+      "windup": 0.0
+    },
+    {
+      "armored": false,
+      "attack_pos": [
+        55.4036521911621,
+        0.0,
+        -47.4443054199219
+      ],
+      "boss": false,
+      "cd": 0.581512093544006,
+      "charged_until": 0.0,
+      "convoy_hunter": false,
+      "hp": 45.0,
+      "pos": [
+        -19.1974468231201,
+        0.0,
+        -30.3845195770264
+      ],
+      "speed": 1.65,
+      "windup": 0.0
+    },
+    {
+      "armored": false,
+      "attack_pos": [
+        62.8648529052734,
+        0.0,
+        -41.362190246582
+      ],
+      "boss": false,
+      "cd": 0.176185175776482,
+      "charged_until": 0.0,
+      "convoy_hunter": false,
+      "hp": 45.0,
+      "pos": [
+        -15.876838684082,
+        0.0,
+        -31.7960968017578
+      ],
+      "speed": 1.65,
+      "windup": 0.0
+    },
+    {
+      "armored": false,
+      "attack_pos": [
+        55.0707702636719,
+        0.0,
+        -48.5974502563477
+      ],
+      "boss": false,
+      "cd": 0.557099580764771,
+      "charged_until": 0.0,
+      "convoy_hunter": false,
+      "hp": 45.0,
+      "pos": [
+        -20.7132377624512,
+        0.0,
+        -29.4337043762207
+      ],
+      "speed": 1.65,
+      "windup": 0.0
+    },
+    {
+      "armored": false,
+      "attack_pos": [
+        55.7062454223633,
+        0.0,
+        -48.1249122619629
+      ],
+      "boss": false,
+      "cd": 0.904630303382874,
+      "charged_until": 0.0,
+      "convoy_hunter": false,
+      "hp": 45.0,
+      "pos": [
+        -19.9847793579102,
+        0.0,
+        -30.3063220977783
+      ],
+      "speed": 1.65,
+      "windup": 0.0
+    },
+    {
+      "armored": false,
+      "attack_pos": [
+        62.6205635070801,
+        0.0,
+        -41.0338897705078
+      ],
+      "boss": false,
+      "cd": 0.39667946100235,
+      "charged_until": 0.0,
+      "convoy_hunter": false,
+      "hp": 45.0,
+      "pos": [
+        -16.4415607452393,
+        0.0,
+        -30.9489345550537
+      ],
+      "speed": 1.65,
+      "windup": 0.0
+    },
+    {
+      "armored": false,
+      "attack_pos": [
+        55.3962593078613,
+        0.0,
+        -47.7909126281738
+      ],
+      "boss": false,
+      "cd": 0.355467736721039,
+      "charged_until": 0.0,
+      "convoy_hunter": false,
+      "hp": 45.0,
+      "pos": [
+        -20.1287479400635,
+        0.0,
+        -31.0070533752441
+      ],
+      "speed": 1.65,
+      "windup": 0.0
+    },
+    {
+      "armored": false,
+      "attack_pos": [
+        55.0962333679199,
+        0.0,
+        -48.0140380859375
+      ],
+      "boss": false,
+      "cd": 0.00312530202791094,
+      "charged_until": 0.0,
+      "convoy_hunter": false,
+      "hp": 45.0,
+      "pos": [
+        -20.803955078125,
+        0.0,
+        -28.7685012817383
+      ],
+      "speed": 1.65,
+      "windup": 0.0
+    },
+    {
+      "armored": false,
+      "attack_pos": [
+        62.3575973510742,
+        0.0,
+        -41.3469161987305
+      ],
+      "boss": false,
+      "cd": 0.67422878742218,
+      "charged_until": 0.0,
+      "convoy_hunter": false,
+      "hp": 45.0,
+      "pos": [
+        -17.2974071502686,
+        0.0,
+        -31.0049438476562
+      ],
+      "speed": 1.65,
+      "windup": 0.0
+    },
+    {
+      "armored": false,
+      "attack_pos": [
+        55.077262878418,
+        0.0,
+        -47.2374801635742
+      ],
+      "boss": false,
+      "cd": 0.160092696547508,
+      "charged_until": 0.0,
+      "convoy_hunter": false,
+      "hp": 45.0,
+      "pos": [
+        -21.695198059082,
+        0.0,
+        -28.7734985351562
+      ],
+      "speed": 1.65,
+      "windup": 0.0
+    },
+    {
+      "armored": false,
+      "attack_pos": [
+        55.3786773681641,
+        0.0,
+        -48.810359954834
+      ],
+      "boss": false,
+      "cd": 0.460675030946732,
+      "charged_until": 0.0,
+      "convoy_hunter": false,
+      "hp": 45.0,
+      "pos": [
+        -19.5103549957275,
+        0.0,
+        -29.675142288208
+      ],
+      "speed": 1.65,
+      "windup": 0.0
+    },
+    {
+      "armored": false,
+      "attack_pos": [
+        62.094165802002,
+        0.0,
+        -41.1239929199219
+      ],
+      "boss": false,
+      "cd": 0.542783737182617,
+      "charged_until": 0.0,
+      "convoy_hunter": false,
+      "hp": 45.0,
+      "pos": [
+        -17.7247524261475,
+        0.0,
+        -31.3183765411377
+      ],
+      "speed": 1.65,
+      "windup": 0.0
+    },
+    {
+      "armored": false,
+      "attack_pos": [
+        55.3845672607422,
+        0.0,
+        -47.1282272338867
+      ],
+      "boss": false,
+      "cd": 0.106643706560135,
+      "charged_until": 0.0,
+      "convoy_hunter": false,
+      "hp": 45.0,
+      "pos": [
+        -21.514123916626,
+        0.0,
+        -29.4562187194824
+      ],
+      "speed": 1.65,
+      "windup": 0.0
+    },
+    {
+      "armored": false,
+      "attack_pos": [
+        55.6572723388672,
+        0.0,
+        -47.3346328735352
+      ],
+      "boss": false,
+      "cd": 0.108191415667534,
+      "charged_until": 0.0,
+      "convoy_hunter": false,
+      "hp": 45.0,
+      "pos": [
+        -20.9935398101807,
+        0.0,
+        -29.2229328155518
+      ],
+      "speed": 1.65,
+      "windup": 0.0
+    },
+    {
+      "armored": false,
+      "attack_pos": [
+        62.3325462341309,
+        0.0,
+        -41.4833374023438
+      ],
+      "boss": false,
+      "cd": 0.926118552684784,
+      "charged_until": 0.0,
+      "convoy_hunter": false,
+      "hp": 45.0,
+      "pos": [
+        -16.6096019744873,
+        0.0,
+        -32.2727317810059
+      ],
+      "speed": 1.65,
+      "windup": 0.0
+    },
+    {
+      "armored": false,
+      "attack_pos": [
+        55.4180221557617,
+        0.0,
+        -48.1596488952637
+      ],
+      "boss": false,
+      "cd": 0.942003428936005,
+      "charged_until": 0.0,
+      "convoy_hunter": false,
+      "hp": 45.0,
+      "pos": [
+        -18.7943820953369,
+        0.0,
+        -29.921703338623
+      ],
+      "speed": 1.65,
+      "windup": 0.0
+    },
+    {
+      "armored": false,
+      "attack_pos": [
+        55.5096588134766,
+        0.0,
+        -48.8923377990723
+      ],
+      "boss": false,
+      "cd": 0.727770149707794,
+      "charged_until": 0.0,
+      "convoy_hunter": false,
+      "hp": 45.0,
+      "pos": [
+        -19.9233932495117,
+        0.0,
+        -29.4616928100586
+      ],
+      "speed": 1.65,
+      "windup": 0.0
+    },
+    {
+      "armored": false,
+      "attack_pos": [
+        61.1079330444336,
+        0.0,
+        -41.1153945922852
+      ],
+      "boss": false,
+      "cd": 0.86269348859787,
+      "charged_until": 0.0,
+      "convoy_hunter": false,
+      "hp": 45.0,
+      "pos": [
+        -18.2740879058838,
+        0.0,
+        -30.4623031616211
+      ],
+      "speed": 1.65,
+      "windup": 0.0
+    },
+    {
+      "armored": false,
+      "attack_pos": [
+        55.0585060119629,
+        0.0,
+        -47.9330558776855
+      ],
+      "boss": false,
+      "cd": 0.862426578998566,
+      "charged_until": 0.0,
+      "convoy_hunter": false,
+      "hp": 45.0,
+      "pos": [
+        -20.3027763366699,
+        0.0,
+        -29.9089431762695
+      ],
+      "speed": 1.65,
+      "windup": 0.0
+    },
+    {
+      "armored": false,
+      "attack_pos": [
+        55.0046920776367,
+        0.0,
+        -48.3789024353027
+      ],
+      "boss": false,
+      "cd": 0.0820116028189659,
+      "charged_until": 0.0,
+      "convoy_hunter": false,
+      "hp": 45.0,
+      "pos": [
+        -19.4849166870117,
+        0.0,
+        -30.0613880157471
+      ],
+      "speed": 1.65,
+      "windup": 0.0
+    },
+    {
+      "armored": false,
+      "attack_pos": [
+        62.8551483154297,
+        0.0,
+        -41.087718963623
+      ],
+      "boss": false,
+      "cd": 0.774164438247681,
+      "charged_until": 0.0,
+      "convoy_hunter": false,
+      "hp": 45.0,
+      "pos": [
+        -16.8164234161377,
+        0.0,
+        -31.57151222229
+      ],
+      "speed": 1.65,
+      "windup": 0.0
+    },
+    {
+      "armored": false,
+      "attack_pos": [
+        55.1817932128906,
+        0.0,
+        -48.4958267211914
+      ],
+      "boss": false,
+      "cd": 0.655201733112335,
+      "charged_until": 0.0,
+      "convoy_hunter": false,
+      "hp": 45.0,
+      "pos": [
+        -18.7497463226318,
+        0.0,
+        -30.5384998321533
+      ],
+      "speed": 1.65,
+      "windup": 0.0
+    },
+    {
+      "armored": false,
+      "attack_pos": [
+        55.1201934814453,
+        0.0,
+        -47.9214706420898
+      ],
+      "boss": false,
+      "cd": 0.85761034488678,
+      "charged_until": 0.0,
+      "convoy_hunter": false,
+      "hp": 45.0,
+      "pos": [
+        -22.3344783782959,
+        0.0,
+        -28.5552234649658
+      ],
+      "speed": 1.65,
+      "windup": 0.0
+    },
+    {
+      "armored": false,
+      "attack_pos": [
+        62.5115966796875,
+        0.0,
+        -41.2865409851074
+      ],
+      "boss": false,
+      "cd": 0.332122325897217,
+      "charged_until": 0.0,
+      "convoy_hunter": false,
+      "hp": 45.0,
+      "pos": [
+        -16.4065475463867,
+        0.0,
+        -31.3700656890869
+      ],
+      "speed": 1.65,
+      "windup": 0.0
+    },
+    {
+      "armored": false,
+      "attack_pos": [
+        55.3869323730469,
+        0.0,
+        -47.4213447570801
+      ],
+      "boss": false,
+      "cd": 0.0655418783426285,
+      "charged_until": 0.0,
+      "convoy_hunter": false,
+      "hp": 45.0,
+      "pos": [
+        -20.2300701141357,
+        0.0,
+        -29.1187477111816
+      ],
+      "speed": 1.65,
+      "windup": 0.0
+    },
+    {
+      "armored": false,
+      "attack_pos": [
+        55.1621208190918,
+        0.0,
+        -48.4044570922852
+      ],
+      "boss": false,
+      "cd": 0.110191822052002,
+      "charged_until": 0.0,
+      "convoy_hunter": false,
+      "hp": 45.0,
+      "pos": [
+        -20.9611721038818,
+        0.0,
+        -30.1578559875488
+      ],
+      "speed": 1.65,
+      "windup": 0.0
+    },
+    {
+      "armored": false,
+      "attack_pos": [
+        61.3183708190918,
+        0.0,
+        -41.0018692016602
+      ],
+      "boss": false,
+      "cd": 0.321428149938583,
+      "charged_until": 0.0,
+      "convoy_hunter": false,
+      "hp": 45.0,
+      "pos": [
+        -17.7955474853516,
+        0.0,
+        -30.5573196411133
+      ],
+      "speed": 1.65,
+      "windup": 0.0
+    },
+    {
+      "armored": false,
+      "attack_pos": [
+        55.4060325622559,
+        0.0,
+        -47.9581298828125
+      ],
+      "boss": false,
+      "cd": 0.136588662862778,
+      "charged_until": 0.0,
+      "convoy_hunter": false,
+      "hp": 45.0,
+      "pos": [
+        -19.7145156860352,
+        0.0,
+        -30.4894428253174
+      ],
+      "speed": 1.65,
+      "windup": 0.0
+    }
+  ],
+  "family_misses": 0,
+  "first_activation": true,
+  "frontier": {
+    "alarm_remaining": 0.0,
+    "alarm_triggered": false,
+    "camp_awake": [
+      true,
+      false
+    ],
+    "camp_members": [
+      {
+        "awake": false,
+        "enemy_index": 0,
+        "group": 1
+      },
+      {
+        "awake": false,
+        "enemy_index": 1,
+        "group": 1
+      },
+      {
+        "awake": false,
+        "enemy_index": 2,
+        "group": 1
+      },
+      {
+        "awake": false,
+        "enemy_index": 3,
+        "group": 1
+      },
+      {
+        "awake": false,
+        "enemy_index": 4,
+        "group": 1
+      },
+      {
+        "awake": false,
+        "enemy_index": 5,
+        "group": 1
+      },
+      {
+        "awake": false,
+        "enemy_index": 6,
+        "group": 1
+      },
+      {
+        "awake": false,
+        "enemy_index": 7,
+        "group": 1
+      },
+      {
+        "awake": false,
+        "enemy_index": 8,
+        "group": 1
+      },
+      {
+        "awake": false,
+        "enemy_index": 9,
+        "group": 1
+      },
+      {
+        "awake": false,
+        "enemy_index": 10,
+        "group": 1
+      },
+      {
+        "awake": false,
+        "enemy_index": 11,
+        "group": 1
+      },
+      {
+        "awake": false,
+        "enemy_index": 12,
+        "group": 1
+      },
+      {
+        "awake": false,
+        "enemy_index": 13,
+        "group": 1
+      },
+      {
+        "awake": false,
+        "enemy_index": 14,
+        "group": 1
+      },
+      {
+        "awake": false,
+        "enemy_index": 15,
+        "group": 1
+      }
+    ],
+    "emergence_clock": 0.0,
+    "emergence_index": 0,
+    "nest": {
+      "dead": false,
+      "hp": 6000.0,
+      "known": true,
+      "reward_claimed": false
+    },
+    "raid_clock": 19.6500000000081,
+    "raid_index": 8,
+    "version": 1
+  },
+  "frontier_visibility": {
+    "bounds": [
+      -96.0,
+      -80.0,
+      192.0,
+      160.0
+    ],
+    "cell_size": 4.0,
+    "columns": 48,
+    "explored": "f8ff3f000000fcff7f000000fcffff000000fcffff000000fcffff010000fcfffff91f00fcffffff7f00fcffffffff00f8ffffffff00f0ffffffff00e0ffffffff00f0ffffffff00f8ffffffff00f8ffffffff00f8ffffff7f00f8ffffff3f00f8ffffff1f00f8ffffff0f00f8ffffff0700fcff83ff0300fcff03ff0100fcff017c0000fcff00000000fcff00000000fcff00000000fcff00000000feff00000000feff01000000feff03000000feff03000000feff07000000feff07000000ffff07000000ffff07000000ffff03000000ffff01000000feff00000000fcff00000000f07f00000000e03f00000000",
+    "rows": 40,
+    "structures": {
+      "frontier_nest": {
+        "kind": "nest",
+        "pos": [
+          62.0,
+          0.0,
+          -48.0
+        ]
+      }
+    },
+    "version": 1
+  },
+  "gathered": 7684.80000000403,
+  "generator": true,
+  "hold": 0.0,
+  "kills": 193,
+  "level": 8,
+  "mission": 1,
+  "noise": 73.5,
+  "paused": false,
+  "pending_upgrade_levels": [],
+  "preferred_family": "ballistic",
+  "recruit_queue": [],
+  "rerolls": 2,
+  "research_active": false,
+  "research_time": 0.0,
+  "resource_nodes": [
+    {
+      "pos": [
+        -72.0,
+        0.0,
+        51.0
+      ],
+      "radius": 1.4,
+      "renewable": false,
+      "resource": "food",
+      "source_building_index": -1,
+      "stock": 0.0
+    },
+    {
+      "pos": [
+        -56.0,
+        0.0,
+        51.0
+      ],
+      "radius": 1.4,
+      "renewable": false,
+      "resource": "salvage",
+      "source_building_index": -1,
+      "stock": 0.0
+    },
+    {
+      "pos": [
+        -75.0,
+        0.0,
+        42.0
+      ],
+      "radius": 1.4,
+      "renewable": false,
+      "resource": "parts",
+      "source_building_index": -1,
+      "stock": 0.0
+    },
+    {
+      "pos": [
+        -52.0,
+        0.0,
+        -14.0
+      ],
+      "radius": 1.4,
+      "renewable": false,
+      "resource": "food",
+      "source_building_index": -1,
+      "stock": 0.0
+    },
+    {
+      "pos": [
+        -58.0,
+        0.0,
+        -24.0
+      ],
+      "radius": 1.4,
+      "renewable": false,
+      "resource": "salvage",
+      "source_building_index": -1,
+      "stock": 0.0
+    },
+    {
+      "pos": [
+        -38.0,
+        0.0,
+        -18.0
+      ],
+      "radius": 1.4,
+      "renewable": false,
+      "resource": "parts",
+      "source_building_index": -1,
+      "stock": 698.60099999986
+    },
+    {
+      "pos": [
+        24.0,
+        0.0,
+        30.0
+      ],
+      "radius": 1.4,
+      "renewable": false,
+      "resource": "food",
+      "source_building_index": -1,
+      "stock": 2000.0
+    },
+    {
+      "pos": [
+        42.0,
+        0.0,
+        30.0
+      ],
+      "radius": 1.4,
+      "renewable": false,
+      "resource": "salvage",
+      "source_building_index": -1,
+      "stock": 2600.0
+    },
+    {
+      "pos": [
+        30.0,
+        0.0,
+        12.0
+      ],
+      "radius": 1.4,
+      "renewable": false,
+      "resource": "parts",
+      "source_building_index": -1,
+      "stock": 1200.0
+    }
+  ],
+  "resources": 2042.37500000251,
+  "rng": "6939912874496389712",
+  "run_seed": "5278979258395613045",
+  "selected": [
+    29
+  ],
+  "settlement_age": 3,
+  "shells": [],
+  "sites": [
+    {
+      "kind": "generator",
+      "paid": true,
+      "pos": [
+        -42.0,
+        0.0,
+        32.0
+      ],
+      "progress": 1.0,
+      "reclaimed": true,
+      "stock": 650.0
+    }
+  ],
+  "stockpile": {
+    "food": 490.000000001445,
+    "parts": 274.800000000022,
+    "salvage": 2042.37500000251
+  },
+  "surge": false,
+  "tech_level": 3,
+  "units": [
+    {
+      "cd": -492.980000000078,
+      "dropoff_index": -1,
+      "escort_repath": 0.0,
+      "escort_slot": 0,
+      "goal": [
+        56.0,
+        0.0,
+        -44.0
+      ],
+      "hp": 120.0,
+      "kind": "guard",
+      "maxhp": 120.0,
+      "pending_orders": [],
+      "pos": [
+        -58.809886932373,
+        0.0,
+        -10.0
+      ],
+      "resource_target_index": -1,
+      "return_assignment": {
+        "resource": "",
+        "target_index": -1
+      },
+      "shots": 0.0,
+      "target_index": -1,
+      "target_type": "",
+      "task": "attack_move",
+      "work": 0.0,
+      "yaw": -1.57079637050629
+    },
+    {
+      "cd": -492.430000000078,
+      "dropoff_index": -1,
+      "escort_repath": 0.0,
+      "escort_slot": 0,
+      "goal": [
+        56.0,
+        0.0,
+        -43.0
+      ],
+      "hp": 120.0,
+      "kind": "guard",
+      "maxhp": 120.0,
+      "pending_orders": [],
+      "pos": [
+        -57.9390525817871,
+        0.0,
+        -10.0
+      ],
+      "resource_target_index": -1,
+      "return_assignment": {
+        "resource": "",
+        "target_index": -1
+      },
+      "shots": 0.0,
+      "target_index": -1,
+      "target_type": "",
+      "task": "attack_move",
+      "work": 0.0,
+      "yaw": -1.57079637050629
+    },
+    {
+      "cargo": 0.0,
+      "cargo_kind": "",
+      "cd": -719.696872866047,
+      "dropoff_index": -1,
+      "economy_phase": "to_resource",
+      "escort_repath": 0.0,
+      "escort_slot": 0,
+      "gather_requires_work": false,
+      "goal": [
+        -37.3047103881836,
+        0.0,
+        -15.8601226806641
+      ],
+      "hp": 120.0,
+      "kind": "worker",
+      "maxhp": 120.0,
+      "pending_orders": [],
+      "pos": [
+        -55.5999946594238,
+        0.0,
+        -22.0
+      ],
+      "resource_kind": "parts",
+      "resource_target_index": 5,
+      "return_assignment": {
+        "resource": "",
+        "target_index": -1
+      },
+      "shots": 0.0,
+      "target_index": 5,
+      "target_type": "resource",
+      "task": "gather",
+      "work": 0.0,
+      "yaw": -1.57079637050629
+    },
+    {
+      "cargo": 0.0,
+      "cargo_kind": "",
+      "cd": -720.204011759055,
+      "dropoff_index": -1,
+      "economy_phase": "to_resource",
+      "escort_repath": 0.0,
+      "escort_slot": 0,
+      "gather_requires_work": false,
+      "goal": [
+        -38.6952896118164,
+        0.0,
+        -15.8601226806641
+      ],
+      "hp": 120.0,
+      "kind": "worker",
+      "maxhp": 120.0,
+      "pending_orders": [],
+      "pos": [
+        -57.5999946594238,
+        0.0,
+        -22.0
+      ],
+      "resource_kind": "parts",
+      "resource_target_index": 5,
+      "return_assignment": {
+        "resource": "",
+        "target_index": -1
+      },
+      "shots": 0.0,
+      "target_index": 5,
+      "target_type": "resource",
+      "task": "gather",
+      "work": 0.0,
+      "yaw": -1.57079637050629
+    },
+    {
+      "cargo": 1.221,
+      "cargo_kind": "parts",
+      "cd": -720.315105082732,
+      "dropoff_index": -1,
+      "economy_phase": "gathering",
+      "escort_repath": 0.0,
+      "escort_slot": 0,
+      "gather_requires_work": false,
+      "goal": [
+        -39.8202896118164,
+        0.0,
+        -16.6774826049805
+      ],
+      "hp": 120.0,
+      "kind": "worker",
+      "maxhp": 120.0,
+      "pending_orders": [],
+      "pos": [
+        -39.8202896118164,
+        0.0,
+        -16.6774826049805
+      ],
+      "resource_kind": "parts",
+      "resource_target_index": 5,
+      "return_assignment": {
+        "resource": "",
+        "target_index": -1
+      },
+      "shots": 0.0,
+      "target_index": 5,
+      "target_type": "resource",
+      "task": "gather",
+      "work": 0.0,
+      "yaw": -2.63325309753418
+    },
+    {
+      "cargo": 10.296,
+      "cargo_kind": "parts",
+      "cd": -720.131054943693,
+      "dropoff_index": -1,
+      "economy_phase": "idle",
+      "escort_repath": 0.0,
+      "escort_slot": 0,
+      "gather_requires_work": false,
+      "goal": [
+        -59.6500015258789,
+        0.0,
+        -12.0
+      ],
+      "hp": 120.0,
+      "kind": "worker",
+      "maxhp": 120.0,
+      "pending_orders": [],
+      "pos": [
+        -59.6500015258789,
+        0.0,
+        -12.0
+      ],
+      "resource_kind": "",
+      "resource_target_index": -1,
+      "return_assignment": {
+        "resource": "",
+        "target_index": -1
+      },
+      "shots": 0.0,
+      "target_index": -1,
+      "target_type": "",
+      "task": "idle",
+      "work": 0.0,
+      "yaw": -1.57079637050629
+    },
+    {
+      "cargo": 0.0,
+      "cargo_kind": "",
+      "cd": -719.451711511505,
+      "dropoff_index": -1,
+      "economy_phase": "to_resource",
+      "escort_repath": 0.0,
+      "escort_slot": 0,
+      "gather_requires_work": false,
+      "goal": [
+        -39.8202896118164,
+        0.0,
+        -19.3225173950195
+      ],
+      "hp": 120.0,
+      "kind": "worker",
+      "maxhp": 120.0,
+      "pending_orders": [],
+      "pos": [
+        -58.5999946594238,
+        0.0,
+        -22.0
+      ],
+      "resource_kind": "parts",
+      "resource_target_index": 5,
+      "return_assignment": {
+        "resource": "",
+        "target_index": -1
+      },
+      "shots": 0.0,
+      "target_index": 5,
+      "target_type": "resource",
+      "task": "gather",
+      "work": 0.0,
+      "yaw": -1.57079637050629
+    },
+    {
+      "cargo": 0.0,
+      "cargo_kind": "",
+      "cd": -719.523245012654,
+      "dropoff_index": -1,
+      "economy_phase": "to_resource",
+      "escort_repath": 0.0,
+      "escort_slot": 0,
+      "gather_requires_work": false,
+      "goal": [
+        -38.6952896118164,
+        0.0,
+        -20.1398773193359
+      ],
+      "hp": 120.0,
+      "kind": "worker",
+      "maxhp": 120.0,
+      "pending_orders": [],
+      "pos": [
+        -57.5999946594238,
+        0.0,
+        -22.0
+      ],
+      "resource_kind": "parts",
+      "resource_target_index": 5,
+      "return_assignment": {
+        "resource": "",
+        "target_index": -1
+      },
+      "shots": 0.0,
+      "target_index": 5,
+      "target_type": "resource",
+      "task": "gather",
+      "work": 0.0,
+      "yaw": -1.57079637050629
+    },
+    {
+      "cargo": 0.0,
+      "cargo_kind": "",
+      "cd": -701.891119980722,
+      "dropoff_index": -1,
+      "economy_phase": "to_resource",
+      "escort_repath": 0.0,
+      "escort_slot": 0,
+      "gather_requires_work": false,
+      "goal": [
+        -37.3047103881836,
+        0.0,
+        -20.1398773193359
+      ],
+      "hp": 120.0,
+      "kind": "worker",
+      "maxhp": 120.0,
+      "pending_orders": [],
+      "pos": [
+        -55.5999946594238,
+        0.0,
+        -22.0
+      ],
+      "resource_kind": "parts",
+      "resource_target_index": 5,
+      "return_assignment": {
+        "resource": "",
+        "target_index": -1
+      },
+      "shots": 0.0,
+      "target_index": 5,
+      "target_type": "resource",
+      "task": "gather",
+      "work": 0.0,
+      "yaw": -1.57079637050629
+    },
+    {
+      "cargo": 0.0,
+      "cargo_kind": "",
+      "cd": -681.833821022438,
+      "dropoff_index": -1,
+      "economy_phase": "to_resource",
+      "escort_repath": 0.0,
+      "escort_slot": 0,
+      "gather_requires_work": false,
+      "goal": [
+        -36.1797103881836,
+        0.0,
+        -19.3225173950195
+      ],
+      "hp": 120.0,
+      "kind": "worker",
+      "maxhp": 120.0,
+      "pending_orders": [],
+      "pos": [
+        -54.5999946594238,
+        0.0,
+        -22.0
+      ],
+      "resource_kind": "parts",
+      "resource_target_index": 5,
+      "return_assignment": {
+        "resource": "",
+        "target_index": -1
+      },
+      "shots": 0.0,
+      "target_index": 5,
+      "target_type": "resource",
+      "task": "gather",
+      "work": 0.0,
+      "yaw": -1.57079637050629
+    },
+    {
+      "cargo": 0.594,
+      "cargo_kind": "parts",
+      "cd": -661.464001262134,
+      "dropoff_index": -1,
+      "economy_phase": "idle",
+      "escort_repath": 0.0,
+      "escort_slot": 0,
+      "gather_requires_work": false,
+      "goal": [
+        -59.6500015258789,
+        0.0,
+        -12.0
+      ],
+      "hp": 93.0,
+      "kind": "worker",
+      "maxhp": 120.0,
+      "pending_orders": [],
+      "pos": [
+        -59.6500015258789,
+        0.0,
+        -12.0
+      ],
+      "resource_kind": "",
+      "resource_target_index": -1,
+      "return_assignment": {
+        "resource": "",
+        "target_index": -1
+      },
+      "shots": 0.0,
+      "target_index": -1,
+      "target_type": "",
+      "task": "idle",
+      "work": 0.0,
+      "yaw": -1.57079637050629
+    },
+    {
+      "cd": -287.180000000031,
+      "dropoff_index": -1,
+      "escort_repath": 0.0,
+      "escort_slot": 0,
+      "goal": [
+        68.0,
+        0.0,
+        -43.0
+      ],
+      "hp": 120.0,
+      "kind": "guard",
+      "maxhp": 120.0,
+      "pending_orders": [],
+      "pos": [
+        -56.127384185791,
+        0.0,
+        -10.0
+      ],
+      "resource_target_index": -1,
+      "return_assignment": {
+        "resource": "",
+        "target_index": -1
+      },
+      "shots": 0.0,
+      "target_index": -1,
+      "target_type": "",
+      "task": "attack_move",
+      "work": 0.0,
+      "yaw": -1.57079637050629
+    },
+    {
+      "cargo": 3.92699999999999,
+      "cargo_kind": "parts",
+      "cd": -641.794077599013,
+      "dropoff_index": -1,
+      "economy_phase": "idle",
+      "escort_repath": 0.0,
+      "escort_slot": 0,
+      "gather_requires_work": false,
+      "goal": [
+        -59.6500015258789,
+        0.0,
+        -12.0
+      ],
+      "hp": 120.0,
+      "kind": "worker",
+      "maxhp": 120.0,
+      "pending_orders": [],
+      "pos": [
+        -59.6500015258789,
+        0.0,
+        -12.0
+      ],
+      "resource_kind": "",
+      "resource_target_index": -1,
+      "return_assignment": {
+        "resource": "",
+        "target_index": -1
+      },
+      "shots": 0.0,
+      "target_index": -1,
+      "target_type": "",
+      "task": "idle",
+      "work": 0.0,
+      "yaw": -1.57079637050629
+    },
+    {
+      "cd": -287.580000000031,
+      "dropoff_index": -1,
+      "escort_repath": 0.0,
+      "escort_slot": 0,
+      "goal": [
+        68.0,
+        0.0,
+        -44.0
+      ],
+      "hp": 120.0,
+      "kind": "guard",
+      "maxhp": 120.0,
+      "pending_orders": [],
+      "pos": [
+        -54.730281829834,
+        0.0,
+        -10.0
+      ],
+      "resource_target_index": -1,
+      "return_assignment": {
+        "resource": "",
+        "target_index": -1
+      },
+      "shots": 0.0,
+      "target_index": -1,
+      "target_type": "",
+      "task": "attack_move",
+      "work": 0.0,
+      "yaw": -1.57079637050629
+    },
+    {
+      "cargo": 0.0,
+      "cargo_kind": "",
+      "cd": -622.212384217959,
+      "dropoff_index": -1,
+      "economy_phase": "to_resource",
+      "escort_repath": 0.0,
+      "escort_slot": 0,
+      "gather_requires_work": false,
+      "goal": [
+        -39.9011917114258,
+        0.0,
+        -16.6187038421631
+      ],
+      "hp": 120.0,
+      "kind": "worker",
+      "maxhp": 120.0,
+      "pending_orders": [],
+      "pos": [
+        -58.7999954223633,
+        0.0,
+        -22.0
+      ],
+      "resource_kind": "parts",
+      "resource_target_index": 5,
+      "return_assignment": {
+        "resource": "",
+        "target_index": -1
+      },
+      "shots": 0.0,
+      "target_index": 5,
+      "target_type": "resource",
+      "task": "gather",
+      "work": 0.0,
+      "yaw": -1.57079637050629
+    },
+    {
+      "cd": -52.9739130434774,
+      "dropoff_index": -1,
+      "escort_repath": 0.0,
+      "escort_slot": 0,
+      "goal": [
+        -62.0,
+        0.0,
+        -19.2499923706055
+      ],
+      "hp": 120.0,
+      "kind": "guard",
+      "maxhp": 120.0,
+      "pending_orders": [],
+      "pos": [
+        -62.0,
+        0.0,
+        -19.2499923706055
+      ],
+      "resource_target_index": -1,
+      "return_assignment": {
+        "resource": "",
+        "target_index": -1
+      },
+      "shots": 0.0,
+      "target_index": -1,
+      "target_type": "",
+      "task": "idle",
+      "work": 0.0,
+      "yaw": -3.14159274101257
+    },
+    {
+      "cargo": 0.0,
+      "cargo_kind": "",
+      "cd": -601.68559678793,
+      "dropoff_index": -1,
+      "economy_phase": "idle",
+      "escort_repath": 0.0,
+      "escort_slot": 0,
+      "gather_requires_work": false,
+      "goal": [
+        -59.6500015258789,
+        0.0,
+        -12.0
+      ],
+      "hp": 120.0,
+      "kind": "worker",
+      "maxhp": 120.0,
+      "pending_orders": [],
+      "pos": [
+        -59.6500015258789,
+        0.0,
+        -12.0
+      ],
+      "resource_kind": "",
+      "resource_target_index": -1,
+      "return_assignment": {
+        "resource": "",
+        "target_index": -1
+      },
+      "shots": 0.0,
+      "target_index": -1,
+      "target_type": "",
+      "task": "idle",
+      "work": 0.0,
+      "yaw": -1.57079637050629
+    },
+    {
+      "cargo": 0.561,
+      "cargo_kind": "parts",
+      "cd": -582.147901916522,
+      "dropoff_index": -1,
+      "economy_phase": "idle",
+      "escort_repath": 0.0,
+      "escort_slot": 0,
+      "gather_requires_work": false,
+      "goal": [
+        -59.6500015258789,
+        0.0,
+        -12.0
+      ],
+      "hp": 111.0,
+      "kind": "worker",
+      "maxhp": 120.0,
+      "pending_orders": [],
+      "pos": [
+        -59.6500015258789,
+        0.0,
+        -12.0
+      ],
+      "resource_kind": "",
+      "resource_target_index": -1,
+      "return_assignment": {
+        "resource": "",
+        "target_index": -1
+      },
+      "shots": 0.0,
+      "target_index": -1,
+      "target_type": "",
+      "task": "idle",
+      "work": 0.0,
+      "yaw": -1.57079637050629
+    },
+    {
+      "cd": -53.3239130434774,
+      "dropoff_index": -1,
+      "escort_repath": 0.0,
+      "escort_slot": 0,
+      "goal": [
+        -62.0,
+        0.0,
+        -20.3499927520752
+      ],
+      "hp": 120.0,
+      "kind": "guard",
+      "maxhp": 120.0,
+      "pending_orders": [],
+      "pos": [
+        -62.0,
+        0.0,
+        -20.3499927520752
+      ],
+      "resource_target_index": -1,
+      "return_assignment": {
+        "resource": "",
+        "target_index": -1
+      },
+      "shots": 0.0,
+      "target_index": -1,
+      "target_type": "",
+      "task": "idle",
+      "work": 0.0,
+      "yaw": -3.14159274101257
+    },
+    {
+      "cargo": 0.0,
+      "cargo_kind": "",
+      "cd": -561.667098486461,
+      "dropoff_index": -1,
+      "economy_phase": "to_resource",
+      "escort_repath": 0.0,
+      "escort_slot": 0,
+      "gather_requires_work": false,
+      "goal": [
+        -36.0988082885742,
+        0.0,
+        -19.3812961578369
+      ],
+      "hp": 120.0,
+      "kind": "worker",
+      "maxhp": 120.0,
+      "pending_orders": [],
+      "pos": [
+        -54.7999954223633,
+        0.0,
+        -22.0
+      ],
+      "resource_kind": "parts",
+      "resource_target_index": 5,
+      "return_assignment": {
+        "resource": "",
+        "target_index": -1
+      },
+      "shots": 0.0,
+      "target_index": 5,
+      "target_type": "resource",
+      "task": "gather",
+      "work": 0.0,
+      "yaw": -1.57079637050629
+    },
+    {
+      "cd": -427.532408797804,
+      "dropoff_index": -1,
+      "escort_repath": 0.0,
+      "escort_slot": 0,
+      "goal": [
+        -59.3852577209473,
+        0.0,
+        41.2294235229492
+      ],
+      "hp": 120.0,
+      "kind": "guard",
+      "maxhp": 120.0,
+      "pending_orders": [],
+      "pos": [
+        -59.3852577209473,
+        0.0,
+        41.2294235229492
+      ],
+      "resource_target_index": -1,
+      "return_assignment": {
+        "resource": "",
+        "target_index": -1
+      },
+      "shots": 0.0,
+      "target_index": -1,
+      "target_type": "",
+      "task": "idle",
+      "work": 0.0,
+      "yaw": -1.9762396812439
+    },
+    {
+      "cd": -403.243236655054,
+      "dropoff_index": -1,
+      "escort_repath": 0.0,
+      "escort_slot": 0,
+      "goal": [
+        -56.2610549926758,
+        0.0,
+        42.0771293640137
+      ],
+      "hp": 120.0,
+      "kind": "guard",
+      "maxhp": 120.0,
+      "pending_orders": [],
+      "pos": [
+        -56.2610549926758,
+        0.0,
+        42.0771293640137
+      ],
+      "resource_target_index": -1,
+      "return_assignment": {
+        "resource": "",
+        "target_index": -1
+      },
+      "shots": 0.0,
+      "target_index": -1,
+      "target_type": "",
+      "task": "idle",
+      "work": 0.0,
+      "yaw": -1.57079637050629
+    },
+    {
+      "cd": -377.550090336851,
+      "dropoff_index": -1,
+      "escort_repath": 0.0,
+      "escort_slot": 0,
+      "goal": [
+        -55.2632255554199,
+        0.0,
+        41.213695526123
+      ],
+      "hp": 120.0,
+      "kind": "guard",
+      "maxhp": 120.0,
+      "pending_orders": [],
+      "pos": [
+        -55.2632255554199,
+        0.0,
+        41.213695526123
+      ],
+      "resource_target_index": -1,
+      "return_assignment": {
+        "resource": "",
+        "target_index": -1
+      },
+      "shots": 0.0,
+      "target_index": -1,
+      "target_type": "",
+      "task": "idle",
+      "work": 0.0,
+      "yaw": 1.57079637050629
+    },
+    {
+      "cd": -352.564883315609,
+      "dropoff_index": -1,
+      "escort_repath": 0.0,
+      "escort_slot": 0,
+      "goal": [
+        56.0,
+        0.0,
+        -43.0
+      ],
+      "hp": 120.0,
+      "kind": "guard",
+      "maxhp": 120.0,
+      "pending_orders": [],
+      "pos": [
+        -58.2438354492188,
+        0.0,
+        -9.0
+      ],
+      "resource_target_index": -1,
+      "return_assignment": {
+        "resource": "",
+        "target_index": -1
+      },
+      "shots": 0.0,
+      "target_index": -1,
+      "target_type": "",
+      "task": "attack_move",
+      "work": 0.0,
+      "yaw": -1.57079637050629
+    },
+    {
+      "cd": -328.277076394896,
+      "dropoff_index": -1,
+      "escort_repath": 0.0,
+      "escort_slot": 0,
+      "goal": [
+        56.0,
+        0.0,
+        -42.0
+      ],
+      "hp": 120.0,
+      "kind": "guard",
+      "maxhp": 120.0,
+      "pending_orders": [],
+      "pos": [
+        -57.0420303344727,
+        0.0,
+        -9.0
+      ],
+      "resource_target_index": -1,
+      "return_assignment": {
+        "resource": "",
+        "target_index": -1
+      },
+      "shots": 0.0,
+      "target_index": -1,
+      "target_type": "",
+      "task": "attack_move",
+      "work": 0.0,
+      "yaw": -1.57079637050629
+    },
+    {
+      "cd": -302.496848130261,
+      "dropoff_index": -1,
+      "escort_repath": 0.0,
+      "escort_slot": 0,
+      "goal": [
+        58.0,
+        0.0,
+        -42.0
+      ],
+      "hp": 120.0,
+      "kind": "guard",
+      "maxhp": 120.0,
+      "pending_orders": [],
+      "pos": [
+        -56.0329627990723,
+        0.0,
+        -9.0
+      ],
+      "resource_target_index": -1,
+      "return_assignment": {
+        "resource": "",
+        "target_index": -1
+      },
+      "shots": 0.0,
+      "target_index": -1,
+      "target_type": "",
+      "task": "attack_move",
+      "work": 0.0,
+      "yaw": -1.57079637050629
+    },
+    {
+      "cd": -267.845781111744,
+      "dropoff_index": -1,
+      "escort_repath": 0.0,
+      "escort_slot": 0,
+      "goal": [
+        68.0,
+        0.0,
+        -43.0
+      ],
+      "hp": 144.0,
+      "kind": "grenade",
+      "maxhp": 144.0,
+      "pending_orders": [],
+      "pos": [
+        -55.0711898803711,
+        0.0,
+        -9.0
+      ],
+      "resource_target_index": -1,
+      "return_assignment": {
+        "resource": "",
+        "target_index": -1
+      },
+      "shots": 0.0,
+      "target_index": -1,
+      "target_type": "",
+      "task": "attack_move",
+      "work": 0.0,
+      "yaw": -1.57079637050629
+    },
+    {
+      "cd": -232.696978533287,
+      "dropoff_index": -1,
+      "escort_repath": 0.0,
+      "escort_slot": 0,
+      "goal": [
+        56.0,
+        0.0,
+        -42.0
+      ],
+      "hp": 144.0,
+      "kind": "grenade",
+      "maxhp": 144.0,
+      "pending_orders": [],
+      "pos": [
+        -59.3443374633789,
+        0.0,
+        -8.0
+      ],
+      "resource_target_index": -1,
+      "return_assignment": {
+        "resource": "",
+        "target_index": -1
+      },
+      "shots": 0.0,
+      "target_index": -1,
+      "target_type": "",
+      "task": "attack_move",
+      "work": 0.0,
+      "yaw": -1.57079637050629
+    },
+    {
+      "cd": -63.3357796311364,
+      "dropoff_index": -1,
+      "escort_repath": 0.0,
+      "escort_slot": 0,
+      "goal": [
+        57.0,
+        0.0,
+        -42.0
+      ],
+      "hp": 288.0,
+      "kind": "siegecart",
+      "maxhp": 288.0,
+      "pending_orders": [],
+      "pos": [
+        -58.8174476623535,
+        0.0,
+        -8.0
+      ],
+      "resource_target_index": -1,
+      "return_assignment": {
+        "resource": "",
+        "target_index": -1
+      },
+      "shots": 0.0,
+      "target_index": -1,
+      "target_type": "",
+      "task": "attack_move",
+      "work": 0.0,
+      "yaw": -1.57079637050629
+    },
+    {
+      "cd": -19.816713178158,
+      "dropoff_index": -1,
+      "escort_repath": 0.05,
+      "escort_slot": 0,
+      "goal": [
+        -60.9157829284668,
+        0.0,
+        -10.6023330688477
+      ],
+      "hp": 216.0,
+      "kind": "truck",
+      "maxhp": 216.0,
+      "pending_orders": [],
+      "pos": [
+        -60.3712348937988,
+        0.0,
+        -10.3712329864502
+      ],
+      "resource_target_index": -1,
+      "return_assignment": {
+        "resource": "",
+        "target_index": -1
+      },
+      "shots": 0.0,
+      "target_index": 28,
+      "target_type": "unit",
+      "task": "escort",
+      "work": 0.0,
+      "yaw": 0.785397529602051
+    }
+  ],
+  "upgrades": {
+    "armor": 1.0,
+    "chain": 1.0,
+    "damage": 1.0,
+    "multi": 1.0,
+    "rate": 1.0,
+    "salvage": 1.0,
+    "salvo": 1.0
+  },
+  "version": 4,
+  "victory_boost": 0.0,
+  "visual_rng": "-3837066394557402776",
+  "wave": 0,
+  "wave_clock": -610.349999999989,
+  "xp": 3.0
+}

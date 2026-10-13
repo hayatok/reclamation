@@ -1,0 +1,342 @@
+{
+  "all_runs_exit_zero": true,
+  "all_start_states_deep_equal": true,
+  "all_end_states_deep_equal": true,
+  "sources_unchanged": true,
+  "pair_improvements": [
+    {
+      "order": "AB",
+      "simulation_reduction_percent": 16.230649771555903,
+      "target_time_reduction_percent": 95.753252299985
+    },
+    {
+      "order": "BA",
+      "simulation_reduction_percent": 4.905442291253648,
+      "target_time_reduction_percent": 92.97536216559162
+    }
+  ],
+  "pooled_simulation_reduction_percent": 10.884476928941279,
+  "runs": [
+    {
+      "run": "AB_A_baseline",
+      "simulation_ms": {
+        "max": 18.738,
+        "mean": 9.25645833333333,
+        "min": 5.67,
+        "p95": 13.143,
+        "samples": 120,
+        "total": 1110.775
+      },
+      "combat_targets_ms": {
+        "max": 4.731,
+        "mean": 2.165775,
+        "min": 0.806,
+        "p95": 3.238,
+        "samples": 120,
+        "total": 259.893
+      },
+      "combat_targets_share_percent": 23.3974477279377,
+      "combat_targets_calls": {
+        "max": 37,
+        "mean": 31.8,
+        "min": 24,
+        "p95": 34,
+        "samples": 120,
+        "total": 3816.0
+      },
+      "query_enemy_entries_virtual": 160354,
+      "initial_actors": {
+        "buildings": 14,
+        "enemies": 43,
+        "live_enemies": 43,
+        "sleeping_field_true": 0,
+        "unit_kinds": {
+          "grenade": 2,
+          "guard": 12,
+          "siegecart": 1,
+          "truck": 1,
+          "worker": 14
+        },
+        "units": 30
+      },
+      "final_actors": {
+        "buildings": 14,
+        "enemies": 24,
+        "live_enemies": 24,
+        "sleeping_field_true": 0,
+        "unit_kinds": {
+          "grenade": 2,
+          "guard": 12,
+          "siegecart": 1,
+          "truck": 1,
+          "worker": 14
+        },
+        "units": 30
+      },
+      "rng_start": {
+        "card_rng": "-7073839208676200676",
+        "rng": "6939912874496389712",
+        "visual_rng": "-3837066394557402776"
+      },
+      "rng_end": {
+        "card_rng": "-7073839208676200676",
+        "rng": "-2229809442595151162",
+        "visual_rng": "-2214877275341068306"
+      },
+      "all_start_state_deep_equal": true,
+      "all_end_state_deep_equal": true,
+      "start_differences": [],
+      "end_differences": [],
+      "checkpoint_sha256": {
+        "checkpoint_start.json": "ccd50a773c49842d059fbc2937f2f50e919fedfdda8b79271cdfab36ff00911f",
+        "checkpoint_end.json": "01f0278bad7c768fdbf2a2db56652c8482ff0adff9577343861da2b9d37c1cc6"
+      },
+      "source_unchanged": true,
+      "source_sha256": "c0f921f2be3c6e72a9bd3e6debb4bd0b3c52bc1470a56f56aed373dcf1f3cf59",
+      "error_lines": [],
+      "warning_lines": [
+        "WARNING: ObjectDB instances leaked at exit (run with --verbose for details)."
+      ]
+    },
+    {
+      "run": "AB_B_candidate",
+      "simulation_ms": {
+        "max": 23.924,
+        "mean": 7.754075,
+        "min": 4.601,
+        "p95": 12.81,
+        "samples": 120,
+        "total": 930.489
+      },
+      "combat_targets_ms": {
+        "max": 0.528,
+        "mean": 0.091975,
+        "min": 0.049,
+        "p95": 0.239,
+        "samples": 120,
+        "total": 11.037
+      },
+      "combat_targets_share_percent": 1.18615050795872,
+      "combat_targets_calls": {
+        "max": 37,
+        "mean": 31.8,
+        "min": 24,
+        "p95": 34,
+        "samples": 120,
+        "total": 3816.0
+      },
+      "query_enemy_entries_virtual": 160354,
+      "initial_actors": {
+        "buildings": 14,
+        "enemies": 43,
+        "live_enemies": 43,
+        "sleeping_field_true": 0,
+        "unit_kinds": {
+          "grenade": 2,
+          "guard": 12,
+          "siegecart": 1,
+          "truck": 1,
+          "worker": 14
+        },
+        "units": 30
+      },
+      "final_actors": {
+        "buildings": 14,
+        "enemies": 24,
+        "live_enemies": 24,
+        "sleeping_field_true": 0,
+        "unit_kinds": {
+          "grenade": 2,
+          "guard": 12,
+          "siegecart": 1,
+          "truck": 1,
+          "worker": 14
+        },
+        "units": 30
+      },
+      "rng_start": {
+        "card_rng": "-7073839208676200676",
+        "rng": "6939912874496389712",
+        "visual_rng": "-3837066394557402776"
+      },
+      "rng_end": {
+        "card_rng": "-7073839208676200676",
+        "rng": "-2229809442595151162",
+        "visual_rng": "-2214877275341068306"
+      },
+      "all_start_state_deep_equal": true,
+      "all_end_state_deep_equal": true,
+      "start_differences": [],
+      "end_differences": [],
+      "checkpoint_sha256": {
+        "checkpoint_start.json": "ccd50a773c49842d059fbc2937f2f50e919fedfdda8b79271cdfab36ff00911f",
+        "checkpoint_end.json": "01f0278bad7c768fdbf2a2db56652c8482ff0adff9577343861da2b9d37c1cc6"
+      },
+      "source_unchanged": true,
+      "source_sha256": "8793a487d8d43fa15ff65c985febe29a12e30ad216de5fced0faed21660af3c6",
+      "error_lines": [],
+      "warning_lines": []
+    },
+    {
+      "run": "BA_B_candidate",
+      "simulation_ms": {
+        "max": 35.222,
+        "mean": 7.87068333333333,
+        "min": 4.391,
+        "p95": 14.395,
+        "samples": 120,
+        "total": 944.482
+      },
+      "combat_targets_ms": {
+        "max": 2.215,
+        "mean": 0.1384,
+        "min": 0.047,
+        "p95": 0.318,
+        "samples": 120,
+        "total": 16.608
+      },
+      "combat_targets_share_percent": 1.75842419442615,
+      "combat_targets_calls": {
+        "max": 37,
+        "mean": 31.8,
+        "min": 24,
+        "p95": 34,
+        "samples": 120,
+        "total": 3816.0
+      },
+      "query_enemy_entries_virtual": 160354,
+      "initial_actors": {
+        "buildings": 14,
+        "enemies": 43,
+        "live_enemies": 43,
+        "sleeping_field_true": 0,
+        "unit_kinds": {
+          "grenade": 2,
+          "guard": 12,
+          "siegecart": 1,
+          "truck": 1,
+          "worker": 14
+        },
+        "units": 30
+      },
+      "final_actors": {
+        "buildings": 14,
+        "enemies": 24,
+        "live_enemies": 24,
+        "sleeping_field_true": 0,
+        "unit_kinds": {
+          "grenade": 2,
+          "guard": 12,
+          "siegecart": 1,
+          "truck": 1,
+          "worker": 14
+        },
+        "units": 30
+      },
+      "rng_start": {
+        "card_rng": "-7073839208676200676",
+        "rng": "6939912874496389712",
+        "visual_rng": "-3837066394557402776"
+      },
+      "rng_end": {
+        "card_rng": "-7073839208676200676",
+        "rng": "-2229809442595151162",
+        "visual_rng": "-2214877275341068306"
+      },
+      "all_start_state_deep_equal": true,
+      "all_end_state_deep_equal": true,
+      "start_differences": [],
+      "end_differences": [],
+      "checkpoint_sha256": {
+        "checkpoint_start.json": "ccd50a773c49842d059fbc2937f2f50e919fedfdda8b79271cdfab36ff00911f",
+        "checkpoint_end.json": "01f0278bad7c768fdbf2a2db56652c8482ff0adff9577343861da2b9d37c1cc6"
+      },
+      "source_unchanged": true,
+      "source_sha256": "8793a487d8d43fa15ff65c985febe29a12e30ad216de5fced0faed21660af3c6",
+      "error_lines": [],
+      "warning_lines": []
+    },
+    {
+      "run": "BA_A_baseline",
+      "simulation_ms": {
+        "max": 16.218,
+        "mean": 8.27669166666667,
+        "min": 5.136,
+        "p95": 11.388,
+        "samples": 120,
+        "total": 993.203
+      },
+      "combat_targets_ms": {
+        "max": 3.257,
+        "mean": 1.97020833333333,
+        "min": 0.922,
+        "p95": 2.784,
+        "samples": 120,
+        "total": 236.425
+      },
+      "combat_targets_share_percent": 23.8042978122297,
+      "combat_targets_calls": {
+        "max": 37,
+        "mean": 31.8,
+        "min": 24,
+        "p95": 34,
+        "samples": 120,
+        "total": 3816.0
+      },
+      "query_enemy_entries_virtual": 160354,
+      "initial_actors": {
+        "buildings": 14,
+        "enemies": 43,
+        "live_enemies": 43,
+        "sleeping_field_true": 0,
+        "unit_kinds": {
+          "grenade": 2,
+          "guard": 12,
+          "siegecart": 1,
+          "truck": 1,
+          "worker": 14
+        },
+        "units": 30
+      },
+      "final_actors": {
+        "buildings": 14,
+        "enemies": 24,
+        "live_enemies": 24,
+        "sleeping_field_true": 0,
+        "unit_kinds": {
+          "grenade": 2,
+          "guard": 12,
+          "siegecart": 1,
+          "truck": 1,
+          "worker": 14
+        },
+        "units": 30
+      },
+      "rng_start": {
+        "card_rng": "-7073839208676200676",
+        "rng": "6939912874496389712",
+        "visual_rng": "-3837066394557402776"
+      },
+      "rng_end": {
+        "card_rng": "-7073839208676200676",
+        "rng": "-2229809442595151162",
+        "visual_rng": "-2214877275341068306"
+      },
+      "all_start_state_deep_equal": true,
+      "all_end_state_deep_equal": true,
+      "start_differences": [],
+      "end_differences": [],
+      "checkpoint_sha256": {
+        "checkpoint_start.json": "ccd50a773c49842d059fbc2937f2f50e919fedfdda8b79271cdfab36ff00911f",
+        "checkpoint_end.json": "01f0278bad7c768fdbf2a2db56652c8482ff0adff9577343861da2b9d37c1cc6"
+      },
+      "source_unchanged": true,
+      "source_sha256": "c0f921f2be3c6e72a9bd3e6debb4bd0b3c52bc1470a56f56aed373dcf1f3cf59",
+      "error_lines": [],
+      "warning_lines": [
+        "WARNING: ObjectDB instances leaked at exit (run with --verbose for details)."
+      ]
+    }
+  ],
+  "limits": "Exactly four 6-second headless trials in AB/BA order. Times are elapsed CPU-work wall timings, not process CPU time, rendering time, browser or device FPS. All start/end serialized gameplay fields compared with no exclusions, including RNG strings. query_enemy_entries_virtual is a sum of enemy-array sizes seen at calls, not actual scans. target_results_returned can include cached dead references checked live by callers and is not a gameplay outcome."
+}
