@@ -1,9 +1,20 @@
 # RECLAMATION
 
-## Recovery checkpoint — 2026-10-13
+## v0.64 / 広い街で指揮へ戻りやすく
 
-Verified development baseline fc9f2831 plus a newly rebuilt fixed mobile Close button. The lost 1751-file candidate and 0.83 release are not restored. Public0.63 is unchanged. [Current reconstruction and native synthetic-touch evidence](docs/acceptance/rebuilt_mobile_close/README.md).
+公開0.63と、保存済みの送電計画表示を基盤にした新しい復旧版です。失われた1751ファイルの候補や未公開0.83を再現した版ではありません。
 
+- スマホの詳細シートに、スクロールしても隠れない「閉じる」を置きました。
+- 待機作業員へ切り替えたとき、直前の指示・追加予約モードを解除します。採取中の仕事は変えません。
+- 選択シートの「地図を開く」で一時的に地図を大きくし、視点移動後に選択へ戻れます。未知の情報や新しい命令は追加しません。
+- PCの作戦見出しを押すと施設ボタンなどを畳めます。現在の目的、本部耐久、襲撃予告や進捗は残ります。
+- 開けた場所で停止・射撃する歩兵の間隔を少し広げ、人物と選択輪の重なりを減らします。壁際は従来の間隔を保ちます。
+
+保存済み基盤の送電計画表示も含みます。施設選択・配置時に現行の送電距離と空き容量を確認できます。[送電計画の検証](docs/evidence/power_planning/)
+
+クラウドの実マウス操作、PC/横縦の描画、合成タッチ入力、命令・通行・保存再開を限定確認しました。実ブラウザ・Mac・iPhone/Android・実GPU・人間初見・音の実聴は未確認です。実スマホで検証済みとは扱っていません。音楽試作、失われた中央送電所の防衛仕様や新ボスモデルは今回の更新に含めていません。
+
+[今回の変更と検証範囲](docs/RELEASE_064.md)
 
 オルタ湾復旧作戦。Godot 4.6.3で動作する、3D斜俯瞰・シングルプレイヤーの復興RTSです。
 
