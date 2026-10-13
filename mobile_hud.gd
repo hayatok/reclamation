@@ -388,11 +388,21 @@ func _open_popup(title:String,replace_current:bool=false)->VBoxContainer:
   popup.add_theme_stylebox_override("panel",_surface(Color("141a17f5")))
   scroll=_new_scroll(popup)
   popup.set_meta("scroll",scroll)
+  # Keep dismissal outside the scrolling details, including on short screens.
+  var header=HBoxContainer.new();scroll.get_parent().add_child(header)
+  header.add_theme_constant_override("separation",8)
+  var caption=_label("",18,PALE);header.add_child(caption)
+  caption.size_flags_horizontal=Control.SIZE_EXPAND_FILL
+  var close=_button("閉じる",_close_popup,header)
+  close.custom_minimum_size=Vector2(96,48)
+  popup.set_meta("fixed_close",close);popup.set_meta("caption",caption)
+  scroll.set_meta("fixed_header",header)
+ popup.get_meta("caption").text=title
+ _fit_scroll(scroll)
  var body=VBoxContainer.new();scroll.add_child(body)
  body.mouse_filter=Control.MOUSE_FILTER_PASS
  body.size_flags_horizontal=Control.SIZE_EXPAND_FILL
  body.add_theme_constant_override("separation",8)
- _body_text(body,title,22)
  return body
 
 func _close_popup()->void:
@@ -609,6 +619,11 @@ func _fit_scroll(scroll:ScrollContainer)->void:
  scroll.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
  scroll.position=safe_rect.position+Vector2(6,6)
  scroll.size=safe_rect.size-Vector2(12,12)
+ if scroll.has_meta("fixed_header"):
+  var header:Control=scroll.get_meta("fixed_header")
+  _rect(header,Rect2(scroll.position,Vector2(scroll.size.x,48)))
+  scroll.position.y+=56
+  scroll.size.y=maxf(48,scroll.size.y-56)
  if scroll.has_meta("mobile_result"):
   scroll.size.y=minf(scroll.size.y,320 if portrait else 220)
   scroll.position.y=safe_rect.end.y-scroll.size.y-6

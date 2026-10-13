@@ -1,5 +1,10 @@
 # RECLAMATION
 
+## Recovery checkpoint — 2026-10-13
+
+Verified development baseline fc9f2831 plus a newly rebuilt fixed mobile Close button. The lost 1751-file candidate and 0.83 release are not restored. Public0.63 is unchanged. [Current reconstruction and native synthetic-touch evidence](docs/acceptance/rebuilt_mobile_close/README.md).
+
+
 オルタ湾復旧作戦。Godot 4.6.3で動作する、3D斜俯瞰・シングルプレイヤーの復興RTSです。
 
 食料・廃材・部品を集め、住居と生産施設を建て、三段階の拠点へ発展させます。発電と産業を支える拠点を育て、作業員と拡張先を守ります。共有XPで成長する部隊で、復旧・感染源討伐・送電の三作戦を進めます。
