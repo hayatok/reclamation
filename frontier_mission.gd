@@ -55,6 +55,7 @@ func reset(host: Node3D, spawn_camps: bool = true) -> void:
 	host.add_child(node)
 	node.position = NEST_POSITION
 	node.visible = false
+	NestVisual.restore_observation(node, 0)
 	nest = {"node": node, "hp": NEST_HP, "maxhp": NEST_HP,
 		"dead": false, "radius": NEST_RADIUS, "known": false,
 		"enemy_structure": true, "structure_id": NEST_ID,
@@ -117,7 +118,7 @@ func apply_damage(target: Dictionary, damage: float) -> Dictionary:
 		alarm_remaining = 0.0
 		result.destroyed = true
 		_cues.append({"type": "nest_destroyed", "position": NEST_POSITION})
-	NestVisual.set_state(nest.node, nest.dead, alarm_remaining > 0.0)
+	NestVisual.set_state(nest.node, nest.dead, alarm_remaining > 0.0, float(nest.hp)/NEST_HP)
 	return result
 
 ## Invoke once per shell explosion / blast-queue event, alongside mobile hits.
@@ -190,7 +191,7 @@ func snapshot(living_enemies: Array) -> Dictionary:
 		if enemy.has("frontier_group"):
 			members.append({"enemy_index": index, "group": int(enemy.frontier_group), "awake": bool(enemy.frontier_awake)})
 	return {"version": SNAPSHOT_VERSION,
-		"nest": {"hp": float(nest.hp), "known": bool(nest.known), "dead": bool(nest.dead), "reward_claimed": reward_claimed},
+		"nest": {"hp": float(nest.hp), "known": bool(nest.known), "dead": bool(nest.dead), "reward_claimed": reward_claimed, "observed_stage": int(nest.node.get_meta("frontier_art_remembered_stage", 0))},
 		"raid_clock": raid_clock, "raid_index": raid_index, "camp_awake": camp_awake.duplicate(),
 		"alarm_triggered": alarm_triggered, "alarm_remaining": alarm_remaining,
 		"emergence_clock": emergence_clock, "emergence_index": emergence_index,
@@ -202,12 +203,19 @@ static func validate_snapshot(data: Variant, enemy_count: int) -> bool:
 	if enemy_count < 0 or enemy_count > MOBILE_CAP: return false
 	if not _keys_are(data, ["version", "nest", "raid_clock", "raid_index", "camp_awake", "alarm_triggered", "alarm_remaining", "emergence_clock", "emergence_index", "camp_members"]): return false
 	if not _integer(data.version, SNAPSHOT_VERSION, SNAPSHOT_VERSION): return false
-	if not _keys_are(data.nest, ["hp", "known", "dead", "reward_claimed"]): return false
+	var nest_keys := ["hp", "known", "dead", "reward_claimed"]
+	if data.nest is Dictionary and data.nest.has("observed_stage"): nest_keys.append("observed_stage")
+	if not _keys_are(data.nest, nest_keys): return false
+	if data.nest.has("observed_stage") and not _integer(data.nest.observed_stage, 0, 2): return false
 	if not _number(data.nest.hp, 0.0, NEST_HP): return false
 	for key in ["known", "dead", "reward_claimed"]:
 		if not data.nest[key] is bool: return false
 	if bool(data.nest.dead) != (float(data.nest.hp) == 0.0): return false
 	if data.nest.reward_claimed and not data.nest.dead: return false
+	var seen_stage: int = int(data.nest.get("observed_stage", 0))
+	if not data.nest.known and seen_stage != 0: return false
+	if seen_stage == 2 and not data.nest.dead: return false
+	if seen_stage == 1 and float(data.nest.hp) > NEST_HP * 0.5: return false
 	if not _integer(data.raid_index, 0, MAX_RAID_INDEX): return false
 	if not _number(data.raid_clock, 0.0, FIRST_RAID_SECONDS if int(data.raid_index) == 0 else RAID_INTERVAL_SECONDS): return false
 	if not data.camp_awake is Array or data.camp_awake.size() != CAMP_CENTERS.size(): return false
@@ -268,7 +276,8 @@ func restore(host: Node3D, data: Variant, living_enemies: Array) -> bool:
 			enemy.erase("enemy_nav")
 	# Restored fog clears current sight; remembered discovery is not live sight.
 	nest.node.visible = false
-	NestVisual.set_state(nest.node, nest.dead, alarm_remaining > 0.0)
+	NestVisual.restore_observation(nest.node, int(data.nest.get("observed_stage", 0)))
+	NestVisual.set_state(nest.node, nest.dead, alarm_remaining > 0.0, float(nest.hp)/NEST_HP)
 	return true
 
 func _wake_near_friendlies(host: Node3D) -> void:
@@ -303,7 +312,7 @@ func _tick_emergence(host: Node3D, dt: float) -> void:
 		remaining_step -= alarm_step
 		if alarm_remaining <= 0.0:
 			_cues.append({"type": "nest_emergence", "position": NEST_POSITION, "seconds": EMERGENCE_SECONDS})
-			NestVisual.set_state(nest.node, false, false)
+			NestVisual.set_state(nest.node, false, false, float(nest.hp)/NEST_HP)
 	if remaining_step <= 0.0: return
 	emergence_clock = minf(EMERGENCE_SECONDS, emergence_clock + remaining_step)
 	var due: int = mini(EMERGENCE_COUNT, floori(emergence_clock / _emergence_interval() + 0.000001))

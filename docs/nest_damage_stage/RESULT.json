@@ -1,0 +1,17 @@
+{
+  "visual": "Same normal camera50 and archived first-assault state; initial cosmetic before/after compares shape only. Integrated image applies real nest damage handler to half HP. Not ordinary earned threshold/victory.",
+  "native_integrated_troops_and_rng_unchanged": true,
+  "stage_memory_save_checks": 18,
+  "existing_nest_memory_checks": 10,
+  "existing_frontier_integration_checks": 31,
+  "initial_test_correction": "One initial assertion incorrectly assumed the scout-loss fixture began at6000HP; it actually begins at4740. The test now computes damage from its actual HP to the half threshold. No game change was made to satisfy that assertion.",
+  "geometry_triangles": 3490,
+  "opaque_visible_surfaces": 2,
+  "additional_glb_bytes": 200288,
+  "limits": [
+    "Real phone/Web/GPU not tested",
+    "Subjective human play not established",
+    "Damage mesh adds a small resident resource; no FPS gain claimed",
+    "Original 1751 source not restored as a whole"
+  ]
+}
