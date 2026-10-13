@@ -1,0 +1,29 @@
+{
+  "status": "pass",
+  "lods": {
+    "near": {
+      "poses": 44,
+      "surfaces_per_pose": 1,
+      "triangles": 1112,
+      "stable_corners": 3336,
+      "bytes": 6392204,
+      "idle_height_m": 1.624000072479248,
+      "final_death_height_m": 0.4214295446872711,
+      "minimum_ground_m": -0.011000007390975952,
+      "windup_recovery_identical": true,
+      "sha256": "00fcbffc994bad1d11d35e02448273b1d5b91dd13b1c10efc90649ff1d10baae"
+    },
+    "far": {
+      "poses": 44,
+      "surfaces_per_pose": 1,
+      "triangles": 408,
+      "stable_corners": 1224,
+      "bytes": 2495412,
+      "idle_height_m": 1.6230000257492065,
+      "final_death_height_m": 0.3487261235713959,
+      "minimum_ground_m": -0.011000007390975952,
+      "windup_recovery_identical": true,
+      "sha256": "6130fb979bd26faef5c3aa2b5473bb8313ca6e68256e0be77cefbb59ecf3bbf9"
+    }
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "purpose": "Portable retained-source demolition boss rebuild checkpoint",
+  "created_date": "2026-10-13",
+  "generator_version": "Blender 4.3.2",
+  "origin": "newly generated GLBs with exact retained original SHA-256 matches",
+  "files": {
+    "source/build_boss_poses.py": {
+      "bytes": 23435,
+      "sha256": "68bc4f73efee12fceb1097b95c4ae63dcc0affe4dbe8cac0425c5c62ca5dee39"
+    },
+    "source/create_boss_atlas.py": {
+      "bytes": 2940,
+      "sha256": "f0d8fdbb80d4a88a081d6bfaf3047d68e182070458bd814f1462e9de91a67fe2"
+    },
+    "source/finalize_boss_glbs.py": {
+      "bytes": 1353,
+      "sha256": "f6b67cadd78d340a17fb0582cb7652a87e8ee26dbd0a55a5b5f766f2ada8de3c"
+    },
+    "source/render_pose_contact_sheet.py": {
+      "bytes": 2207,
+      "sha256": "4be7551e53be768f866c68606e9c8aa7964f4301bcd3771ac967d6636c35c5f4"
+    },
+    "source/validate_boss_glb.py": {
+      "bytes": 4020,
+      "sha256": "f2e7148be3a02473db6aa649b073f3425590532765ddef4324196a44a5b60d68"
+    },
+    "generated/boss_manifest.json": {
+      "bytes": 1483,
+      "sha256": "12301514df20da7276a2ae83eee38d4d9bcb1ee522d6772fff756c6f3e4ea941"
+    },
+    "generated/demolition_boss_atlas.png": {
+      "bytes": 231133,
+      "sha256": "54e9d521f70fe889a381c2755722a984e9a212b1c3db94c39e3a220afe677d53"
+    },
+    "generated/demolition_boss_far.glb": {
+      "bytes": 2495412,
+      "sha256": "6130fb979bd26faef5c3aa2b5473bb8313ca6e68256e0be77cefbb59ecf3bbf9"
+    },
+    "generated/demolition_boss_near.glb": {
+      "bytes": 6392204,
+      "sha256": "00fcbffc994bad1d11d35e02448273b1d5b91dd13b1c10efc90649ff1d10baae"
+    },
+    "review/glb_contract.json": {
+      "bytes": 866,
+      "sha256": "96a210574c74ac5cdb4fa8b9a917c99fd9983138aa73e194434692e14cb20746"
+    },
+    "review/rebuild_audit.json": {
+      "bytes": 2491,
+      "sha256": "761d34cd58a08a5cf99479e91ae4be16770869e4efe5b37db4b5eddbc32a1dda"
+    },
+    "CHECKPOINT_README.md": {
+      "bytes": 1834,
+      "sha256": "a5b28e6532f09cc4f667a2e8a73b469c69ed976f1eb7b27c5a23cf653eb56790"
+    }
+  }
+}

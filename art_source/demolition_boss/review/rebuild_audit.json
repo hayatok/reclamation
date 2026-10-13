@@ -1,0 +1,71 @@
+{
+  "status": "pass",
+  "source_files_unchanged": {
+    "README.md": true,
+    "assets/demolition_boss_atlas.png": true,
+    "boss_manifest.json": true,
+    "source/build_boss_poses.py": true,
+    "source/create_boss_atlas.py": true,
+    "source/finalize_boss_glbs.py": true,
+    "source/render_pose_contact_sheet.py": true,
+    "source/validate_boss_glb.py": true,
+    "validation/glb_contract.json": true
+  },
+  "clip_manifest_matches_retained": true,
+  "lods": {
+    "near": {
+      "sha256": "00fcbffc994bad1d11d35e02448273b1d5b91dd13b1c10efc90649ff1d10baae",
+      "matches_retained_original_hash": true,
+      "byte_count": 6392204,
+      "exact_pose_names": 44,
+      "triangles_per_pose": 1112,
+      "corner_ids_per_pose": 3336,
+      "semantic_triangle_order_stable_across_44_poses": true,
+      "uv0_stable_and_finite": true,
+      "uv2_unique_cell_centers": true,
+      "one_opaque_material_and_one_embedded_atlas": true,
+      "embedded_atlas_sha256": "54e9d521f70fe889a381c2755722a984e9a212b1c3db94c39e3a220afe677d53",
+      "atlas_matches_retained_bytes": true,
+      "degenerate_triangles_max": 0,
+      "all_pose_bounds_min_m": [
+        -0.8027627468109131,
+        -0.011000007390975952,
+        -1.5047143697738647
+      ],
+      "all_pose_bounds_max_m": [
+        0.6596728563308716,
+        2.0581719875335693,
+        0.31464481353759766
+      ],
+      "final_death_horizontal_extent_m": 1.5036473274230957,
+      "retained_far_bytes_equal": null
+    },
+    "far": {
+      "sha256": "6130fb979bd26faef5c3aa2b5473bb8313ca6e68256e0be77cefbb59ecf3bbf9",
+      "matches_retained_original_hash": true,
+      "byte_count": 2495412,
+      "exact_pose_names": 44,
+      "triangles_per_pose": 408,
+      "corner_ids_per_pose": 1224,
+      "semantic_triangle_order_stable_across_44_poses": true,
+      "uv0_stable_and_finite": true,
+      "uv2_unique_cell_centers": true,
+      "one_opaque_material_and_one_embedded_atlas": true,
+      "embedded_atlas_sha256": "54e9d521f70fe889a381c2755722a984e9a212b1c3db94c39e3a220afe677d53",
+      "atlas_matches_retained_bytes": true,
+      "degenerate_triangles_max": 0,
+      "all_pose_bounds_min_m": [
+        -0.7117374539375305,
+        -0.011000007390975952,
+        -1.4872668981552124
+      ],
+      "all_pose_bounds_max_m": [
+        0.6529941558837891,
+        2.0387532711029053,
+        0.32978034019470215
+      ],
+      "final_death_horizontal_extent_m": 1.4730616807937622,
+      "retained_far_bytes_equal": true
+    }
+  }
+}
