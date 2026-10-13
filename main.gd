@@ -3152,7 +3152,7 @@ func update_mission(dt:float):
   hold_time=minf(mission.hold,hold_time+dt)
   if mission.mode=="finale" and hold_time>=55 and not boss_spawned:
    boss_spawned=true
-   spawn_enemy(Vector3(-25,0,-18),false,true,true)
+   spawn_enemy(city_ruin_layout.correct_spawn(nav,Vector3(-25,0,-18),0),false,true,true)
    wave_clock=minf(wave_clock,4)
    notify("破砕体 接近。防壁を砕く一撃に注意！",8)
    audio_system.play_event("infected_growl",Vector3(-25,0,-18),1.4)

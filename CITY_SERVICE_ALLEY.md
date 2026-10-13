@@ -1,0 +1,9 @@
+# Visible city shells and service alley: limited acceptance
+
+This extends the separately preserved west-only checkpoint. All eight permanent district shells now contribute their existing footprints to city navigation, build placement and minimap. Shared art definitions retain their original geometry/call order. To avoid trapping an M3 resource pocket, the western broken main is shortened3m at its west end only: center(-15.5,-8.5), size9 by2.4m, east end unchanged at-11. This opens a visible4.9m service gap, with two navigable columns after padding. Players may still close that gap with construction.
+
+Wave points inside obstacles move to cached open cells in the original same-side strip; the outer nav rim is a fallback. Fixed M3 boss source uses the same correction. No enemy count, speed, damage, resource cost or random-draw changes. M2 is excluded. Route and arrival timing intentionally change because former walk-through walls now obstruct movement.
+
+Engine checks retain all11 M1 and12 M3 resource/site work approaches, including same-source save/reload and entry cache reconstruction. A controlled M3 late wave uses ordinary wave4 generation at stageIII with generator enabled:116 spawned, zero solid starts, zero solid-cell observations over12 simulated seconds,110 remained alive and every survivor moved at least11.0m. Boss corrected source(-27,-16) has a route. This is not an earned campaign run or difficulty acceptance.
+
+The before image changes only the visible pipe back to its former scale/position within the same candidate scene; it is a geometry illustration, not a baseline gameplay simulation. After uses actual new geometry. Real Web/Mac/phone/GPU performance and full-run balance remain unverified. Cosmetic props outside these eight shell footprints are not claimed universally collision-correct.

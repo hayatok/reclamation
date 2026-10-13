@@ -36,7 +36,7 @@ static func blockers_for(mission_index: int) -> Array:
 			# Staggered broken mains screen the facility front. The two offset gaps
 			# and the outside flanks remain open; the entire rear of HQ is clear.
 			return [
-				{"pos": Vector3(-17, 0, -8.5), "size": Vector3(12, 1.25, 2.4)},
+				{"pos": Vector3(-15.5, 0, -8.5), "size": Vector3(9, 1.25, 2.4)},
 				{"pos": Vector3(0, 0, -6.5), "size": Vector3(10, 1.25, 2.4)},
 				{"pos": Vector3(16, 0, -8.5), "size": Vector3(12, 1.25, 2.4)},
 				{"pos": Vector3(-10, 0, 0), "size": Vector3(2.6, 1.0, 5.8)},

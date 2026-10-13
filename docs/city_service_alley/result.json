@@ -1,0 +1,15 @@
+{
+  "blocked_spawn": 0,
+  "boss_corrected_source": [
+    -27.0,
+    -16.0
+  ],
+  "boss_route_exists": true,
+  "minimum_12s_displacement": 11.0080995559692,
+  "remaining": 110,
+  "rng": "7791262028315381791",
+  "scope": "Controlled M3 ordinary late-wave4 spawn at stageIII, generator active; not earned normal progression or balance acceptance",
+  "solid_cell_observations": 0,
+  "spawned": 116,
+  "under_1m": []
+}

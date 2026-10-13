@@ -1,4 +1,6 @@
-# West ruin navigation: limited one-wave acceptance
+# Earlier west-only navigation acceptance
+
+Current all-shell follow-through is described in CITY_SERVICE_ALLEY.md. This file records the prior bounded checkpoint.
 
 The west middle factory shell visibly contained solid masonry but contributed no navigation blocker. In a controlled west wave using the ordinary spawn_wave function, five of twelve enemies appeared inside that shell and walked through its facade.
 

@@ -12,9 +12,8 @@ const SHELLS: Array[Dictionary] = [
 	{"p": Vector3(28,0,14), "size": Vector3(5.5,3.2,6.5), "stories": 1, "damaged": true},
 ]
 
-## Bounded first prototype: west middle shell only. All-eight blocking strands
-## M3's outer_parts pocket and its fixed boss spawn; do not enable it casually.
-const BLOCKING_SHELL_INDICES: Array[int] = [4]
+## Full-shell prototype requires the M3 west service alley and boss source correction.
+const BLOCKING_SHELL_INDICES: Array[int] = [0,1,2,3,4,5,6,7]
 const WEST: int = 0
 const NORTH: int = 1
 const EAST: int = 2
