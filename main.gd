@@ -53,6 +53,8 @@ const ConvoyPlan=preload("res://convoy_plan.gd")
 const GameRules=preload("res://settlement_rules.gd")
 const MissionResourceLayout=preload("res://mission_resource_layout.gd")
 const MissionMap=preload("res://mission_map.gd")
+const CityRuinLayout=preload("res://city_ruin_layout.gd")
+var city_ruin_layout=CityRuinLayout.new()
 const FrontierWorld=preload("res://frontier_world.gd")
 const FrontierMission=preload("res://frontier_mission.gd")
 const FrontierVisibility=preload("res://frontier_visibility.gd")
@@ -324,6 +326,7 @@ func _ready():
   terrain_blocks=FrontierWorld.blockers()
  else:
   terrain_blocks=TacticalMap.blockers_for(campaign_state.current)
+  terrain_blocks.append_array(CityRuinLayout.blockers_for(campaign_state.current))
   var terrain=TacticalMap.new()
   add_child(terrain)
   terrain.setup(campaign_state.current)
@@ -1481,6 +1484,10 @@ func simulate_world(dt:float):
  combo_clock-=dt
  if combo_clock<=0:combo=0
  if wave_clock<=0 and frontier==null:
+  if not city_ruin_layout.entries_available(wave_sides(wave+1)):
+   push_error("City entry and outer nav rim are blocked. Wave remains due; inspect terrain before resuming.")
+   paused=true
+   return
   wave+=1
   spawn_wave()
   wave_clock=(95.0 if settlement_age==1 else maxf(40,64-noise*.23) if settlement_age==2 else maxf(25,43-noise*.16))
@@ -1884,6 +1891,7 @@ func spawn_wave():
  for i in count:
   var spawn_side=(side+(1 if i%3==0 else 0))%3 if campaign_state.current==2 and wave>=3 else side
   var p=Vector3(-28+rng.randf_range(-1,1),0,rng.randf_range(-20,15)) if spawn_side==0 else (Vector3(rng.randf_range(-24,24),0,-28+rng.randf_range(-1,1)) if spawn_side==1 else Vector3(28+rng.randf_range(-1,1),0,rng.randf_range(-20,15)))
+  p=city_ruin_layout.correct_spawn(nav,p,spawn_side)
   var armored=settlement_age>=3 and generator_on and wave>=4 and i%(10 if campaign_state.current==2 else 16)==0
   var fast=settlement_age>=2 and wave>=2 and i%(3 if campaign_state.current==1 else 5)==0 and not armored
   spawn_enemy(p,fast,armored)
@@ -2377,6 +2385,7 @@ func rebuild_navigation():
   nav.fill_solid_region(Rect2i(low,high-low+Vector2i.ONE).intersection(nav.region),true)
  friendly_navigation.navigation_changed()
  enemy_navigation.navigation_changed()
+ city_ruin_layout.rebuild_spawn_cache(nav,campaign_state.current)
  for e in enemies:e.path_cd=0;e.route.clear()
 
 func open_cell(p:Vector3,approach:Vector3=Vector3.INF)->Vector2i:

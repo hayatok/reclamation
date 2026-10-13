@@ -1,0 +1,2 @@
+CITY_ROUTE_REPORT [{"mission":0,"reachable_cells":3473,"targets":11,"unreachable":[],"wall_solid":true},{"mission":2,"reachable_cells":3232,"targets":12,"unreachable":[],"wall_solid":true}]
+CITY_ROUTE_FAILURES []

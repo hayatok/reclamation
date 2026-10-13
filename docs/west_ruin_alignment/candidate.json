@@ -1,0 +1,154 @@
+{
+  "count": 12,
+  "final": [
+    [
+      -22.6500415802002,
+      -15.4244709014893
+    ],
+    [
+      -20.6179714202881,
+      8.00003910064697
+    ],
+    [
+      -22.1267414093018,
+      4.99966096878052
+    ],
+    [
+      -21.5639705657959,
+      1.73822474479675
+    ],
+    [
+      -22.2172260284424,
+      -14.8408870697021
+    ],
+    [
+      -22.0324115753174,
+      -13.7186727523804
+    ],
+    [
+      -22.4209232330322,
+      -14.1987161636353
+    ],
+    [
+      -20.4824638366699,
+      2.0
+    ],
+    [
+      -22.4119567871094,
+      7.99999284744263
+    ],
+    [
+      -21.3804874420166,
+      -15.0536241531372
+    ],
+    [
+      -21.5639705657959,
+      2.26177549362183
+    ],
+    [
+      -21.6033554077148,
+      14.0005559921265
+    ]
+  ],
+  "initial": [
+    {
+      "inside_shell": false,
+      "position": [
+        -29.0,
+        -16.0
+      ],
+      "solid": false
+    },
+    {
+      "inside_shell": false,
+      "position": [
+        -27.1351051330566,
+        8.03654098510742
+      ],
+      "solid": false
+    },
+    {
+      "inside_shell": false,
+      "position": [
+        -28.6114845275879,
+        4.68213081359863
+      ],
+      "solid": false
+    },
+    {
+      "inside_shell": false,
+      "position": [
+        -28.0,
+        2.0
+      ],
+      "solid": false
+    },
+    {
+      "inside_shell": false,
+      "position": [
+        -28.0,
+        -16.0
+      ],
+      "solid": false
+    },
+    {
+      "inside_shell": false,
+      "position": [
+        -27.3123149871826,
+        -16.0495491027832
+      ],
+      "solid": false
+    },
+    {
+      "inside_shell": false,
+      "position": [
+        -28.0,
+        -16.0
+      ],
+      "solid": false
+    },
+    {
+      "inside_shell": false,
+      "position": [
+        -27.0,
+        2.0
+      ],
+      "solid": false
+    },
+    {
+      "inside_shell": false,
+      "position": [
+        -28.9294853210449,
+        7.99336814880371
+      ],
+      "solid": false
+    },
+    {
+      "inside_shell": false,
+      "position": [
+        -27.0643177032471,
+        -17.652214050293
+      ],
+      "solid": false
+    },
+    {
+      "inside_shell": false,
+      "position": [
+        -28.0,
+        2.0
+      ],
+      "solid": false
+    },
+    {
+      "inside_shell": false,
+      "position": [
+        -28.0651016235352,
+        14.4421920776367
+      ],
+      "solid": false
+    }
+  ],
+  "rng": "7664132046028969307",
+  "scope": "Controlled west-wave3 spawn using ordinary spawn_wave on freshM1 seed731054; not earned campaign balance",
+  "wall_cell_solid": true
+}

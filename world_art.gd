@@ -1,4 +1,5 @@
 extends Node3D
+const CityRuinLayout=preload("res://city_ruin_layout.gd")
 ## Original procedural art: a disused rail depot being reclaimed at dusk.
 ## All repeated structural pieces are batched by shape/material in MultiMeshes.
 
@@ -211,16 +212,9 @@ func _make_roads() -> void:
 			_box(Vector3(x-2.2+i*0.7,0.02,14.4),Vector3(0.18,0.014,3.0),"yellow",Vector3(0,-0.5,0))
 
 func _make_district() -> void:
-	# Main rear factories: modules have masonry columns, recesses and damaged crowns.
-	_building(Vector3(-23,0,-23),Vector3(12,11.2,11),3,true)
-	_building(Vector3(-9.5,0,-26.8),Vector3(10,8.4,8),2,false)
-	_building(Vector3(7.8,0,-26.5),Vector3(12,14.6,8.4),4,true)
-	_building(Vector3(23.5,0,-22.5),Vector3(11,10.0,11),3,true)
-	_building(Vector3(-28.1,0,-7),Vector3(6.4,8.5,14),2,true)
-	_building(Vector3(28.2,0,-5),Vector3(6.4,6.8,13),2,false)
-	# Front-corner ruins stay low to preserve the isometric playfield view.
-	_building(Vector3(-27.5,0,14.5),Vector3(6.0,4.1,7),1,true)
-	_building(Vector3(28,0,14),Vector3(5.5,3.2,6.5),1,true)
+	# Preserve every authored value, building index and RNG call order.
+	for shell: Dictionary in CityRuinLayout.SHELLS:
+		_building(shell.p, shell.size, shell.stories, shell.damaged)
 	# Broken industrial bridge over the rear service road.
 	_box(Vector3(-2.9,6.8,-25),Vector3(4.4,0.4,2.7),"rust",Vector3(0,0,-0.10))
 	_box(Vector3(2.1,5.65,-25),Vector3(3.0,0.4,2.7),"rust",Vector3(0,0,0.43))
