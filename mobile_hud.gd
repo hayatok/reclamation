@@ -126,6 +126,7 @@ func sync()->void:
  alert.visible=playing and not host.building_attack_alerts.current.is_empty()
  notice.visible=playing and not _modal_open()
  notice.text=_touch_words(host.center_notice.text)
+ _layout_status_area()
  for key in resource_cells:
   var cell:Dictionary=resource_cells[key]
   cell.value.text=host.hud_counters[key].value.text.replace(" ","")
@@ -235,17 +236,26 @@ func _layout()->void:
  _rect(host.command_grid,grid_area)
  if is_instance_valid(expanded_map):expanded_map.fit(safe_rect)
  else:_rect(host.minimap,map_area)
- var goal_w:float=minf(w,420)
- _rect(goal,Rect2(Vector2(safe_rect.position.x,safe_rect.position.y+top_h+4),Vector2(goal_w,44)))
- _rect(alert,Rect2(Vector2(safe_rect.end.x-minf(w,310),safe_rect.position.y+top_h+52),Vector2(minf(w,310),44)))
- _rect(notice,Rect2(Vector2(safe_rect.position.x,safe_rect.position.y+top_h+52),Vector2(w,46)))
- ui_rects=[top.get_global_rect(),dock.get_global_rect(),goal.get_global_rect()]
- if alert.visible:ui_rects.append(alert.get_global_rect())
+ _layout_status_area()
  _fit_commands()
  for id in fitted_panels:
   var item:Dictionary=fitted_panels[id]
   if is_instance_valid(item.get("scroll")):_fit_scroll(item.scroll)
  if is_instance_valid(popup):_fit_scroll(popup.get_meta("scroll"))
+
+func _layout_status_area()->void:
+ # Keep the existing alert actionable without painting a notice over its text.
+ var w:float=safe_rect.size.x
+ var y:float=safe_rect.position.y+(96 if portrait else 48)+4
+ var alert_w:float=minf(w,310)
+ var side_by_side:bool=w>=738
+ _rect(goal,Rect2(Vector2(safe_rect.position.x,y),Vector2(minf(w,420),44)))
+ _rect(alert,Rect2(Vector2(safe_rect.end.x-alert_w,y if side_by_side else y+48),Vector2(alert_w,44)))
+ var notice_y:float=y+48
+ if alert.visible and not side_by_side:notice_y+=48
+ _rect(notice,Rect2(Vector2(safe_rect.position.x,notice_y),Vector2(w,46)))
+ ui_rects=[top.get_global_rect(),dock.get_global_rect(),goal.get_global_rect()]
+ if alert.visible:ui_rects.append(alert.get_global_rect())
 
 func _fit_commands()->void:
  var width:float=(grid_area.size.x-(host.command_grid.columns-1)*GAP)/host.command_grid.columns
