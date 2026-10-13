@@ -1,0 +1,16 @@
+{
+  "desktop_actual_click": true,
+  "expanded": [
+    262,
+    249
+  ],
+  "collapsed": [
+    262,
+    116
+  ],
+  "goal_warning_hp_retained": true,
+  "repeat_and_objective_update": true,
+  "game_state_unchanged": true,
+  "mobile_regression": true,
+  "real_phone": false
+}

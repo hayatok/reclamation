@@ -639,6 +639,8 @@ func make_ui():
  convoy_pause_button=button("車列を停車",toggle_convoy_stop,228)
  convoy_pause_button.visible=false
  mission_column.add_child(convoy_pause_button)
+ if not mobile_enabled:
+  preload("res://mission_panel_fold.gd").attach(orders,mission_column,[mission_column.get_child(1),site_actions,generator_button,mission_action_button,convoy_pause_button],campaign_state.current+1)
  var mini_panel=field_panel(Control.PRESET_BOTTOM_LEFT,Vector4(14,-274,230,-14),Color("1b1f1a"))
  var map_col=VBoxContainer.new();mini_panel.add_child(map_col)
  map_col.add_child(label("街区図",14,AMBER))
