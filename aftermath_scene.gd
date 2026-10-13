@@ -6,6 +6,7 @@ extends Node3D
 
 const Actors = preload("res://actor_visuals.gd")
 const Structures = preload("res://structure_visuals.gd")
+const FrontierReclamation = preload("res://frontier_reclamation_scene.gd")
 const DURATION := 5.6
 const DEFAULT_PUMP := Vector3(-14, 0, -7)
 const DEFAULT_ARRIVAL := Vector3(20, 0, 22)
@@ -32,6 +33,7 @@ var _truck: Node3D
 var _cargo: Node3D
 var _has_convoy: bool = false
 var _delivery_basis := Basis.IDENTITY
+var _frontier_scene: Node3D
 var _receiving_center := Vector3.ZERO
 var _materials: Dictionary = {}
 var _prop_meshes: Dictionary = {}
@@ -53,6 +55,7 @@ func setup(index: int, world_positions: Dictionary = {}) -> void:
 	_lights.clear()
 	_water = null
 	_stream = null
+	_frontier_scene = null
 	_truck = null
 	_cargo = null
 	rotation = Vector3.ZERO
@@ -72,7 +75,13 @@ func setup(index: int, world_positions: Dictionary = {}) -> void:
 				focal_point = position
 				camera_focus = position
 				camera_size = 38.0
-				complete = true
+				var reclaimed=FrontierReclamation.new()
+				add_child(reclaimed)
+				if reclaimed.setup(world_positions,position):
+					_frontier_scene=reclaimed
+					set_process(true)
+				else:
+					reclaimed.free();complete=true
 				return
 			_has_convoy = is_instance_valid(world_positions.get("convoy_node")) and world_positions.get("convoy_node") is Node3D
 			position = _ground(world_positions.get("convoy", world_positions.get("arrival")), DEFAULT_ARRIVAL)
@@ -109,6 +118,9 @@ func _process(delta: float) -> void:
 func sample_at(seconds: float) -> void:
 	elapsed = clampf(seconds, 0.0, DURATION) if is_finite(seconds) else 0.0
 	complete = elapsed >= DURATION
+	if is_instance_valid(_frontier_scene):
+		_frontier_scene.sample_at(elapsed)
+		return
 	if _actors.size() != 3:
 		return
 	match mission_index:

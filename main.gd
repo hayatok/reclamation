@@ -2100,7 +2100,13 @@ func finish(won:bool):
   var anchors={"pump":frontier.nest.node.global_position if frontier!=null else get_site("pump").node.global_position,"hq":buildings[0].node.global_position,"occupied_positions":units.map(func(u):return u.node.global_position),"building_positions":buildings.map(func(b):return b.node.global_position)}
   var delivered=convoy_unit()
   if not delivered.is_empty():anchors["convoy_node"]=delivered.node;anchors["convoy"]=delivered.node.global_position
-  if frontier!=null:anchors["frontier"]=frontier.nest.node.global_position
+  if frontier!=null:
+   anchors["frontier"]=frontier.nest.node.global_position
+   anchors["frontier_unit_footprints"]=units.map(func(u):return {"position":u.node.global_position,"radius":3.2 if u.kind in ["truck","convoy","siegecart"] else .9})
+   anchors["frontier_building_footprints"]=buildings.map(func(b):return {"position":b.node.global_position,"radius":float(b.radius)})
+   anchors["frontier_clear"]=func(point:Vector3)->bool:
+    var cell=Vector2i(roundi(point.x),roundi(point.z))
+    return nav.is_in_boundsv(cell) and not nav.is_point_solid(cell) and frontier_visibility.is_visible(point)
   aftermath_scene.setup(campaign_state.current,anchors)
   aftermath_scene.hide();aftermath_scene.set_process(false)
   modal=CompletionPanel.new();root_ui.add_child(modal);modal.setup(self)
