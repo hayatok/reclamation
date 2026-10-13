@@ -8,9 +8,11 @@ const SurvivorMotion = preload("res://survivor_motion.gd")
 const BakedInfected = preload("res://baked_infected_renderer.gd")
 const BakedRunner = preload("res://baked_runner_renderer.gd")
 const BakedArmored = preload("res://baked_armored_renderer.gd")
+const BakedBoss = preload("res://baked_boss_renderer.gd")
 var baked:Node3D
 var baked_runner:Node3D
 var baked_armored:Node3D
+var baked_boss:Node3D
 var low_detail:bool=false
 const ActorVisuals = preload("res://actor_visuals.gd")
 const KINDS: Array[String] = ["infected", "runner", "armored"]
@@ -49,6 +51,8 @@ func setup() -> void:
 	add_child(baked_runner)
 	baked_armored=BakedArmored.new()
 	add_child(baked_armored)
+	baked_boss=BakedBoss.new()
+	add_child(baked_boss)
 	for kind: String in KINDS:
 		var bucket := Bucket.new()
 		bucket.kind = kind
@@ -72,16 +76,28 @@ func setup() -> void:
 func update_horde(enemies: Array, elapsed: float, rendered: Dictionary = {}) -> void:
 	if not _initialized:
 		setup()
+	# Route bosses by their retained boss flag, independent of armor/speed flags.
+	# Keep ordinary renderers from claiming a boss if its authored assets fail.
+	var ordinary: Array = []
+	var bosses: Array = []
+	for record: Dictionary in enemies:
+		if BakedBoss.is_boss(record):
+			bosses.append(record)
+		else:
+			ordinary.append(record)
+	if is_instance_valid(baked_boss):
+		baked_boss.force_far=low_detail
+		baked_boss.update_crowd(bosses,elapsed,get_viewport().get_camera_3d(),rendered)
 	if is_instance_valid(baked):
 		baked.force_far=low_detail
-		baked.update_crowd(enemies,elapsed,get_viewport().get_camera_3d(),rendered)
+		baked.update_crowd(ordinary,elapsed,get_viewport().get_camera_3d(),rendered)
 	if is_instance_valid(baked_runner):
 		baked_runner.force_far=low_detail
-		baked_runner.update_crowd(enemies,elapsed,get_viewport().get_camera_3d(),rendered)
+		baked_runner.update_crowd(ordinary,elapsed,get_viewport().get_camera_3d(),rendered)
 	if is_instance_valid(baked_armored):
 		baked_armored.force_far=low_detail
-		baked_armored.update_crowd(enemies,elapsed,get_viewport().get_camera_3d(),rendered)
-	visible_enemies = (baked.visible_count if is_instance_valid(baked) else 0) + (baked_runner.visible_count if is_instance_valid(baked_runner) else 0) + (baked_armored.visible_count if is_instance_valid(baked_armored) else 0)
+		baked_armored.update_crowd(ordinary,elapsed,get_viewport().get_camera_3d(),rendered)
+	visible_enemies = (baked.visible_count if is_instance_valid(baked) else 0) + (baked_runner.visible_count if is_instance_valid(baked_runner) else 0) + (baked_armored.visible_count if is_instance_valid(baked_armored) else 0) + (baked_boss.visible_count if is_instance_valid(baked_boss) else 0)
 	overflow_enemies = 0
 	for bucket: Bucket in _buckets:
 		bucket.members.clear()
@@ -93,7 +109,9 @@ func update_horde(enemies: Array, elapsed: float, rendered: Dictionary = {}) -> 
 			continue
 		if not actor.position.is_finite():
 			continue
-		var kind_index: int = 2 if enemy.get("armored", false) else (1 if float(enemy.get("speed", 1.65)) > 2.0 else 0)
+		var boss: bool = BakedBoss.is_boss(enemy)
+		if boss and is_instance_valid(baked_boss) and baked_boss.active:continue
+		var kind_index: int = 2 if boss or enemy.get("armored", false) else (1 if float(enemy.get("speed", 1.65)) > 2.0 else 0)
 		if kind_index==0 and is_instance_valid(baked) and baked.active:continue
 		if kind_index==1 and is_instance_valid(baked_runner) and baked_runner.active:continue
 		if kind_index==2 and BakedArmored.is_ordinary_armored(enemy) and is_instance_valid(baked_armored) and baked_armored.active:continue

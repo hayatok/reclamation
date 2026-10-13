@@ -1,0 +1,16 @@
+{
+  "scope": "Controlled normal-camera boss attack, not normal campaign success",
+  "native_renderer": "Godot 4.6.3 Compatibility llvmpipe",
+  "native_checks": 33,
+  "failures": 0,
+  "headless_transform_checks": "Dummy backend does not store MultiMesh transforms; all assertions passed unchanged with native renderer",
+  "full_serialized_state_identical": true,
+  "simulation_seconds": 1.8,
+  "hp_after": 1080,
+  "remaining": [
+    "Independent visual review",
+    "Walk/death ordinary-distance review",
+    "CPU comparison",
+    "Export/real Web/phone validation"
+  ]
+}

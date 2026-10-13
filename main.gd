@@ -529,6 +529,7 @@ func spawn_enemy(p:Vector3,fast:bool=false,armored:bool=false,boss:bool=false):
  if boss:
   n.scale=Vector3.ONE*2.2
   boss_label=world_label(render_interpolation.visual_root(n),"破砕体 100%",Vector3(0,2.0,0),RED)
+  boss_label.scale=Vector3.ONE/2.2 # Keep tactical type legible without inheriting giant body scale.
  enemies.append({"node":n,"boss_label":boss_label,"boss":boss,"windup":0.0,"attack_pos":p,"hp":3600.0 if boss else 150.0 if armored else 30.0 if fast else 45.0,"armored":armored,"charged_until":0.0,"speed":1.45 if boss else 1.2 if armored else 2.7 if fast else 1.65,"cd":rng.randf(),"dead":false,"route":[],"path_cd":0.0})
 
 func style(c:Color,border:Color=Color("29414b"))->StyleBoxFlat:
