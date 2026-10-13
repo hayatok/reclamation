@@ -331,6 +331,9 @@ func _show_objectives()->void:
 func _show_selection(replace_current:bool=false)->void:
  var body=_open_popup(host.selection_info.text.replace("\n"," · "),replace_current)
  if body==null:return
+ var site_details:bool=not host.inspected_site.is_empty()
+ if site_details:
+  _body_text(body,_touch_words(host.selection_info.tooltip_text+"\n"+host.supply_status.text+"\n"+host.supply_status.tooltip_text+"\n"+host.command_detail.text),15)
  var selectors=HBoxContainer.new();body.add_child(selectors)
  selectors.add_theme_constant_override("separation",6)
  for entry in [["本部",func():_close_popup();host.select_headquarters()],["全戦闘員",func():_close_popup();host.select_guards()],["全作業員",func():_close_popup();host.select_workers()]]:
@@ -350,10 +353,11 @@ func _show_selection(replace_current:bool=false)->void:
    var type_button=_button("%s ×%d"%[group.title,group.count],func():_close_popup();host.filter_selected_kind(kind),type_grid)
    type_button.size_flags_horizontal=Control.SIZE_EXPAND_FILL
  MobileGroups.add_to_selection(self,body)
- _body_text(body,_touch_words(host.selection_info.tooltip_text+"\n"+host.supply_status.text+"\n"+host.supply_status.tooltip_text),15)
+ if not site_details:
+  _body_text(body,_touch_words(host.selection_info.tooltip_text+"\n"+host.supply_status.text+"\n"+host.supply_status.tooltip_text),15)
  if host.current_supply_feedback.get("active",false) and host.inspected.get("kind","")!="factory" and not host.supply_status.text.contains(host.current_supply_feedback.context):
   _body_text(body,host.current_supply_feedback.context,15,AMBER)
- _body_text(body,_touch_words(host.queue_caption.text+"\n"+host.command_detail.text),14)
+ if not site_details:_body_text(body,_touch_words(host.queue_caption.text+"\n"+host.command_detail.text),14)
  if host.can_dismantle(host.inspected):_button("この施設を解体…",func():_close_popup();host.request_dismantle(),body)
  if host.context_button.visible:_button(host.context_button.text,func():host.toggle_inspected();_close_popup(),body)
  var zoom=HBoxContainer.new();body.add_child(zoom)

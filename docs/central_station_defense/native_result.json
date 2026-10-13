@@ -1,0 +1,10 @@
+{
+  "disabled": true,
+  "hold": 33.0,
+  "hp": 63.9999999999998,
+  "mobile": true,
+  "repair_order_accepted": true,
+  "scope": "Controlled reclaimed M3 site, five direct existing boss impacts, one normal repair command; not earned play",
+  "synthetic_close": true,
+  "worker_task": "repair"
+}
