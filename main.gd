@@ -3423,6 +3423,7 @@ func select_idle_worker(select_all:bool=false):
  for unit in units:
   if worker_needs_attention(unit):idle.append(unit)
  if idle.is_empty():return
+ if mobile_input!=null:mobile_input.cancel_command()
  if select_all:
   selected=idle
  else:
