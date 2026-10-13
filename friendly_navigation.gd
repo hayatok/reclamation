@@ -4,6 +4,7 @@ extends RefCounted
 ## Main calls begin_frame once per simulation step and navigation_changed after
 ## grid edits. Orders own goal/task/target; this helper owns transient route state.
 
+const CentralStationDefense = preload("res://central_station_defense.gd")
 const ARRIVED := "arrived"
 const PENDING := "pending"
 const MOVING := "moving"
@@ -261,7 +262,11 @@ func _work_target(unit: Dictionary) -> Dictionary:
 	if unit.get("task", "") not in ["build", "repair", "site"]:
 		return {}
 	var target: Variant = unit.get("target")
-	if target is not Dictionary or not _live(target):
+	if target is not Dictionary:
+		return {}
+	if unit.get("task") == "repair" and CentralStationDefense.repair_target(target):
+		return target
+	if not _live(target):
 		return {}
 	if unit.get("task") == "site":
 		var half: Vector2 = target.get("nav_half_extents", Vector2.ZERO)

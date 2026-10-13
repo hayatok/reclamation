@@ -2,6 +2,7 @@ extends RefCounted
 ## Worker-only FIFO. References stay live until a snapshot resolves current indices.
 ## Navigation and economic accounting remain owned by their existing helpers.
 const Rules=preload("res://settlement_rules.gd")
+const CentralStationDefense=preload("res://central_station_defense.gd")
 const MAX_PENDING:int=16
 const TASKS:Array[String]=["move","build","repair","gather"]
 
@@ -41,6 +42,7 @@ static func valid_target(host:Node,order:Dictionary)->bool:
  if not order.get("task","") in TASKS:return false
  if order.task=="move":return order.get("goal") is Vector3 and order.goal.is_finite()
  var target:Variant=order.get("target")
+ if order.task=="repair" and CentralStationDefense.repair_target(target):return target in host.sites
  if not alive(target):return false
  return target in (host.resource_nodes if order.task=="gather" else host.buildings)
 
@@ -69,7 +71,7 @@ static func activate(host:Node,worker:Dictionary,order:Dictionary,from_queue:boo
   "build","repair":
    host.economy.suspend_for_construction(worker)
    worker.task=order.task;worker.target=order.target
-   worker.goal=order.target.node.position+Vector3(0,0,float(order.target.radius)+1)
+   worker.goal=order.target.node.position if CentralStationDefense.is_station(order.target) else order.target.node.position+Vector3(0,0,float(order.target.radius)+1)
   "move":
    host.economy.cancel_assignment(worker)
    worker.task="move";worker.target=null;worker.goal=order.goal
@@ -91,8 +93,9 @@ static func snapshot(host:Node,worker:Dictionary)->Array:
  for order in pending(worker):
   if not valid_target(host,order):continue
   var task:String=order.task
-  var target_type:String="" if task=="move" else "resource" if task=="gather" else "build"
-  var target_index:int=-1 if task=="move" else (host.resource_nodes if task=="gather" else host.buildings).find(order.target)
+  var site_repair:bool=task=="repair" and CentralStationDefense.repair_target(order.target)
+  var target_type:String="" if task=="move" else "resource" if task=="gather" else "site" if site_repair else "build"
+  var target_index:int=-1 if task=="move" else (host.resource_nodes if task=="gather" else host.sites if site_repair else host.buildings).find(order.target)
   var goal:Vector3=order.goal if task=="move" else order.target.node.position
   result.append({"task":task,"target_type":target_type,"target_index":target_index,"goal":[goal.x,goal.y,goal.z]})
  return result
@@ -103,6 +106,7 @@ static func restore(host:Node,worker:Dictionary,entries:Array):
   var target:Variant=null
   if entry.target_type=="build":target=host.buildings[int(entry.target_index)]
   elif entry.target_type=="resource":target=host.resource_nodes[int(entry.target_index)]
+  elif entry.target_type=="site":target=host.sites[int(entry.target_index)]
   worker.pending_orders.append({"task":entry.task,"target":target,"goal":Vector3(entry.goal[0],entry.goal[1],entry.goal[2])})
 
 static func next_label(worker:Dictionary)->String:

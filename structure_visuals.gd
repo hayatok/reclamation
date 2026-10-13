@@ -264,6 +264,9 @@ static func set_site_reclaimed(parent: Node3D, reclaimed: bool) -> void:
 	var visual := parent.get_node_or_null("WaterStationVisual") as Node3D
 	if visual != null: WaterStationVisuals.set_reclaimed(visual,reclaimed)
 
+static func set_central_operational(parent: Node3D, operational: bool) -> void:
+	PowerFacilityVisuals.set_central_operational(parent, operational)
+
 static func _site(st: SurfaceTool, kind: String) -> void:
 	b(st,Vector3(4.2,.25,3.5),Vector3(0,.14,0),CONCRETE)
 	if kind == "generator" or kind == "substation":

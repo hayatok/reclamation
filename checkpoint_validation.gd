@@ -9,6 +9,7 @@ const Catalog=preload("res://upgrade_catalog.gd")
 const Atomic=preload("res://atomic_save.gd")
 const DefeatRecap=preload("res://defeat_recap.gd")
 const WorkerOrders=preload("res://worker_orders.gd")
+const CentralStationDefense=preload("res://central_station_defense.gd")
 const Navigation=preload("res://friendly_navigation.gd")
 const MAX_ITEMS:=10000
 const TASKS:=["idle","move","attack_move","site","build","repair","focus_fire","escort","gather","convoy"]
@@ -110,6 +111,7 @@ static func validate(value:Variant)->bool:
   if not fields(s,["progress","stock"],["reclaimed","paid"]):return false
   if not number(s.progress,0,1) or s.stock<0:return false
   if s.reclaimed and s.progress!=1:return false
+  if not _site_defense(s,d):return false
   if s.kind=="abandoned_depot" and (not s.paid and (s.progress>0 or s.reclaimed)):return false
   var half=Vector2.ZERO if s.kind=="abandoned_depot" and s.reclaimed else Navigation.site_half_extents(s.kind,mission_mode)
   if half!=Vector2.ZERO:site_footprints.append(Navigation.footprint_rect(Vector3(s.pos[0],s.pos[1],s.pos[2]),half))
@@ -169,6 +171,28 @@ static func validate(value:Variant)->bool:
  if not d.convoy_pending.is_empty():
   if not integer(d.convoy_pending.get("stage"),0,2) or not number(d.convoy_pending.get("clock")):return false
  return true
+
+static func _central_station(s:Dictionary,d:Dictionary)->bool:
+ if int(d.mission)!=CentralStationDefense.MISSION or s.get("kind","")!="pump" or not vector(s.get("pos")):return false
+ return Vector3(s.pos[0],s.pos[1],s.pos[2])==CentralStationDefense.POSITION
+
+static func _site_defense(s:Dictionary,d:Dictionary)->bool:
+ if not _central_station(s,d):
+  # M3's pump cannot evade the defense state by changing its saved position.
+  if int(d.mission)==CentralStationDefense.MISSION and s.kind=="pump":return false
+  return not s.has("hp") and not s.has("maxhp") and not s.has("disabled")
+ if not fields(s,["hp","maxhp"],["disabled"]):return false
+ var expected:float=CentralStationDefense.BASE_HP*(1.0+0.2*int(d.upgrades.get("armor",0)))
+ if not is_equal_approx(float(s.maxhp),expected) or not number(s.hp,0,s.maxhp):return false
+ if not s.reclaimed:return not s.disabled and s.hp==s.maxhp
+ if not s.paid:return false
+ if s.disabled:return s.hp<s.maxhp*CentralStationDefense.RESTART_FRACTION
+ return s.hp>0
+
+static func _site_repair_reference(d:Dictionary,reference:Variant)->bool:
+ if not index(reference,d.sites.size(),false):return false
+ var site:Dictionary=d.sites[int(reference)]
+ return _central_station(site,d) and site.reclaimed
 
 static func _frontier(d:Dictionary)->bool:
  if not FrontierMission.validate_snapshot(d.get("frontier"),d.enemies.size()):return false
@@ -283,6 +307,9 @@ static func _unit(u:Variant,d:Dictionary,own_index:int)->bool:
   if not d.frontier.nest.known or d.frontier.nest.dead or d.frontier.nest.hp<=0:return false
  var expected={"site":"site","build":"build","repair":"build","focus_fire":"enemy","escort":"unit","gather":"resource"}.get(u.task,"")
  if structure_target:expected="structure"
+ if u.task=="repair" and u.target_type=="site":
+  if not _site_repair_reference(d,u.get("target_index")):return false
+  expected="site"
  if u.target_type!="" and u.target_type!=expected:return false
  var sizes={"":0,"site":d.sites.size(),"build":d.buildings.size(),"enemy":d.enemies.size(),"unit":d.units.size(),"resource":d.resource_nodes.size(),"structure":1}
  if not index(u.get("target_index"),sizes[u.target_type],u.target_type==""):return false
@@ -326,7 +353,10 @@ static func _worker_orders(u:Dictionary,d:Dictionary)->bool:
   if not order is Dictionary or order.size()!=4:return false
   if not order.get("task") in WorkerOrders.TASKS or not vector(order.get("goal")):return false
   var expected="" if order.task=="move" else "resource" if order.task=="gather" else "build"
+  if order.task=="repair" and order.get("target_type")=="site":
+   if not _site_repair_reference(d,order.get("target_index")):return false
+   expected="site"
   if order.get("target_type")!=expected:return false
-  var size=0 if expected=="" else d.resource_nodes.size() if expected=="resource" else d.buildings.size()
+  var size=0 if expected=="" else d.resource_nodes.size() if expected=="resource" else d.sites.size() if expected=="site" else d.buildings.size()
   if not index(order.get("target_index"),size,expected==""):return false
  return true

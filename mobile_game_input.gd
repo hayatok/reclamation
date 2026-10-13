@@ -1,5 +1,6 @@
 extends RefCounted
 const MissionMap=preload("res://mission_map.gd")
+const CentralStationDefense=preload("res://central_station_defense.gd")
 ## Touch-to-existing-command adapter. The simulation remains authoritative.
 const Touch=preload("res://mobile_touch_controller.gd")
 var host:Node
@@ -104,7 +105,7 @@ func _tap(screen:Vector2,mode:int,append:bool)->void:
   var resource=host.resource_at(ground)
   if not resource.is_empty():host.command_at(ground,screen,append);return
   for site in host.sites:
-   if host.frontier_position_known(site.node.position) and site.node.position.distance_to(ground)<3 and not site.get("reclaimed",false):
+   if host.frontier_position_known(site.node.position) and site.node.position.distance_to(ground)<3 and (not site.get("reclaimed",false) or CentralStationDefense.repairable(site)):
     host.command_at(ground,screen,append);return
  for site in host.sites:
   if site.kind=="abandoned_depot" and site.reclaimed:continue
