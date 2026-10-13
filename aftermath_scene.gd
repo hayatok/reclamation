@@ -6,6 +6,7 @@ extends Node3D
 
 const Actors = preload("res://actor_visuals.gd")
 const Structures = preload("res://structure_visuals.gd")
+const FrontierAftermath = preload("res://frontier_aftermath.gd")
 const DURATION := 5.6
 const DEFAULT_PUMP := Vector3(-14, 0, -7)
 const DEFAULT_ARRIVAL := Vector3(20, 0, 22)
@@ -35,6 +36,7 @@ var _delivery_basis := Basis.IDENTITY
 var _receiving_center := Vector3.ZERO
 var _materials: Dictionary = {}
 var _prop_meshes: Dictionary = {}
+var _frontier_scene: Node3D
 
 ## World positions, in metres: pump (existing station root), arrival (new cosmetic
 ## truck stop, beside the actual convoy), street (north factory forecourt).
@@ -55,6 +57,7 @@ func setup(index: int, world_positions: Dictionary = {}) -> void:
 	_stream = null
 	_truck = null
 	_cargo = null
+	_frontier_scene = null
 	rotation = Vector3.ZERO
 	_has_convoy = false
 	mission_index = clampi(index, 0, 2)
@@ -70,9 +73,16 @@ func setup(index: int, world_positions: Dictionary = {}) -> void:
 				var frontier_point: Variant = world_positions.frontier
 				position = Vector3(frontier_point.x, 0, frontier_point.z) if frontier_point is Vector3 and frontier_point.is_finite() else Vector3.ZERO
 				focal_point = position
-				camera_focus = position
-				camera_size = 38.0
-				complete = true
+				var reclaimed := FrontierAftermath.new()
+				reclaimed.name="FrontierReclamation"
+				add_child(reclaimed)
+				reclaimed.setup(world_positions.get("occupied_positions",[]),world_positions.get("building_positions",[]),position)
+				reclaimed.set_process(false)
+				_frontier_scene=reclaimed
+				focal_point=position+reclaimed.focal_offset
+				camera_focus=focal_point+Vector3(0,0,3.8)
+				camera_size = 30.0
+				set_process(true)
 				return
 			_has_convoy = is_instance_valid(world_positions.get("convoy_node")) and world_positions.get("convoy_node") is Node3D
 			position = _ground(world_positions.get("convoy", world_positions.get("arrival")), DEFAULT_ARRIVAL)
@@ -109,6 +119,9 @@ func _process(delta: float) -> void:
 func sample_at(seconds: float) -> void:
 	elapsed = clampf(seconds, 0.0, DURATION) if is_finite(seconds) else 0.0
 	complete = elapsed >= DURATION
+	if is_instance_valid(_frontier_scene):
+		_frontier_scene.sample_at(elapsed)
+		return
 	if _actors.size() != 3:
 		return
 	match mission_index:

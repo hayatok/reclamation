@@ -1,0 +1,30 @@
+{
+  "asset": "shattered_road_obstruction",
+  "variant": "filled broken crest; displaced broad slabs; interrupted curb remains",
+  "triangles": 2384,
+  "baseline_triangles": 8700,
+  "surfaces": 1,
+  "bounds_godot": [
+    6,
+    0.9,
+    2.5
+  ],
+  "origin": [
+    0,
+    0,
+    0
+  ],
+  "ground_y": 0,
+  "long_axis": "+X",
+  "uv": "SalvageAtlas; finite and in [0,1]",
+  "material": "exact baseline PBR material and relative atlas image URIs",
+  "atlas_sha256": {
+    "ruptured_water_main_street_salvage_albedo.png": "4a4253a92dd9e3d6f1314615e4a709d8c94ffbe8129a6fb71f2c95ac5bcdc78d",
+    "ruptured_water_main_street_salvage_orm.png": "f06c3d018f7e1cdc94f6043742ef6d7e3bf1ec540505b0adfb0dd3c61c95b990",
+    "ruptured_water_main_street_salvage_normal.png": "909923be3862bdea132f146bde38ca7048179a8016e0211ca77042fb8c802439"
+  },
+  "baseline_glb_sha256": "2dd6ed79080e0512700b8ccdcd9500cb9c7537169fc75e38858c8f59e6bee47c",
+  "candidate_glb_sha256": "9606fe01994c1dbc5ae1e47a9260db694aa80affd5474ce3980f80d0335061de",
+  "generator_sha256": "0be2ba6f181717de4656502955d6f575da693d2e409bf580d6703f2259221a42",
+  "native_comparison": "Accepted: same seed/camera native; all saved state identical; 254 draw calls unchanged; primitives149153 to118313. Not FPS evidence."
+}

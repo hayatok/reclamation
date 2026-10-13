@@ -1,0 +1,57 @@
+{
+  "revision": "original_demolition_boss_v2_death_readability",
+  "forward": "Godot -Z",
+  "units": "meters",
+  "runtime_bones": 0,
+  "root_translation": false,
+  "pose_count": 44,
+  "walk_stride_m": 0.54,
+  "walk_stance_fraction": 0.62,
+  "clips": {
+    "idle": {
+      "duration": 1.8,
+      "frames": 2,
+      "loop": true
+    },
+    "walk": {
+      "duration": 1.0,
+      "frames": 12,
+      "loop": true
+    },
+    "windup": {
+      "duration": 1.4,
+      "frames": 12,
+      "loop": false
+    },
+    "recovery": {
+      "duration": 0.9,
+      "frames": 8,
+      "loop": false
+    },
+    "death": {
+      "duration": 1.2,
+      "frames": 10,
+      "loop": false
+    }
+  },
+  "attack_contact": "windup_11 equals recovery_00 exactly; damage is a runtime event",
+  "death": "asymmetric limp side-prone fall baked once; no runtime root topple",
+  "lods": {
+    "near": {
+      "triangles": 1112,
+      "corners": 3336,
+      "topology_sha256": "36b53f6ba0ce4f7259310e12fca85982b3f58ce833f85f14d3959bcc8c159096",
+      "file": "demolition_boss_near.glb",
+      "bytes": 6392204,
+      "sha256": "00fcbffc994bad1d11d35e02448273b1d5b91dd13b1c10efc90649ff1d10baae"
+    },
+    "far": {
+      "triangles": 408,
+      "corners": 1224,
+      "topology_sha256": "37c6a79b1909a876cca2759c2fc9cdc13997be9cf7c06a6a339ad6cedef36389",
+      "file": "demolition_boss_far.glb",
+      "bytes": 2495412,
+      "sha256": "6130fb979bd26faef5c3aa2b5473bb8313ca6e68256e0be77cefbb59ecf3bbf9"
+    }
+  }
+}
