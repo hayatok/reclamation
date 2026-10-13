@@ -1,6 +1,7 @@
 extends Node3D
 ## Cosmetic victory-only use of a cleared road. No simulation actors or rewards.
 const Actors=preload("res://actor_visuals.gd")
+const Worker=preload("res://articulated_worker.gd")
 const Structures=preload("res://structure_visuals.gd")
 const OFFSETS=[Vector3(-10,0,4),Vector3(-10,0,0),Vector3(-10,0,-4),Vector3(-8,0,7),Vector3(-12,0,7)]
 var actors:Array[Node3D]=[]
@@ -61,13 +62,29 @@ func sample_at(seconds:float)->void:
  if actors.size()!=2:return
  var t:float=clampf(seconds,0,5.6)
  var progress:float=smoothstep(0,2.8,t)
- var at:Vector3=Vector3(-.6,.025,2.6*(1-progress))
+ var at:Vector3=Vector3(-.45,.025,2.6*(1-progress))
  var moving:bool=t>0 and t<2.8
  var direction:Vector3=Vector3(0,0,-1).slerp(Vector3.RIGHT,smoothstep(2.4,3.05,t))
  _pose(actors[0],at,direction,2.6*progress/1.4*TAU,moving,true,smoothstep(0,.35,t)*(1-smoothstep(2.45,2.8,t)))
- _pose(actors[1],Vector3(.6,.025,0),Vector3.LEFT,0,false,true)
- var first:Vector3=actors[0].transform*Vector3(0,.82,-.43)
- var second:Vector3=actors[1].transform*Vector3(0,.82,-.43)
+ _pose(actors[1],Vector3(.45,.025,0),Vector3.LEFT,0,false,true)
+ var first:Vector3=actors[0].transform*Vector3(0,1.0,-.43)
+ var second:Vector3=actors[1].transform*Vector3(0,1.0,-.43)
  var transfer:float=smoothstep(3.2,3.9,t)
  cargo.position=first.lerp(second,transfer)
  cargo.rotation.y=lerp_angle(actors[0].rotation.y,actors[1].rotation.y,transfer)
+ # Actual crate-side contact, using the worker's existing arm lengths and IK.
+ # Both people support the box during the short handover.
+ for index in 2:
+  var actor=actors[index]
+  var parts=Actors.part_nodes(actor.get_meta(&"actor_visuals"))
+  var torso:Transform3D=parts[1].transform
+  var local_crate:Vector3=actor.transform.affine_inverse()*cargo.position
+  var ready:float=smoothstep(2.75,3.1,t) if index==1 else 1.0
+  var center:Vector3=Vector3(0,1.0,-.43).lerp(local_crate,ready)
+  for side_index in 2:
+   var side:float=-1.0 if side_index==0 else 1.0
+   var shoulder:Vector3=torso*Vector3(side*.212,.335,0)
+   var hand:Vector3=center+Vector3(side*.35,0,0)
+   var elbow:Vector3=Worker._joint(shoulder,hand,Worker.UPPER_ARM_LENGTH,Worker.FOREARM_LENGTH,Vector3(side*.72,-.82,.33))
+   parts[9+side_index].transform=Worker._segment(shoulder,elbow)
+   parts[11+side_index].transform=Worker._segment(elbow,hand)

@@ -20,10 +20,23 @@ func run():
  g.settle_aftermath_presentation();g.aftermath_scene.set_process(false)
  var v=g.aftermath_scene._frontier_scene
  print("RECLAMATION_LOCATION ",v.chosen_world if is_instance_valid(v) else "fallback")
+ if is_instance_valid(v):v.hide()
+ await settle()
+ root.get_texture().get_image().save_png("user://payoff_%s_before.png"%["touch" if g.mobile_enabled else "pc"])
+ if is_instance_valid(v):v.show()
  for t in [0.0,2.5,4.2]:
   g.aftermath_scene.sample_at(t)
   await settle()
-  root.get_texture().get_image().save_png("user://payoff_%s.png"%str(t))
+  root.get_texture().get_image().save_png("user://payoff_%s_%s.png"%["touch" if g.mobile_enabled else "pc",str(t)])
  assert(g.units.map(func(u):return [u.node.position,u.hp,u.task,u.target])==units)
+ Input.emulate_mouse_from_touch=true;Input.emulate_touch_from_mouse=false
+ for viewport in ([Vector2(844,390),Vector2(390,844)] if g.mobile_enabled else []):
+  g.mobile_browser._native_test_size=viewport;g._mobile_layout();await settle()
+  root.get_texture().get_image().save_png("user://payoff_mobile_%d.png"%int(viewport.x))
+  var visible_buttons=0
+  for b in g.modal.find_children("*","Button",true,false):
+   if b.is_visible_in_tree():
+    assert(not b.disabled);visible_buttons+=1
+  assert(visible_buttons>=3)
  print("RECLAMATION_CONTROLLED_REVIEW_PASS actual win presentation; final damage injected; not earned victory")
  g.free();quit()
