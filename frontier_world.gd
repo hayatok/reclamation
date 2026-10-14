@@ -187,6 +187,23 @@ func _make_roads() -> void:
 		for z in [43.0, 44.2, 45.4]:
 			_box(Vector3(x, 0.03, z), Vector3(4.2, 0.015, 0.13), "quay_mark")
 
+
+	_make_customs_forecourt()
+
+func _make_customs_forecourt() -> void:
+	# Original forecourt plan: four former vehicle/loading bays face the customs
+	# building, with a clear southern aisle joining the existing north/south road.
+	# Flat opaque art only; no obstacles, fog knowledge, navigation or RNG changes.
+	_box(Vector3(39.3, -0.001, -49.1), Vector3(19.0, 0.024, 15.2), "road")
+	for x in [30.5, 34.8, 39.1, 43.4, 47.7]:
+		# Two deliberately broad breaks suggest worn paint without fine noise.
+		_box(Vector3(x, .032, -53.45), Vector3(.13, .014, 4.0), "quay_mark")
+		_box(Vector3(x, .032, -49.85), Vector3(.13, .014, 2.3), "quay_mark")
+	for x in [32.65, 36.95, 41.25, 45.55]:
+		_box(Vector3(x, .032, -55.4), Vector3(3.7, .014, .13), "quay_mark")
+	# A quiet resurfaced strip links the aisle to the road; no arrows or new signs.
+	_box(Vector3(49.0, -.001, -44.3), Vector3(8.0, .024, 4.0), "road")
+
 func _make_ground_weathering() -> void:
 	# Local broad opaque stains, no alpha sorting or texture loop.
 	for entry in [

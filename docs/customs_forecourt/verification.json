@@ -1,0 +1,16 @@
+{
+  "base_commit": "ba83a33b74a754018d42e9374dff0a83ee98dcb7",
+  "limited_native_visual_review": true,
+  "viewport": [
+    1180,
+    738
+  ],
+  "camera_size": 50,
+  "full_checkpoint_equal_after_40_steps": true,
+  "unknown_fog_images_identical": true,
+  "unknown_fog_image_sha256": "1a5d0c308c531ba9a1675e94a59ee0aa0d123ee6c8ea7926ef96c80afb12f400",
+  "gameplay_code_changed": false,
+  "added_box_instances": 16,
+  "existing_materials_reused": true,
+  "real_phone_web_mac_unverified": true
+}
